@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-bg: #05050A;
+  --color-brand-surface: #16181D;
+  --color-brand-border: #262930;
+  --color-brand-primary: #F8FAFC;
+  --color-brand-secondary: #94A3B8;
+  --color-brand-accent: #818CF8;
+  --color-brand-success: #34D399;
+  --color-brand-warning: #FBBF24;
+  --font-sans: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-brand-bg);
+  color: var(--color-brand-primary);
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.animate-shimmer {
+  animation: shimmer 5s infinite linear;
+  background-size: 200% auto;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 6s linear infinite;
+}
+
+@keyframes gradient-xy {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-xy {
+  animation: gradient-xy 3s ease infinite;
+}
