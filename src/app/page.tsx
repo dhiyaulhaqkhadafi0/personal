@@ -345,6 +345,21 @@ const certificatesList = [
   }
 ];
 
+const badgesList = [
+  { title: "Data Analytics Essentials", image: "/badge/data-analytics-essentials.png" },
+  { title: "Data Science Orientation", image: "/badge/data-science-orientation.png" },
+  { title: "Google AI for App Building", image: "/badge/google-ai-for-app-building.png" },
+  { title: "Google AI for App Deployment", image: "/badge/google-ai-for-app-deployment.png" },
+  { title: "Google AI for Brainstorming and Planning", image: "/badge/google-ai-for-brainstorming-and-planning.1.png" },
+  { title: "Google AI for Content Creation", image: "/badge/google-ai-for-content-creation.png" },
+  { title: "Google AI for Data Analysis", image: "/badge/google-ai-for-data-analysis.png" },
+  { title: "Google AI for Research and Insights", image: "/badge/google-ai-for-research-and-insights.png" },
+  { title: "Google AI for Writing and Communicating", image: "/badge/google-ai-for-writing-and-communicating.png" },
+  { title: "Google AI Fundamentals", image: "/badge/google-ai-fundamentals.png" },
+  { title: "Cybersecurity Tools & Cyber Attacks", image: "/badge/introduction-to-cybersecurity-tools-cyber-attacks.png" },
+  { title: "Product Management Essentials", image: "/badge/product-management-essentials.png" }
+];
+
 export const SectionTransition = ({ imageSrc, title, variant = 1 }: { imageSrc: string; title: string; variant?: number }) => {
   const titleAnimations: Record<number, any> = {
     1: { initial: { y: 40, opacity: 0 }, whileInView: { y: 0, opacity: 1 }, transition: { duration: 0.8, ease: "easeOut" } },
@@ -396,6 +411,7 @@ export default function Home() {
   const [selectedCert, setSelectedCert] = useState<{ title: string; issuer: string; category: string; image: string } | null>(null);
   const [openLadderIndex, setOpenLadderIndex] = useState<number | null>(0);
   const [presentationProgress, setPresentationProgress] = useState(0);
+  const [activeCertSection, setActiveCertSection] = useState<'certificates' | 'badges'>('certificates');
 
   const handleNextMockup = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -700,7 +716,7 @@ export default function Home() {
         >
           <div className="text-center max-w-3xl mx-auto mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 text-xs font-bold uppercase tracking-widest mb-4 shadow-lg shadow-emerald-500/5">
-              <Award className="w-3.5 h-3.5" /> Credentials & Mastery
+              <ShieldCheck className="w-3.5 h-3.5" /> Credentials & Mastery
             </div>
             <h2 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight mb-4">
               Certifications & Foundations
@@ -791,46 +807,104 @@ export default function Home() {
           </div>
 
           <div className="mt-12">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
               <div>
-                <h3 className="text-xl md:text-2xl font-bold text-white">Certificate Archive</h3>
-                <p className="text-xs md:text-sm text-brand-secondary">Klik pada kartu sertifikat untuk melihat dokumen dalam resolusi penuh.</p>
+                <h3 className="text-xl md:text-2xl font-bold text-white">Credentials Archive</h3>
+                <p className="text-xs md:text-sm text-brand-secondary">Eksplorasi sertifikat profesional dan lencana keahlian.</p>
+              </div>
+              
+              <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+                <button 
+                  onClick={() => setActiveCertSection('certificates')}
+                  className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${activeCertSection === 'certificates' ? 'bg-brand-accent text-white shadow-[0_0_20px_rgba(129,140,248,0.4)]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                >
+                  Certificates
+                </button>
+                <button 
+                  onClick={() => setActiveCertSection('badges')}
+                  className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${activeCertSection === 'badges' ? 'bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                >
+                  Badges
+                </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {certificatesList.map((cert, cIdx) => (
+            <AnimatePresence mode="wait">
+              {activeCertSection === 'certificates' ? (
                 <motion.div
-                  key={cIdx}
-                  whileHover={{ y: -6, scale: 1.02 }}
-                  onClick={() => setSelectedCert(cert)}
-                  className="cursor-pointer group relative bg-white/5 backdrop-blur-xl border border-white/10 hover:border-brand-accent/50 rounded-2xl overflow-hidden p-4 shadow-xl transition-all"
+                  key="certificates"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
                 >
-                  <div className="relative aspect-[16/11] w-full rounded-xl overflow-hidden bg-[#0A0C10] mb-4">
-                    <Image 
-                      src={cert.image} 
-                      alt={cert.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 backdrop-blur-md px-4 py-2 rounded-full text-xs font-bold text-white flex items-center gap-2 border border-white/20 shadow-xl">
-                        <ZoomIn className="w-4 h-4 text-brand-accent" /> Inspect Certificate
+                  {certificatesList.map((cert, cIdx) => (
+                    <motion.div
+                      key={cIdx}
+                      whileHover={{ y: -6, scale: 1.02 }}
+                      onClick={() => setSelectedCert(cert)}
+                      className="cursor-pointer group relative bg-white/5 backdrop-blur-xl border border-white/10 hover:border-brand-accent/50 rounded-2xl overflow-hidden p-4 shadow-xl transition-all"
+                    >
+                      <div className="relative aspect-[16/11] w-full rounded-xl overflow-hidden bg-[#0A0C10] mb-4">
+                        <Image 
+                          src={cert.image} 
+                          alt={cert.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 backdrop-blur-md px-4 py-2 rounded-full text-xs font-bold text-white flex items-center gap-2 border border-white/20 shadow-xl">
+                            <ZoomIn className="w-4 h-4 text-brand-accent" /> Inspect Certificate
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-brand-accent block mb-1">
-                      {cert.issuer} • {cert.category}
-                    </span>
-                    <h4 className="text-sm font-bold text-white line-clamp-1 group-hover:text-brand-accent transition-colors">
-                      {cert.title}
-                    </h4>
-                  </div>
+                      
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-brand-accent block mb-1">
+                          {cert.issuer} • {cert.category}
+                        </span>
+                        <h4 className="text-sm font-bold text-white line-clamp-1 group-hover:text-brand-accent transition-colors">
+                          {cert.title}
+                        </h4>
+                      </div>
+                    </motion.div>
+                  ))}
                 </motion.div>
-              ))}
-            </div>
+              ) : (
+                <motion.div
+                  key="badges"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"
+                >
+                  {badgesList.map((badge, bIdx) => (
+                    <motion.div
+                      key={bIdx}
+                      whileHover={{ y: -5, scale: 1.05 }}
+                      className="group relative bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md border border-white/10 hover:border-emerald-500/50 rounded-3xl p-4 shadow-xl flex flex-col items-center text-center transition-all duration-300"
+                    >
+                      <div className="absolute inset-0 bg-emerald-500/0 group-hover:bg-emerald-500/10 rounded-3xl transition-colors duration-500" />
+                      <div className="absolute -inset-[1px] bg-gradient-to-b from-emerald-500/30 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0" />
+                      
+                      <div className="relative w-full aspect-square mb-3 z-10 flex items-center justify-center">
+                        <Image 
+                          src={badge.image} 
+                          alt={badge.title}
+                          fill
+                          className="object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.1)] group-hover:drop-shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all duration-500 scale-90 group-hover:scale-100"
+                        />
+                      </div>
+                      <h4 className="relative z-10 text-[10px] font-bold text-white/80 group-hover:text-emerald-300 transition-colors leading-snug line-clamp-2 px-1">
+                        {badge.title}
+                      </h4>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </motion.section>
 
