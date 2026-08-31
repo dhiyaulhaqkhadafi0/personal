@@ -7,6 +7,7 @@ import {
   ArrowRight, Database, Cpu, LayoutTemplate, X, ChevronUp, ChevronDown, CheckCircle2, AlertCircle, ArrowLeft, Lock, ShieldAlert, DollarSign, Activity, TrendingUp, XCircle, Target, Scale, Atom, ZoomIn, ZoomOut, Award, Zap, PenTool, ExternalLink, Code2, ShieldCheck, Compass, Check, Briefcase
 } from "lucide-react";
 import Image from "next/image";
+import { Navbar } from "../components/shared/navbar";
 
 // Custom SVG Icons
 const GithubIcon = ({ className }: { className?: string }) => (
@@ -465,6 +466,7 @@ export default function Home() {
 
   return (
     <main className="w-full min-h-screen bg-brand-bg text-brand-primary overflow-x-hidden font-sans selection:bg-brand-accent/30 relative">
+      <Navbar />
       {/* Global Scroll Progress Bar */}
       <motion.div 
         className="fixed top-0 left-0 right-0 h-1.5 origin-left z-[100] bg-gradient-to-r from-brand-accent via-indigo-500 to-emerald-500 shadow-[0_0_15px_rgba(129,140,248,0.5)]" 
@@ -490,7 +492,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
       </div>
 
-      <div className="relative z-10 w-full min-h-screen flex items-center justify-center px-6 py-20">
+      <div className="relative z-10 w-full min-h-screen flex items-center justify-center px-6 pt-32 pb-20">
         <div className="max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
           <div className="flex flex-col items-start text-left order-2 lg:order-1">
             <motion.div 
