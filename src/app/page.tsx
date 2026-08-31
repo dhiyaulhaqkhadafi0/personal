@@ -332,10 +332,10 @@ const certificatesList = [
     image: "/certificate/Certificate of Analysis Business - IIBA.jpg",
   },
   {
-    title: "Product Management Essentials",
-    issuer: "Professional Certificate",
-    category: "Product Foundation",
-    image: "/certificate/product-management-essentials.png",
+    title: "Google AI Professional",
+    issuer: "Google",
+    category: "AI Architecture Specialist",
+    image: "/certificate/Sertifikat Google AI Proffesional.jpg",
   },
   {
     title: "Certified Product Manager",
@@ -509,12 +509,16 @@ export default function Home() {
               className="flex flex-wrap items-center gap-3 mb-8"
             >
               <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-lg shadow-white/5 hover:bg-white/10 transition-colors cursor-default group">
-                <Award className="w-5 h-5 text-white/80 group-hover:text-white transition-colors drop-shadow-md" />
-                <span className="text-xs md:text-sm font-semibold text-brand-primary">Google AI Professional (Certificate)</span>
+                <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center p-[3px] shrink-0">
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" className="w-full h-full object-contain" />
+                </div>
+                <span className="text-xs md:text-sm font-semibold text-brand-primary">Google AI Professional Certified</span>
               </div>
               <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl border border-blue-500/20 bg-blue-500/5 backdrop-blur-xl shadow-lg shadow-blue-500/5 hover:bg-blue-500/10 transition-colors cursor-default group">
-                <Briefcase className="w-5 h-5 text-blue-400 group-hover:text-blue-300 transition-colors drop-shadow-md" />
-                <span className="text-xs md:text-sm font-semibold text-blue-300">IBM Product Manager (Certificate)</span>
+                <div className="w-5 h-5 rounded-sm bg-white flex items-center justify-center p-[2px] shrink-0">
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/IBM_logo.svg" alt="IBM" className="w-full h-full object-contain" />
+                </div>
+                <span className="text-xs md:text-sm font-semibold text-blue-300">IBM Product Manager Certified</span>
               </div>
             </motion.div>
 
@@ -1807,10 +1811,13 @@ export default function Home() {
 
                   <div className="flex flex-col sm:flex-row items-center gap-6 w-full max-w-md mx-auto">
                     <a 
-                      href="mailto:daffadhiyaulhaqkhadafi@gmail.com" 
-                      className="w-full sm:w-auto px-8 py-4 bg-brand-accent hover:bg-brand-accent/80 text-white rounded-full font-bold text-lg transition-all shadow-[0_0_30px_rgba(129,140,248,0.4)] hover:shadow-[0_0_40px_rgba(129,140,248,0.6)] hover:scale-105 flex justify-center"
+                      href="https://wa.me/6281946838791" 
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-full sm:w-auto px-8 py-4 bg-[#25D366] hover:bg-[#25D366]/80 text-white rounded-full font-bold text-lg transition-all shadow-[0_0_30px_rgba(37,211,102,0.4)] hover:shadow-[0_0_40px_rgba(37,211,102,0.6)] hover:scale-105 flex items-center justify-center gap-3"
                     >
-                      Drop an Email
+                      <WhatsappIcon className="w-6 h-6" />
+                      Contact via WhatsApp
                     </a>
                     <a 
                       href="https://www.linkedin.com/in/khdfii9/" 
