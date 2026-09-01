@@ -1,8 +1,8 @@
 "use client";
 
 import { useMusic, ATMOSPHERES } from "@/context/MusicContext";
-import { Headphones, Minimize2, Sparkles } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Headphones, Minimize2, Sparkles, Music } from "lucide-react";
+import { motion } from "framer-motion";
 
 const SpotifyLogo = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -22,114 +22,110 @@ export default function MusicPlayer() {
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-auto">
-      <AnimatePresence mode="wait">
-        {isExpanded ? (
-          /* ================= EXPANDED ATMOSPHERE DOCK ================= */
-          <motion.div
-            key="expanded"
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="w-[340px] sm:w-[380px] bg-[#111113]/95 backdrop-blur-2xl border border-[#27272A] rounded-3xl p-5 shadow-[0_16px_50px_rgba(0,0,0,0.85)] relative overflow-hidden"
+      {/* ================= 1. EXPANDED ATMOSPHERE DOCK (Never destroyed from DOM to keep playback alive!) ================= */}
+      <div
+        className={`w-[340px] sm:w-[380px] bg-[#111113]/95 backdrop-blur-2xl border border-[#27272A] rounded-3xl p-5 shadow-[0_16px_50px_rgba(0,0,0,0.85)] relative overflow-hidden transition-all duration-300 ${
+          isExpanded
+            ? "opacity-100 scale-100 translate-y-0 pointer-events-auto mb-3"
+            : "opacity-0 scale-95 translate-y-6 pointer-events-none absolute bottom-0 right-0 -z-10"
+        }`}
+      >
+        {/* Spotify Green Ambient Glow */}
+        <div className="absolute top-0 right-0 w-40 h-40 bg-[#1DB954]/15 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Header: Title & Minimize Button */}
+        <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#27272A]/70">
+          <div className="flex items-center gap-2">
+            <SpotifyLogo className="w-5 h-5 text-[#1DB954]" />
+            <span className="text-xs font-mono uppercase tracking-wider text-[#F8FAFC] font-semibold">
+              Choose Your Atmosphere
+            </span>
+          </div>
+          <button
+            onClick={() => setIsExpanded(false)}
+            className="p-1.5 rounded-full text-[#9CA3AF] hover:text-[#F8FAFC] hover:bg-[#27272A] transition-colors"
+            title="Kecilkan Player"
           >
-            {/* Spotify Green Ambient Glow */}
-            <div className="absolute top-0 right-0 w-40 h-40 bg-[#1DB954]/15 rounded-full blur-3xl pointer-events-none" />
+            <Minimize2 className="w-4 h-4" />
+          </button>
+        </div>
 
-            {/* Header: Title & Minimize Button */}
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#27272A]/70">
-              <div className="flex items-center gap-2">
-                <SpotifyLogo className="w-5 h-5 text-[#1DB954]" />
-                <span className="text-xs font-mono uppercase tracking-wider text-[#F8FAFC] font-semibold">
-                  Choose Your Atmosphere
-                </span>
-              </div>
-              <button
-                onClick={() => setIsExpanded(false)}
-                className="p-1.5 rounded-full text-[#9CA3AF] hover:text-[#F8FAFC] hover:bg-[#27272A] transition-colors"
-                title="Kecilkan Player"
-              >
-                <Minimize2 className="w-4 h-4" />
-              </button>
-            </div>
+        {/* Mood Atmosphere Selector Chips */}
+        <div className="mb-4">
+          <div className="text-[11px] font-mono text-[#9CA3AF] uppercase tracking-wider mb-2.5 flex items-center justify-between">
+            <span>Reading Soundscape</span>
+            <span className="text-[#34D399] flex items-center gap-1 font-sans text-xs">
+              <Sparkles className="w-3 h-3" /> {currentAtmosphere.emoji} {currentAtmosphere.name}
+            </span>
+          </div>
 
-            {/* Mood Atmosphere Selector Chips */}
-            <div className="mb-4">
-              <div className="text-[11px] font-mono text-[#9CA3AF] uppercase tracking-wider mb-2.5 flex items-center justify-between">
-                <span>Reading Soundscape</span>
-                <span className="text-[#34D399] flex items-center gap-1 font-sans text-xs">
-                  <Sparkles className="w-3 h-3" /> {currentAtmosphere.emoji} {currentAtmosphere.name}
-                </span>
-              </div>
+          <div className="grid grid-cols-3 gap-2">
+            {ATMOSPHERES.map((atm) => {
+              const isSelected = currentAtmosphere.id === atm.id;
+              return (
+                <button
+                  key={atm.id}
+                  onClick={() => selectAtmosphere(atm)}
+                  className={`flex flex-col items-center justify-center p-2.5 rounded-2xl border text-center transition-all ${
+                    isSelected
+                      ? "bg-[#1DB954]/15 border-[#1DB954] text-[#F8FAFC] shadow-[0_0_15px_rgba(29,185,84,0.2)] scale-[1.02]"
+                      : "bg-[#09090B] border-[#27272A] text-[#9CA3AF] hover:border-[#3F3F46] hover:text-[#E2E8F0]"
+                  }`}
+                >
+                  <span className="text-base mb-1">{atm.emoji}</span>
+                  <span className="text-[11px] font-medium leading-tight line-clamp-1">{atm.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                {ATMOSPHERES.map((atm) => {
-                  const isSelected = currentAtmosphere.id === atm.id;
-                  return (
-                    <button
-                      key={atm.id}
-                      onClick={() => selectAtmosphere(atm)}
-                      className={`flex flex-col items-center justify-center p-2.5 rounded-2xl border text-center transition-all ${
-                        isSelected
-                          ? "bg-[#1DB954]/15 border-[#1DB954] text-[#F8FAFC] shadow-[0_0_15px_rgba(29,185,84,0.2)] scale-[1.02]"
-                          : "bg-[#09090B] border-[#27272A] text-[#9CA3AF] hover:border-[#3F3F46] hover:text-[#E2E8F0]"
-                      }`}
-                    >
-                      <span className="text-base mb-1">{atm.emoji}</span>
-                      <span className="text-[11px] font-medium leading-tight line-clamp-1">{atm.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+        {/* Mood Description */}
+        <p className="text-xs text-[#6B7280] italic mb-3 text-center">
+          "{currentAtmosphere.tagline}"
+        </p>
 
-            {/* Mood Description */}
-            <p className="text-xs text-[#6B7280] italic mb-3 text-center">
-              "{currentAtmosphere.tagline}"
-            </p>
-
-            {/* Single Lazy-Loaded Spotify Embed */}
-            {hasLoadedIframe && (
-              <div className="rounded-2xl overflow-hidden border border-[#27272A] bg-[#09090B] shadow-inner">
-                <iframe
-                  key={currentAtmosphere.spotifyPlaylistId}
-                  style={{ borderRadius: "12px", display: "block" }}
-                  src={`https://open.spotify.com/embed/playlist/${currentAtmosphere.spotifyPlaylistId}?utm_source=generator&theme=0`}
-                  width="100%"
-                  height="152"
-                  frameBorder="0"
-                  allowFullScreen={false}
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                  loading="lazy"
-                />
-              </div>
-            )}
-          </motion.div>
-        ) : (
-          /* ================= COMPACT SLIM ATMOSPHERE PILL ================= */
-          <motion.div
-            key="compact"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            transition={{ duration: 0.2 }}
-            className="flex items-center gap-2.5 bg-[#111113]/90 backdrop-blur-2xl border border-[#27272A] hover:border-[#1DB954]/50 rounded-full py-2 px-4 shadow-2xl transition-all cursor-pointer group"
-            onClick={toggleExpanded}
-          >
-            <SpotifyLogo className="w-4 h-4 text-[#1DB954] flex-shrink-0 group-hover:scale-110 transition-transform" />
-
-            <div className="flex items-center gap-1.5 text-xs font-medium text-[#E2E8F0] group-hover:text-[#1DB954] transition-colors">
-              <span>{currentAtmosphere.emoji}</span>
-              <span>{currentAtmosphere.name}</span>
-            </div>
-
-            <div className="flex items-center gap-1 text-[11px] font-mono text-[#6B7280] bg-[#18181B] px-2 py-0.5 rounded-full border border-[#27272A]">
-              <Headphones className="w-3 h-3 text-[#34D399]" />
-              <span>Atmosphere</span>
-            </div>
-          </motion.div>
+        {/* Single Lazy-Loaded Spotify Embed (Preserved continuously in DOM once initiated) */}
+        {hasLoadedIframe && (
+          <div className="rounded-2xl overflow-hidden border border-[#27272A] bg-[#09090B] shadow-inner">
+            <iframe
+              key={currentAtmosphere.spotifyPlaylistId}
+              style={{ borderRadius: "12px", display: "block" }}
+              src={`https://open.spotify.com/embed/playlist/${currentAtmosphere.spotifyPlaylistId}?utm_source=generator&theme=0`}
+              width="100%"
+              height="152"
+              frameBorder="0"
+              allowFullScreen={false}
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy"
+            />
+          </div>
         )}
-      </AnimatePresence>
+      </div>
+
+      {/* ================= 2. COMPACT SLIM ATMOSPHERE PILL (Visible when minimized) ================= */}
+      {!isExpanded && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 10 }}
+          transition={{ duration: 0.2 }}
+          className="flex items-center gap-2.5 bg-[#111113]/90 backdrop-blur-2xl border border-[#27272A] hover:border-[#1DB954]/50 rounded-full py-2 px-4 shadow-2xl transition-all cursor-pointer group"
+          onClick={toggleExpanded}
+        >
+          <SpotifyLogo className="w-4 h-4 text-[#1DB954] flex-shrink-0 group-hover:scale-110 transition-transform" />
+
+          <div className="flex items-center gap-1.5 text-xs font-medium text-[#E2E8F0] group-hover:text-[#1DB954] transition-colors">
+            <span>{currentAtmosphere.emoji}</span>
+            <span>{currentAtmosphere.name}</span>
+          </div>
+
+          <div className="flex items-center gap-1 text-[11px] font-mono text-[#6B7280] bg-[#18181B] px-2 py-0.5 rounded-full border border-[#27272A]">
+            <Headphones className="w-3 h-3 text-[#34D399]" />
+            <span>{hasLoadedIframe ? "Sedang Memutar" : "Atmosphere"}</span>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }
