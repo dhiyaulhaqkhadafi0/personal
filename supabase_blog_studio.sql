@@ -1,6 +1,40 @@
 -- Khadafi Blog Studio: articles, RLS, and public media bucket.
 -- Run this once in the Supabase SQL Editor before opening /studio.
 
+-- The allowlist is intentionally empty in source control. Add the owner email
+-- privately after this migration has been applied.
+CREATE TABLE IF NOT EXISTS public.blog_admin_emails (
+  email TEXT PRIMARY KEY CHECK (email = lower(email)),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.blog_admin_emails ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "No direct access to blog admins" ON public.blog_admin_emails;
+CREATE POLICY "No direct access to blog admins" ON public.blog_admin_emails
+  FOR ALL USING (false) WITH CHECK (false);
+
+CREATE SCHEMA IF NOT EXISTS private;
+REVOKE ALL ON SCHEMA private FROM PUBLIC;
+
+CREATE OR REPLACE FUNCTION private.is_blog_admin()
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.blog_admin_emails
+    WHERE email = lower(COALESCE(auth.jwt() ->> 'email', ''))
+  );
+$$;
+
+REVOKE ALL ON FUNCTION private.is_blog_admin() FROM PUBLIC;
+GRANT USAGE ON SCHEMA private TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION private.is_blog_admin() TO anon, authenticated;
+
 CREATE TABLE IF NOT EXISTS public.blog_articles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   author_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE DEFAULT auth.uid(),
@@ -31,23 +65,43 @@ CREATE TABLE IF NOT EXISTS public.blog_articles (
 CREATE INDEX IF NOT EXISTS blog_articles_status_published_idx
   ON public.blog_articles(status, published_at DESC);
 
+CREATE INDEX IF NOT EXISTS blog_articles_author_id_idx
+  ON public.blog_articles(author_id);
+
 ALTER TABLE public.blog_articles ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Published articles are public" ON public.blog_articles;
 CREATE POLICY "Published articles are public" ON public.blog_articles
-  FOR SELECT USING (status = 'published' OR auth.uid() = author_id);
+  FOR SELECT USING (
+    status = 'published'
+    OR ((SELECT private.is_blog_admin()) AND (SELECT auth.uid()) = author_id)
+  );
 
 DROP POLICY IF EXISTS "Authors can create articles" ON public.blog_articles;
 CREATE POLICY "Authors can create articles" ON public.blog_articles
-  FOR INSERT WITH CHECK (auth.uid() = author_id);
+  FOR INSERT WITH CHECK (
+    (SELECT private.is_blog_admin())
+    AND (SELECT auth.uid()) = author_id
+  );
 
 DROP POLICY IF EXISTS "Authors can update articles" ON public.blog_articles;
 CREATE POLICY "Authors can update articles" ON public.blog_articles
-  FOR UPDATE USING (auth.uid() = author_id) WITH CHECK (auth.uid() = author_id);
+  FOR UPDATE
+  USING (
+    (SELECT private.is_blog_admin())
+    AND (SELECT auth.uid()) = author_id
+  )
+  WITH CHECK (
+    (SELECT private.is_blog_admin())
+    AND (SELECT auth.uid()) = author_id
+  );
 
 DROP POLICY IF EXISTS "Authors can delete articles" ON public.blog_articles;
 CREATE POLICY "Authors can delete articles" ON public.blog_articles
-  FOR DELETE USING (auth.uid() = author_id);
+  FOR DELETE USING (
+    (SELECT private.is_blog_admin())
+    AND (SELECT auth.uid()) = author_id
+  );
 
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('blog-media', 'blog-media', true)
@@ -60,14 +114,31 @@ CREATE POLICY "Blog media is public" ON storage.objects
 DROP POLICY IF EXISTS "Authors can upload blog media" ON storage.objects;
 CREATE POLICY "Authors can upload blog media" ON storage.objects
   FOR INSERT TO authenticated
-  WITH CHECK (bucket_id = 'blog-media' AND (storage.foldername(name))[1] = auth.uid()::text);
+  WITH CHECK (
+    (SELECT private.is_blog_admin())
+    AND bucket_id = 'blog-media'
+    AND (storage.foldername(name))[1] = (SELECT auth.uid())::text
+  );
 
 DROP POLICY IF EXISTS "Authors can update blog media" ON storage.objects;
 CREATE POLICY "Authors can update blog media" ON storage.objects
   FOR UPDATE TO authenticated
-  USING (bucket_id = 'blog-media' AND owner_id = auth.uid()::text);
+  USING (
+    (SELECT private.is_blog_admin())
+    AND bucket_id = 'blog-media'
+    AND owner_id = (SELECT auth.uid())::text
+  )
+  WITH CHECK (
+    (SELECT private.is_blog_admin())
+    AND bucket_id = 'blog-media'
+    AND owner_id = (SELECT auth.uid())::text
+  );
 
 DROP POLICY IF EXISTS "Authors can delete blog media" ON storage.objects;
 CREATE POLICY "Authors can delete blog media" ON storage.objects
   FOR DELETE TO authenticated
-  USING (bucket_id = 'blog-media' AND owner_id = auth.uid()::text);
+  USING (
+    (SELECT private.is_blog_admin())
+    AND bucket_id = 'blog-media'
+    AND owner_id = (SELECT auth.uid())::text
+  );

@@ -45,9 +45,11 @@ Setup:
 1. Copy `.env.example` to `.env.local` and fill the Supabase values.
 2. Set `BLOG_ADMIN_EMAIL` to the only email allowed to use Studio APIs.
 3. Run `supabase_blog_studio.sql` once in the Supabase SQL Editor.
-4. Create that admin user in Supabase Authentication using email/password.
-5. Add the same environment values to the Cloudflare deployment.
+4. Add the same email privately to `blog_admin_emails` (do not commit it).
+5. Create that admin user in Supabase Authentication using email/password.
+6. Add the same environment values to the Cloudflare deployment.
 
 The SQL creates the `blog_articles` table, row-level security policies, and the
 public `blog-media` storage bucket. Drafts remain owner-only; public visitors can
-only read articles with `status = 'published'`.
+only read articles with `status = 'published'`. The admin allowlist is protected
+by RLS and intentionally contains no email address in source control.
