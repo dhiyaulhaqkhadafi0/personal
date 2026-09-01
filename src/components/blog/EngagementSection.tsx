@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, Sparkles, Share2, Link2, MessageSquare, Send } from "lucide-react";
+import { Eye, Heart, Share2, Link2, MessageSquare, Send } from "lucide-react";
 
 const TwitterIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -144,21 +144,21 @@ export default function EngagementSection({ slug }: Props) {
           
           <button 
             onClick={handleIgnite}
-            className="group flex items-center gap-2 text-[#9CA3AF] hover:text-[#34D399] transition-colors relative"
+            className="group flex items-center gap-2 text-[#9CA3AF] hover:text-[#EF4444] transition-colors relative"
           >
             <motion.div
               whileTap={{ scale: 0.8 }}
               animate={isIgniting ? { scale: [1, 1.4, 1], rotate: [0, 15, -15, 0] } : {}}
               className="relative"
             >
-              <Sparkles className={`w-4 h-4 ${isIgniting ? 'text-[#34D399] fill-[#34D399]/30' : ''}`} />
+              <Heart className={`w-4 h-4 ${isIgniting ? 'text-[#EF4444] fill-[#EF4444]' : 'group-hover:fill-[#EF4444]/20'}`} />
               <AnimatePresence>
                 {isIgniting && (
                   <motion.div
                     initial={{ opacity: 1, scale: 0.5 }}
                     animate={{ opacity: 0, scale: 2.5 }}
                     exit={{ opacity: 0 }}
-                    className="absolute inset-0 rounded-full border border-[#34D399] z-[-1]"
+                    className="absolute inset-0 rounded-full border border-[#EF4444] z-[-1]"
                   />
                 )}
               </AnimatePresence>

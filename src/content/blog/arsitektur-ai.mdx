@@ -1,0 +1,61 @@
+---
+title: "Merancang Arsitektur AI-Assisted Engineering"
+category: "Artefak"
+date: "2026-09-02"
+excerpt: "Membangun sistem defensibel yang tidak hanya bekerja, tetapi juga berpikir. Eksplorasi mendalam tentang bagaimana AI mengubah fundamental rekayasa perangkat lunak."
+image: "/assets/images/grimoire-cover.png"
+---
+
+# Merancang Arsitektur AI-Assisted Engineering
+
+Di era di mana kode bukan lagi sekadar instruksi statis, kita dihadapkan pada paradigma baru: perangkat lunak yang mampu **berpikir, beradaptasi, dan merespons**. Inilah esensi dari *AI-Assisted Engineering*.
+
+## Pergeseran Paradigma
+
+Selama beberapa dekade, *Software Engineering* didasarkan pada logika deterministik. Jika A, maka B. Jika input X, kembalikan Y. Namun, dengan hadirnya LLM (Large Language Models), kita memasuki ranah probabilistik.
+
+> "Kode tidak lagi hanya dieksekusi, ia dikalkulasi secara semantik."
+
+Kita tidak lagi hanya mengandalkan *if-else statement*, tetapi kita membangun *context windows*, mengatur *temperature*, dan merancang *prompt orchestration*.
+
+### Fondasi Arsitektur Defensibel
+
+Membangun ekosistem yang defensibel berarti membangun sistem yang tidak mudah direplikasi oleh kompetitor. Dalam konteks AI, defensibilitas tidak datang dari model AI itu sendiri (karena model AI adalah komoditas), melainkan dari:
+
+1. **Data Proprietary**: Konteks unik yang Anda berikan pada model.
+2. **Workflow Integration**: Bagaimana AI disisipkan ke dalam alur kerja pengguna tanpa terasa mengganggu.
+3. **Feedback Loops**: Mekanisme di mana setiap interaksi pengguna membuat sistem menjadi lebih pintar.
+
+## Komponen Utama Sistem AI
+
+Sebuah arsitektur aplikasi AI-Native modern umumnya membutuhkan komponen-komponen berikut:
+
+- **Vector Database**: Untuk pencarian semantik (misal: Pinecone, Supabase pgvector).
+- **Orchestration Layer**: Untuk mengatur *chains* dan koneksi antar fungsi (misal: LangChain, LlamaIndex).
+- **Edge Computing**: Untuk meminimalkan latensi respons (Cloudflare Workers, Vercel Edge).
+
+```typescript
+// Contoh sederhana eksekusi fungsi edge dengan AI
+import { OpenAI } from 'openai';
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+export async function generateArchitectureBlueprint(context: string) {
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4-turbo",
+    messages: [
+      { role: "system", content: "You are an expert software architect." },
+      { role: "user", content: `Design a system for: ${context}` }
+    ],
+    temperature: 0.2,
+  });
+
+  return completion.choices[0].message.content;
+}
+```
+
+## Kesimpulan
+
+Menjadi *AI-Assisted Product Engineer* berarti kita tidak memusuhi otomatisasi, tetapi kita menjadi konduktor dari orkestra kecerdasan tersebut. Kita fokus pada gambaran besar, pada nilai bisnis, dan pada pengalaman pengguna, sementara AI menangani boilerplate dan *heavy-lifting* logika dasar.
+
+Sampai jumpa di fase berikutnya.
