@@ -60,10 +60,10 @@ export function Navbar() {
             <Image 
               src="/assets/logo%20AAPE.png" 
               alt="AAPE Logo" 
-              width={180}
-              height={54}
+              width={200}
+              height={60}
               priority
-              className="h-10 sm:h-11 md:h-12 w-auto object-contain group-hover:scale-[1.03] transition-transform duration-500 drop-shadow-[0_0_14px_rgba(255,255,255,0.35)] group-hover:drop-shadow-[0_0_22px_rgba(255,255,255,0.6)]" 
+              className="h-12 sm:h-14 md:h-16 w-auto object-contain group-hover:scale-[1.03] transition-transform duration-500 drop-shadow-[0_0_14px_rgba(255,255,255,0.35)] group-hover:drop-shadow-[0_0_22px_rgba(255,255,255,0.6)]" 
             />
           </Link>
         </div>
