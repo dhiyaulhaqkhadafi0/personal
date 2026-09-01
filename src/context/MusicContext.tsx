@@ -43,15 +43,15 @@ export const ATMOSPHERES: Atmosphere[] = [
     id: "rain",
     name: "Rainy Window",
     emoji: "🌧",
-    tagline: "Soft rain & mellow chill study beats",
-    spotifyPlaylistId: "37i9dQZF1DXbcPC6alAh0U",
+    tagline: "Gentle rain sounds & focus ambient",
+    spotifyPlaylistId: "37i9dQZF1DX8Uebhn9wzrS",
   },
   {
     id: "coffee",
     name: "Coffee & Code",
     emoji: "☕",
-    tagline: "Warm lo-fi vibes & steady groove",
-    spotifyPlaylistId: "37i9dQZF1DX6tTW0xDxScH",
+    tagline: "Warm lo-fi cafe vibes & steady flow",
+    spotifyPlaylistId: "37i9dQZF1DWWQRwui0ExPn",
   },
 ];
 
