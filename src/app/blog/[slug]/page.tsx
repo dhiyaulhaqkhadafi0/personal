@@ -47,39 +47,46 @@ export default async function BlogPost({ params }: Props) {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-[#09090B] via-[#0C0C0E] to-[#120D14] text-[#D1D5DB] selection:bg-[#34D399]/20 selection:text-[#E2E8F0] ${sans.className}`}>
+    <div className={`min-h-screen bg-[#0C0C0E] text-[#D1D5DB] selection:bg-[#34D399]/20 selection:text-[#E2E8F0] ${sans.className}`}>
+      
+      {/* Ambient Gradient Background for Detail Page */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-[#10B981]/5 blur-[120px] mix-blend-screen" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-[#8B5CF6]/5 blur-[120px] mix-blend-screen" />
+      </div>
+
       <Navbar />
       
-      <main className="max-w-[85rem] mx-auto px-6 pt-32 pb-24 flex items-start gap-12 relative">
+      <main className="max-w-4xl mx-auto px-4 md:px-6 pt-32 pb-32 relative z-10 flex flex-col items-center">
         
-        {/* Main Reading Area (Book-Frame) */}
-        <div className="flex-1 w-full max-w-3xl mx-auto">
-          
+        <div className="w-full mb-10">
           <Link 
             href="/blog" 
-            className="inline-flex items-center gap-2 text-sm text-[#9CA3AF] hover:text-[#E2E8F0] transition-colors mb-10 group bg-[#18181B] px-4 py-2 rounded-full border border-[#27272A]"
+            className="inline-flex items-center gap-2 text-sm text-[#9CA3AF] hover:text-[#E2E8F0] transition-colors group bg-[#131316] px-4 py-2 rounded-full border border-[#27272A]/50 shadow-sm backdrop-blur-md"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span className="font-mono">Kembali ke Daftar</span>
+            <span className="font-mono">Kembali ke Dunia</span>
           </Link>
+        </div>
 
-          {/* Book-Frame Container */}
-          <article className="bg-[#131316]/80 backdrop-blur-xl rounded-[2rem] border border-[#27272A]/60 shadow-[0_8px_30px_rgb(0,0,0,0.4)] p-8 md:p-14 relative overflow-hidden">
+        {/* Animated Looping Border Wrapper */}
+        <div className="relative w-full rounded-[2rem] p-[1px] overflow-hidden group">
+          {/* Rotating gradient background creating the border effect */}
+          <div className="absolute inset-[-50%] bg-[conic-gradient(from_0deg,transparent_0_340deg,#34D399_360deg)] animate-[spin_4s_linear_infinite] opacity-30 group-hover:opacity-60 transition-opacity duration-700" />
+          
+          {/* The actual Book-Frame Container */}
+          <article className="relative bg-[#111113]/90 backdrop-blur-3xl rounded-[2rem] border border-[#27272A]/40 shadow-2xl p-6 md:p-14 lg:p-16 h-full w-full">
             
-            {/* Subtle light leak effect at the top */}
-            <div className="absolute top-0 left-1/4 w-1/2 h-1 bg-gradient-to-r from-transparent via-[#34D399]/30 to-transparent" />
-            
-            {/* Navigation & Meta */}
-            <header className="mb-14">
+            {/* Header */}
+            <header className="mb-16">
               <div className="flex items-center gap-3 text-sm font-mono tracking-wide mb-8">
-                <span className="text-[#34D399] uppercase font-medium bg-[#34D399]/10 px-3 py-1 rounded-full">{post.metadata.category}</span>
-                <span className="w-1 h-1 rounded-full bg-[#3F3F46]" />
+                <span className="text-[#34D399] uppercase font-medium bg-[#34D399]/10 px-3 py-1 rounded-full border border-[#34D399]/20">{post.metadata.category}</span>
                 <span className="text-[#6B7280]">
                   {new Date(post.metadata.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                 </span>
               </div>
               
-              <h1 className={`text-4xl md:text-[2.75rem] leading-[1.15] text-[#F8FAFC] font-medium tracking-tight mb-8 ${lora.className}`}>
+              <h1 className={`text-4xl md:text-[3rem] leading-[1.15] text-[#F8FAFC] font-medium tracking-tight mb-8 ${lora.className}`}>
                 {post.metadata.title}
               </h1>
               
@@ -88,34 +95,32 @@ export default async function BlogPost({ params }: Props) {
               </p>
             </header>
 
-            {/* Article Body - Highly Readable Typography */}
+            {/* Typography Content */}
             <div className={`prose prose-invert max-w-none 
-              prose-p:text-[#D1D5DB] prose-p:leading-[1.9] prose-p:text-[1.05rem] ${lora.className}
+              prose-p:text-[#D1D5DB] prose-p:leading-[2] prose-p:text-[1.1rem] ${lora.className}
               prose-headings:font-sans prose-headings:font-medium prose-headings:text-[#F8FAFC] prose-headings:tracking-tight
-              prose-h2:text-[1.75rem] prose-h2:mt-14 prose-h2:mb-6
-              prose-h3:text-[1.35rem] prose-h3:mt-10 prose-h3:mb-4
+              prose-h2:text-[1.85rem] prose-h2:mt-16 prose-h2:mb-6
+              prose-h3:text-[1.4rem] prose-h3:mt-10 prose-h3:mb-4
               prose-a:text-[#34D399] prose-a:font-sans prose-a:no-underline hover:prose-a:underline hover:prose-a:decoration-[#34D399]/50
               prose-strong:text-[#F8FAFC] prose-strong:font-semibold
               prose-blockquote:border-l-[#34D399]/40 prose-blockquote:bg-[#18181B]/60 prose-blockquote:py-2 prose-blockquote:px-6 prose-blockquote:rounded-r-xl prose-blockquote:font-style-italic prose-blockquote:text-[#A1A1AA]
               prose-code:text-[#34D399] prose-code:bg-[#09090B] prose-code:font-sans prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-normal prose-code:before:content-none prose-code:after:content-none
-              prose-pre:bg-[#09090B] prose-pre:border prose-pre:border-[#27272A] prose-pre:font-sans prose-pre:shadow-inner
-              prose-hr:border-[#27272A] prose-hr:my-12
+              prose-pre:bg-[#09090B] prose-pre:border prose-pre:border-[#27272A]/50 prose-pre:font-sans prose-pre:shadow-inner
+              prose-hr:border-[#27272A]/50 prose-hr:my-16
             `}>
               <MDXRemote source={post.content} />
             </div>
 
-            {/* Engagement Section (Likes, Shares, Comments) */}
             <EngagementSection slug={slug} />
 
           </article>
         </div>
 
-        {/* Right Sidebar for Auto-ToC (Visible on large screens) */}
-        <aside className="hidden xl:block w-72 sticky top-32">
-          <TableOfContents content={post.content} />
-        </aside>
-
       </main>
+
+      {/* Floating Collapsible ToC */}
+      <TableOfContents content={post.content} />
+
     </div>
   );
 }
