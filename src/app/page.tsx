@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useScroll, useSpring } from "framer-motion";
 import {
   Brain, BarChart2, Users, Network, Layers, RefreshCcw, 
-  ArrowRight, Database, Cpu, LayoutTemplate, X, ChevronUp, ChevronDown, CheckCircle2, AlertCircle, ArrowLeft, Lock, ShieldAlert, DollarSign, Activity, TrendingUp, XCircle, Target, Scale, Atom, ZoomIn, ZoomOut, Award, Zap, PenTool, ExternalLink, Code2, ShieldCheck, Compass, Check, Briefcase
+  ArrowRight, Database, Cpu, LayoutTemplate, X, ChevronUp, ChevronDown, CheckCircle2, AlertCircle, ArrowLeft, Lock, ShieldAlert, DollarSign, Activity, TrendingUp, XCircle, Target, Scale, Atom, ZoomIn, ZoomOut, Award, Zap, PenTool, ExternalLink, Code2, ShieldCheck, Compass, Check, Briefcase, Send
 } from "lucide-react";
 import Image from "next/image";
 import { Navbar } from "../components/shared/navbar";
@@ -2533,8 +2533,8 @@ export default function Home() {
             {/* Left Column: Context & Social Proof */}
             <div className="lg:col-span-5 space-y-8">
               <div>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 font-bold text-xs uppercase tracking-widest mb-6">
-                  <Zap className="w-4 h-4" />
+                <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 font-bold text-xs uppercase tracking-widest mb-6 relative">
+                  <Send className="w-7 h-7 text-purple-400 -rotate-12 drop-shadow-[0_0_15px_rgba(168,85,247,0.6)]" />
                   Berlangganan Catatan Kehidupan
                 </div>
                 <h2 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4">
