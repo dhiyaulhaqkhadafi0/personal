@@ -258,33 +258,237 @@ const coreCompetencies = [
   }
 ];
 
+const BrandLogo = ({ name, className = "w-4 h-4" }: { name: string; className?: string }) => {
+  switch (name) {
+    case "Windsurf":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" fill="#0EA5E9" fillOpacity="0.2" stroke="#38BDF8" strokeWidth="1.5"/>
+          <path d="M7 14.5C9 11 11 11 12.5 13C14 15 16 14.5 17.5 12" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M7 10C9 6.5 11 6.5 12.5 8.5C14 10.5 16 10 17.5 7.5" stroke="#7DD3FC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      );
+    case "Cursor":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="2" width="20" height="20" rx="5" fill="#1E293B" stroke="#64748B" strokeWidth="1.5"/>
+          <path d="M6 17L11.5 6L14 12.5L18.5 14L6 17Z" fill="#F8FAFC"/>
+        </svg>
+      );
+    case "Anti Gravity":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="#818CF8" strokeWidth="1.5" strokeDasharray="3 3"/>
+          <ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(-30 12 12)" stroke="#A78BFA" strokeWidth="1.5"/>
+          <ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(30 12 12)" stroke="#C084FC" strokeWidth="1.5"/>
+          <circle cx="12" cy="12" r="2.5" fill="#818CF8"/>
+        </svg>
+      );
+    case "v0":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="6" fill="#000000" stroke="#333333" strokeWidth="1.5"/>
+          <path d="M5 8L9.5 16L14 8" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <ellipse cx="17.5" cy="12" rx="2.5" ry="4" stroke="#FFFFFF" strokeWidth="2"/>
+        </svg>
+      );
+    case "Claude Code":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="6" fill="#D97706" fillOpacity="0.15" stroke="#F59E0B" strokeWidth="1.5"/>
+          <path d="M12 4V20M4 12H20M6.34 6.34L17.66 17.66M6.34 17.66L17.66 6.34" stroke="#D97706" strokeWidth="2.5" strokeLinecap="round"/>
+        </svg>
+      );
+    case "Gemini CLI":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C12 7.5 7.5 12 2 12C7.5 12 12 16.5 12 22C12 16.5 16.5 12 22 12C16.5 12 12 7.5 12 2Z" fill="url(#gemini-grad)"/>
+          <defs>
+            <linearGradient id="gemini-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#38BDF8"/>
+              <stop offset="0.5" stopColor="#818CF8"/>
+              <stop offset="1" stopColor="#EC4899"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      );
+    case "Lovable.dev":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#FB7185"/>
+        </svg>
+      );
+    case "N8N":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="6" fill="#FF6D5A" fillOpacity="0.2" stroke="#FF6D5A" strokeWidth="1.5"/>
+          <circle cx="7" cy="12" r="2.5" fill="#FF6D5A"/>
+          <circle cx="17" cy="7" r="2.5" fill="#FF6D5A"/>
+          <circle cx="17" cy="17" r="2.5" fill="#FF6D5A"/>
+          <path d="M9.5 12H14.5M14.5 7L9.5 12L14.5 17" stroke="#FF6D5A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      );
+    case "Next.js":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" fill="#000000" stroke="#FFFFFF" strokeWidth="1.5"/>
+          <path d="M8 8V16M8 8L16 16M16 8V12" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      );
+    case "Supabase":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M13.5 2L3 14.5H12L10.5 22L21 9.5H12L13.5 2Z" fill="#3ECF8E"/>
+        </svg>
+      );
+    case "Tailwind CSS":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 6C9.333 6 7.667 7.333 7 10C8 8.667 9.333 8.333 11 9C12.143 9.457 12.957 10.3 13.857 11.243C15.314 12.771 17 14.5 21 14.5C23.667 14.5 25.333 13.167 26 10.5C25 11.833 23.667 12.167 22 11.5C20.857 11.043 20.043 10.2 19.143 9.257C17.686 7.729 16 6 12 6ZM3 14.5C0.333 14.5 -1.333 15.833 -2 18.5C-1 17.167 0.333 16.833 2 17.5C3.143 17.957 3.957 18.8 4.857 19.743C6.314 21.271 8 23 12 23C14.667 23 16.333 21.667 17 19C16 20.333 14.667 20.667 13 20C11.857 19.543 11.043 18.7 10.143 17.757C8.686 16.229 7 14.5 3 14.5Z" transform="scale(0.7) translate(3, 1)" fill="#38BDF8"/>
+        </svg>
+      );
+    case "Vercel":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 3L22 20H2L12 3Z" fill="#FFFFFF"/>
+        </svg>
+      );
+    case "Cloudflare":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18.8 10.5C18.3 7.8 15.9 5.8 13 5.8C10.7 5.8 8.6 7.1 7.7 9.1C5.6 9.4 4 11.2 4 13.5C4 16 6 18 8.5 18H18.5C20.4 18 22 16.4 22 14.5C22 12.6 20.6 11 18.8 10.5Z" fill="#F38020"/>
+          <path d="M15.5 14L19 18H10L8.5 14H15.5Z" fill="#FAAD3F" fillOpacity="0.4"/>
+        </svg>
+      );
+    case "Google Cloud":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#4285F4"/>
+        </svg>
+      );
+    case "TypeScript":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="5" fill="#3178C6"/>
+          <path d="M6 10H14M10 10V18" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round"/>
+          <path d="M15 17C16.5 17.5 18.5 17 18.5 15C18.5 13 16 13.5 16 11.5C16 10.5 17 9.5 18.5 10" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      );
+    case "Figma":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 2H12V8H8C6.34 8 5 6.66 5 5C5 3.34 6.34 2 8 2Z" fill="#F24E1E"/>
+          <path d="M12 2H16C17.66 2 19 3.34 19 5C19 6.66 17.66 8 16 8H12V2Z" fill="#FF7262"/>
+          <path d="M12 8H16C17.66 8 19 9.34 19 11C19 12.66 17.66 14 16 14H12V8Z" fill="#1ABCFE"/>
+          <path d="M5 11C5 9.34 6.34 8 8 8H12V14H8C6.34 14 5 12.66 5 11Z" fill="#0ACF83"/>
+          <path d="M5 17C5 15.34 6.34 14 8 14H12V17C12 18.66 10.66 20 9 20C7.34 20 5 18.66 5 17Z" fill="#A259FF"/>
+        </svg>
+      );
+    case "Canva":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" fill="url(#canva-grad)"/>
+          <path d="M15 8C13.5 7 10 7.5 8.5 10.5C7 13.5 8.5 17 12 17C14.5 17 16 15.5 16.5 14.5" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round"/>
+          <defs>
+            <linearGradient id="canva-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#00C4CC"/>
+              <stop offset="1" stopColor="#7D2AE8"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      );
+    case "Milanote":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="6" fill="#1E293B" stroke="#64748B" strokeWidth="1.5"/>
+          <path d="M6 18V6L12 13L18 6V18" stroke="#F8FAFC" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      );
+    case "Xmind":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" fill="#F97316" fillOpacity="0.2" stroke="#F97316" strokeWidth="1.5"/>
+          <circle cx="12" cy="12" r="3" fill="#F97316"/>
+          <path d="M6 12H9M15 12H18M12 6V9M12 15V18" stroke="#F97316" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      );
+    case "ElevenLabs":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="6" fill="#18181B" stroke="#3F3F46" strokeWidth="1.5"/>
+          <rect x="7" y="6" width="3.5" height="12" rx="1.75" fill="#FFFFFF"/>
+          <rect x="13.5" y="6" width="3.5" height="12" rx="1.75" fill="#FFFFFF"/>
+        </svg>
+      );
+    case "Leonardo.ai":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" fill="url(#leo-grad)"/>
+          <path d="M8 8L16 12L8 16V8Z" fill="#FFFFFF"/>
+          <defs>
+            <linearGradient id="leo-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#F59E0B"/>
+              <stop offset="0.5" stopColor="#EC4899"/>
+              <stop offset="1" stopColor="#8B5CF6"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      );
+    case "HeyGen":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="6" fill="#7C3AED" fillOpacity="0.2" stroke="#A78BFA" strokeWidth="1.5"/>
+          <circle cx="12" cy="10" r="4" fill="#A78BFA"/>
+          <path d="M5 20C5 16.5 8 15 12 15C16 15 19 16.5 19 20" stroke="#A78BFA" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      );
+    case "CapCut":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="6" fill="#000000" stroke="#333333" strokeWidth="1.5"/>
+          <path d="M6 7L18 17M6 17L18 7" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round"/>
+        </svg>
+      );
+    case "Filmora":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="6" fill="#00F0FF" fillOpacity="0.15" stroke="#00F0FF" strokeWidth="1.5"/>
+          <rect x="6" y="6" width="12" height="12" rx="3" fill="#00F0FF"/>
+          <path d="M10 8.5L15.5 12L10 15.5V8.5Z" fill="#0A0C10"/>
+        </svg>
+      );
+    default:
+      return <Zap className={className} />;
+  }
+};
+
 const arsenalGroups = [
   {
     category: "AI Copilots & Agents",
     desc: "Autonomous workflow, code generation & prompt orchestration",
     icon: <Brain className="w-5 h-5 text-indigo-400" />,
-    tools: ["Windsurf", "Cursor", "Anti Gravity", "v0", "Claude Code", "Gemini CLI", "Lovable.dev"],
+    tools: ["Windsurf", "Cursor", "Anti Gravity", "v0", "Claude Code", "Gemini CLI", "Lovable.dev", "N8N"],
     borderGradient: "from-indigo-500/50 via-blue-500/50 to-indigo-500/50"
   },
   {
     category: "Engineering & Database",
     desc: "Production-ready scalable web architectures & cloud infrastructure",
     icon: <Cpu className="w-5 h-5 text-emerald-400" />,
-    tools: ["Next.js", "Supabase", "Tailwind CSS", "Vercel", "Google Cloud", "TypeScript"],
+    tools: ["Next.js", "Supabase", "Tailwind CSS", "Vercel", "Cloudflare", "Google Cloud", "TypeScript"],
     borderGradient: "from-emerald-500/50 via-teal-500/50 to-emerald-500/50"
   },
   {
     category: "Visual, Product & Mindmapping",
     desc: "Architecture blueprints, mental models & design systems",
     icon: <Layers className="w-5 h-5 text-purple-400" />,
-    tools: ["Figma", "Milanote", "Xmind"],
+    tools: ["Figma", "Canva", "Milanote", "Xmind"],
     borderGradient: "from-purple-500/50 via-fuchsia-500/50 to-purple-500/50"
   },
   {
     category: "Synthetic Media & Creator Tools",
     desc: "Generative audio, video synthesis & rapid multimedia production",
     icon: <Zap className="w-5 h-5 text-amber-400" />,
-    tools: ["ElevenLabs", "Leonardo.ai", "HeyGen", "CapCut"],
+    tools: ["ElevenLabs", "Leonardo.ai", "HeyGen", "CapCut", "Filmora"],
     borderGradient: "from-amber-500/50 via-orange-500/50 to-amber-500/50"
   }
 ];
@@ -316,14 +520,14 @@ const certificatesList = [
     issuer: "Refocus / MySkill",
     category: "Product Management",
     image: "/certificate/Daffa Dhiyaulhaq Khadafi's-Mastering Product Management-Completion-Certificate_page-0001.jpg",
-    link: "#",
+    link: "kelas.work/certificate/issue/1349255/109",
   },
   {
     title: "Fundamental Product Marketing",
     issuer: "Executive Program",
     category: "Go-to-Market",
     image: "/certificate/Daffa Dhiyaulhaq Khadafi's-Fundamental Product Marketing-Completion-Certificate_page-0001.jpg",
-    link: "#",
+    link: "https://kelas.work/certificate/issue/1349255/102",
   },
   {
     title: "Becoming a Product Manager",
@@ -337,21 +541,21 @@ const certificatesList = [
     issuer: "IIBA",
     category: "Business Analysis",
     image: "/certificate/Certificate of Analysis Business - IIBA.jpg",
-    link: "#",
+    link: "https://simpli-web.app.link/e/VFueDBcL45b",
   },
   {
-    title: "Google AI Professional",
+    title: "Google AI Professional Certified",
     issuer: "Google",
     category: "AI Architecture Specialist",
     image: "/certificate/Sertifikat Google AI Proffesional.jpg",
-    link: "#",
+    link: "https://coursera.org/share/1f8a94c1a496488878bba3bc2680642f",
   },
   {
     title: "Certified Product Manager",
     issuer: "MySkill Bootcamp",
     category: "End-to-End PM",
     image: "/certificate/Sertifikat PM_page-Myskill.jpg",
-    link: "#",
+    link: "https://storage.googleapis.com/myskill-v2-certificates/bootcamp-y492EHo86yta9GJb9RiM/RAdUZOpdBeaSelnAoQ5fqRbn56i1-hScn18jx0ZMKge6lCDCm.pdf",
   }
 ];
 
@@ -752,9 +956,10 @@ export default function Home() {
                   {group.tools.map((tool, tIdx) => (
                     <span 
                       key={tIdx}
-                      className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-slate-300 text-xs md:text-sm font-medium hover:bg-white/10 hover:text-white hover:border-brand-accent/40 transition-all cursor-default shadow-sm hover:scale-105"
+                      className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-slate-200 text-xs md:text-sm font-semibold hover:bg-white/10 hover:text-white hover:border-brand-accent/50 hover:shadow-[0_0_20px_rgba(129,140,248,0.25)] transition-all cursor-default shadow-sm hover:scale-105"
                     >
-                      {tool}
+                      <BrandLogo name={tool} className="w-4 h-4 shrink-0" />
+                      <span>{tool}</span>
                     </span>
                   ))}
                 </div>
@@ -793,7 +998,9 @@ export default function Home() {
                   <span className="px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-bold uppercase tracking-widest">
                     Google AI Professional
                   </span>
-                  <span className="text-3xl">🎓</span>
+                  <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.3)]">
+                    <Brain className="w-5 h-5" />
+                  </div>
                 </div>
                 <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-4">
                   Artificial Intelligence Concepts & Implementation
@@ -836,7 +1043,9 @@ export default function Home() {
                   <span className="px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-widest">
                     IBM Product Manager
                   </span>
-                  <span className="text-3xl">💼</span>
+                  <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+                    <Briefcase className="w-5 h-5" />
+                  </div>
                 </div>
                 <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-4">
                   Digital Business & Product Leadership
