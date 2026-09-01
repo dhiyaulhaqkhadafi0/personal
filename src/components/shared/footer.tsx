@@ -27,7 +27,7 @@ export function Footer() {
       <div className="container mx-auto px-6 max-w-6xl py-16 md:py-20 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8 mb-16">
           <div className="md:col-span-2 pr-0 md:pr-12">
-            <Link href="/" className="inline-block mb-8 relative group">
+            <Link href="/" className="inline-block mb-8 relative group overflow-hidden rounded-2xl p-1">
               {/* Logo AAPE Container with Ambient Luxury Glow */}
               <div className="relative flex items-center">
                 {/* Soft Radial Ambient Aura Behind Footer Logo */}
@@ -40,6 +40,9 @@ export function Footer() {
                   height={84}
                   className="w-auto h-20 sm:h-22 md:h-24 object-contain relative z-10 drop-shadow-[0_0_20px_rgba(52,211,153,0.3)] group-hover:drop-shadow-[0_0_35px_rgba(52,211,153,0.65)] group-hover:scale-105 transition-all duration-500"
                 />
+
+                {/* Glossy Mengkilap / Shine Sweep Light Effect */}
+                <div className="absolute inset-0 z-20 pointer-events-none w-[60%] h-full bg-gradient-to-r from-transparent via-white/25 to-transparent animate-shine" />
               </div>
             </Link>
             <p className="text-slate-400 text-[15px] leading-relaxed max-w-sm mb-8 font-medium">

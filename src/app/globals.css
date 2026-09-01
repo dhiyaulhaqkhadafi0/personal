@@ -47,6 +47,12 @@ body {
   100% { background-position: 0% 50%; }
 }
 
-.animate-gradient-xy {
-  animation: gradient-xy 3s ease infinite;
+@keyframes shine-sweep {
+  0% { transform: translateX(-150%) skewX(-25deg); }
+  30%, 100% { transform: translateX(250%) skewX(-25deg); }
 }
+
+.animate-shine {
+  animation: shine-sweep 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+

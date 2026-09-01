@@ -56,17 +56,21 @@ export function Navbar() {
       <div className={`max-w-7xl mx-auto flex items-center justify-between rounded-2xl px-6 py-3 transition-all duration-300 ${scrolled ? "bg-[#05050A]/80 backdrop-blur-xl border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)]" : "bg-transparent border border-transparent"}`}>
         {/* Logo */}
         <div className="flex items-center">
-          <Link href="/" className="relative flex items-center justify-center group py-1">
+          <Link href="/" className="relative flex items-center justify-center group py-1 overflow-hidden rounded-xl">
             {/* Ambient Aura Glow */}
             <div className="absolute -inset-2 bg-gradient-to-r from-[#34D399]/20 via-[#2DD4BF]/10 to-[#818CF8]/20 blur-xl opacity-30 group-hover:opacity-90 transition-all duration-700 rounded-full pointer-events-none" />
             
             <Image 
               src="/assets/logo%20AAPE.png" 
               alt="AAPE Logo" 
-              width={150}
-              height={44}
-              className="h-9 sm:h-10 w-auto object-contain relative z-10 group-hover:scale-105 transition-all duration-500 drop-shadow-[0_0_15px_rgba(52,211,153,0.25)] group-hover:drop-shadow-[0_0_25px_rgba(52,211,153,0.55)]" 
+              width={180}
+              height={52}
+              priority
+              className="w-[155px] sm:w-[175px] md:w-[185px] h-auto object-contain relative z-10 group-hover:scale-105 transition-all duration-500 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" 
             />
+
+            {/* Glossy Mengkilap / Shine Sweep Light Effect */}
+            <div className="absolute inset-0 z-20 pointer-events-none w-[60%] h-full bg-gradient-to-r from-transparent via-white/25 to-transparent animate-shine" />
           </Link>
         </div>
 
