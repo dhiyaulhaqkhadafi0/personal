@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { SendHorizontal, LayoutGrid, List, ChevronDown, SearchX, RotateCcw, Sparkles } from "lucide-react";
+import { SendHorizontal, LayoutGrid, List, ChevronDown, SearchX, RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type BlogPost = {
@@ -40,7 +40,7 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
 
   const categories = Object.keys(categoryCounts);
 
-  // Robust real-time search across title, excerpt, category, and slug
+  // Real-time search across title, excerpt, category, and slug
   const filteredPosts = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return posts.filter((post) => {
@@ -70,7 +70,7 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
       {/* Search & Filter Header Container */}
       <div className="relative w-full mb-12 shadow-2xl z-40">
         
-        {/* Animated Gradient Looping Border (Isolated in background so dropdown is never clipped!) */}
+        {/* Animated Gradient Looping Border */}
         <div className="absolute -inset-[1px] rounded-[2.25rem] overflow-hidden pointer-events-none p-[1px]">
           <div className="absolute inset-[-50%] bg-[conic-gradient(from_0deg,transparent_0_340deg,#34D399_360deg)] animate-[spin_6s_linear_infinite] opacity-30 group-hover:opacity-60 transition-opacity" />
         </div>
@@ -101,7 +101,7 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
               <button
                 type="button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center justify-between w-full md:w-56 bg-[#09090B] border border-[#27272A] hover:border-[#34D399]/60 px-5 py-3 rounded-full text-sm font-medium transition-colors shadow-sm"
+                className="flex items-center justify-between w-full md:w-56 bg-[#09090B] border border-[#27272A] hover:border-[#34D399]/60 px-5 py-3 rounded-full text-sm font-medium transition-colors shadow-sm cursor-pointer"
               >
                 <div className="flex items-center gap-2 truncate">
                   <span className="text-[#F8FAFC] truncate">{selectedCategory}</span>
@@ -110,7 +110,7 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
                 <ChevronDown className={`w-4 h-4 text-[#9CA3AF] transition-transform duration-300 flex-shrink-0 ${isDropdownOpen ? "rotate-180 text-[#34D399]" : ""}`} />
               </button>
 
-              {/* Dropdown Menu (Floating with high z-index, never hidden) */}
+              {/* Dropdown Menu */}
               <AnimatePresence>
                 {isDropdownOpen && (
                   <>
@@ -140,7 +140,7 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
                               setSelectedCategory(cat);
                               setIsDropdownOpen(false);
                             }}
-                            className={`flex items-center justify-between w-full text-left px-4 py-2.5 rounded-xl text-sm transition-colors ${
+                            className={`flex items-center justify-between w-full text-left px-4 py-2.5 rounded-xl text-sm transition-colors cursor-pointer ${
                               isSelected
                                 ? "bg-[#34D399]/15 text-[#34D399] font-semibold border border-[#34D399]/30"
                                 : "text-[#A1A1AA] hover:bg-[#1F1F23] hover:text-[#F8FAFC]"
@@ -159,31 +159,33 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
               </AnimatePresence>
             </div>
 
-            {/* View Toggles (List vs Grid) */}
-            <div className="flex items-center gap-1 bg-[#09090B] p-1.5 rounded-full border border-[#27272A] flex-shrink-0">
+            {/* View Toggles (List vs Grid) - Instant, High Contrast, Guaranteed Clickable */}
+            <div className="flex items-center gap-1.5 bg-[#09090B] p-1.5 rounded-full border border-[#27272A] flex-shrink-0 z-10">
               <button
                 type="button"
                 onClick={() => setViewMode("list")}
-                className={`p-2 rounded-full transition-all flex items-center justify-center ${
+                className={`w-9 h-9 rounded-full transition-all flex items-center justify-center cursor-pointer ${
                   viewMode === "list"
-                    ? "bg-[#34D399]/20 text-[#34D399] border border-[#34D399]/40 shadow-sm"
-                    : "text-[#6B7280] hover:text-[#D1D5DB] border border-transparent"
+                    ? "bg-[#34D399] text-[#09090B] font-bold shadow-[0_0_15px_rgba(52,211,153,0.35)] scale-105"
+                    : "text-[#9CA3AF] hover:text-[#F8FAFC] hover:bg-[#18181B]"
                 }`}
                 title="Mode Tampilan List"
+                aria-label="Mode List"
               >
-                <List className="w-4 h-4" strokeWidth={2.2} />
+                <List className="w-4 h-4" strokeWidth={2.5} />
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode("grid")}
-                className={`p-2 rounded-full transition-all flex items-center justify-center ${
+                className={`w-9 h-9 rounded-full transition-all flex items-center justify-center cursor-pointer ${
                   viewMode === "grid"
-                    ? "bg-[#34D399]/20 text-[#34D399] border border-[#34D399]/40 shadow-sm"
-                    : "text-[#6B7280] hover:text-[#D1D5DB] border border-transparent"
+                    ? "bg-[#34D399] text-[#09090B] font-bold shadow-[0_0_15px_rgba(52,211,153,0.35)] scale-105"
+                    : "text-[#9CA3AF] hover:text-[#F8FAFC] hover:bg-[#18181B]"
                 }`}
                 title="Mode Tampilan Grid"
+                aria-label="Mode Grid"
               >
-                <LayoutGrid className="w-4 h-4" strokeWidth={2.2} />
+                <LayoutGrid className="w-4 h-4" strokeWidth={2.5} />
               </button>
             </div>
 
@@ -211,132 +213,114 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
         </div>
       )}
 
-      {/* Posts Content View */}
+      {/* Posts Content View - Instant Switching between Grid and List */}
       <div className="min-h-[350px] relative z-10">
-        <AnimatePresence mode="wait">
-          {filteredPosts.length > 0 ? (
-            <motion.div
-              key={viewMode}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.3 }}
-              className={
-                viewMode === "grid"
-                  ? "grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10"
-                  : "flex flex-col gap-6"
-              }
-            >
-              {filteredPosts.map((post, i) => (
-                <motion.div
-                  key={post.metadata.slug}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.35, delay: i * 0.05 }}
-                >
-                  <Link href={`/blog/${post.metadata.slug}`} className="block group h-full">
-                    {viewMode === "grid" ? (
-                      /* ================= GRID MODE (CARDS) ================= */
-                      <article className="flex flex-col h-full bg-[#131316]/40 border border-[#27272A]/60 rounded-[1.75rem] overflow-hidden hover:border-[#34D399]/40 transition-all duration-500 hover:shadow-[0_10px_35px_rgba(52,211,153,0.06)] hover:-translate-y-1">
-                        {post.metadata.image && (
-                          <div className="relative w-full h-44 sm:h-48 overflow-hidden bg-[#09090B]">
-                            <Image
-                              src={post.metadata.image}
-                              alt={post.metadata.title}
-                              fill
-                              className="object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#131316] via-[#131316]/20 to-transparent" />
-                          </div>
-                        )}
-
-                        <div className={`p-6 sm:p-7 flex flex-col flex-grow relative ${post.metadata.image ? "-mt-8" : ""}`}>
-                          <div className="flex items-center justify-between text-xs font-mono tracking-wider mb-4 relative z-10">
-                            <span className="bg-[#09090B] text-[#34D399] px-3 py-1 rounded-full border border-[#27272A] uppercase font-medium shadow-md">
-                              {post.metadata.category}
-                            </span>
-                            <span className="text-[#9CA3AF] bg-[#09090B] px-3 py-1 rounded-full border border-[#27272A] shadow-md">
-                              {new Date(post.metadata.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                            </span>
-                          </div>
-
-                          <h2 className={`text-xl sm:text-[1.4rem] text-[#E2E8F0] group-hover:text-white font-medium leading-[1.35] transition-colors mb-3 ${loraClassName}`}>
-                            {post.metadata.title}
-                          </h2>
-
-                          <p className="text-[#9CA3AF] leading-relaxed text-sm font-light group-hover:text-[#D1D5DB] transition-colors flex-grow">
-                            {post.metadata.excerpt}
-                          </p>
+        {filteredPosts.length > 0 ? (
+          <div
+            className={
+              viewMode === "grid"
+                ? "grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 transition-all duration-300"
+                : "flex flex-col gap-6 transition-all duration-300"
+            }
+          >
+            {filteredPosts.map((post) => (
+              <div key={post.metadata.slug} className="w-full">
+                <Link href={`/blog/${post.metadata.slug}`} className="block group h-full">
+                  {viewMode === "grid" ? (
+                    /* ================= GRID MODE (CARDS) ================= */
+                    <article className="flex flex-col h-full bg-[#131316]/40 border border-[#27272A]/60 rounded-[1.75rem] overflow-hidden hover:border-[#34D399]/40 transition-all duration-500 hover:shadow-[0_10px_35px_rgba(52,211,153,0.06)] hover:-translate-y-1">
+                      {post.metadata.image && (
+                        <div className="relative w-full h-44 sm:h-48 overflow-hidden bg-[#09090B]">
+                          <Image
+                            src={post.metadata.image}
+                            alt={post.metadata.title}
+                            fill
+                            className="object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#131316] via-[#131316]/20 to-transparent" />
                         </div>
-                      </article>
-                    ) : (
-                      /* ================= LIST MODE (EDITORIAL ROWS) ================= */
-                      <article className="flex flex-col sm:flex-row gap-6 p-6 sm:p-7 bg-[#131316]/50 border border-[#27272A]/70 rounded-[1.75rem] hover:border-[#34D399]/40 transition-all duration-300 hover:bg-[#18181C] items-center group/item hover:shadow-xl">
-                        <div className="flex-grow w-full">
-                          <div className="flex items-center gap-3 text-xs font-mono tracking-wider mb-3">
-                            <span className="text-[#34D399] uppercase font-semibold bg-[#34D399]/10 px-2.5 py-0.5 rounded-full border border-[#34D399]/20">
-                              {post.metadata.category}
-                            </span>
-                            <span className="w-1 h-1 rounded-full bg-[#3F3F46]" />
-                            <span className="text-[#71717A]">
-                              {new Date(post.metadata.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                            </span>
-                          </div>
+                      )}
 
-                          <h2 className={`text-xl sm:text-2xl text-[#E2E8F0] group-hover/item:text-[#34D399] font-medium leading-snug transition-colors mb-2.5 ${loraClassName}`}>
-                            {post.metadata.title}
-                          </h2>
-
-                          <p className="text-[#9CA3AF] leading-relaxed text-sm font-light group-hover/item:text-[#D1D5DB] transition-colors line-clamp-2 max-w-3xl">
-                            {post.metadata.excerpt}
-                          </p>
+                      <div className={`p-6 sm:p-7 flex flex-col flex-grow relative ${post.metadata.image ? "-mt-8" : ""}`}>
+                        <div className="flex items-center justify-between text-xs font-mono tracking-wider mb-4 relative z-10">
+                          <span className="bg-[#09090B] text-[#34D399] px-3 py-1 rounded-full border border-[#27272A] uppercase font-medium shadow-md">
+                            {post.metadata.category}
+                          </span>
+                          <span className="text-[#9CA3AF] bg-[#09090B] px-3 py-1 rounded-full border border-[#27272A] shadow-md">
+                            {new Date(post.metadata.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          </span>
                         </div>
 
-                        {post.metadata.image && (
-                          <div className="w-full sm:w-44 md:w-52 h-32 sm:h-28 relative rounded-2xl overflow-hidden flex-shrink-0 bg-[#09090B] border border-[#27272A]">
-                            <Image
-                              src={post.metadata.image}
-                              alt={post.metadata.title}
-                              fill
-                              className="object-cover opacity-80 group-hover/item:opacity-100 group-hover/item:scale-105 transition-all duration-500 ease-out"
-                            />
-                          </div>
-                        )}
-                      </article>
-                    )}
-                  </Link>
-                </motion.div>
-              ))}
-            </motion.div>
-          ) : (
-            /* ================= EMPTY SEARCH STATE ================= */
-            <motion.div
-              key="empty"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="py-20 px-6 text-center flex flex-col items-center justify-center bg-[#131316]/30 rounded-3xl border border-[#27272A]/40"
-            >
-              <div className="w-14 h-14 rounded-full bg-[#27272A]/50 border border-[#3F3F46] flex items-center justify-center mb-4 text-[#9CA3AF]">
-                <SearchX className="w-6 h-6 text-[#9CA3AF]" />
+                        <h2 className={`text-xl sm:text-[1.4rem] text-[#E2E8F0] group-hover:text-white font-medium leading-[1.35] transition-colors mb-3 ${loraClassName}`}>
+                          {post.metadata.title}
+                        </h2>
+
+                        <p className="text-[#9CA3AF] leading-relaxed text-sm font-light group-hover:text-[#D1D5DB] transition-colors flex-grow">
+                          {post.metadata.excerpt}
+                        </p>
+                      </div>
+                    </article>
+                  ) : (
+                    /* ================= LIST MODE (EDITORIAL ROWS) ================= */
+                    <article className="flex flex-col sm:flex-row gap-6 p-6 sm:p-7 bg-[#131316]/50 border border-[#27272A]/70 rounded-[1.75rem] hover:border-[#34D399]/40 transition-all duration-300 hover:bg-[#18181C] items-center group/item hover:shadow-xl">
+                      <div className="flex-grow w-full">
+                        <div className="flex items-center gap-3 text-xs font-mono tracking-wider mb-3">
+                          <span className="text-[#34D399] uppercase font-semibold bg-[#34D399]/10 px-2.5 py-0.5 rounded-full border border-[#34D399]/20">
+                            {post.metadata.category}
+                          </span>
+                          <span className="w-1 h-1 rounded-full bg-[#3F3F46]" />
+                          <span className="text-[#71717A]">
+                            {new Date(post.metadata.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                          </span>
+                        </div>
+
+                        <h2 className={`text-xl sm:text-2xl text-[#E2E8F0] group-hover/item:text-[#34D399] font-medium leading-snug transition-colors mb-2.5 ${loraClassName}`}>
+                          {post.metadata.title}
+                        </h2>
+
+                        <p className="text-[#9CA3AF] leading-relaxed text-sm font-light group-hover/item:text-[#D1D5DB] transition-colors line-clamp-2 max-w-3xl">
+                          {post.metadata.excerpt}
+                        </p>
+                      </div>
+
+                      {post.metadata.image && (
+                        <div className="w-full sm:w-44 md:w-52 h-32 sm:h-28 relative rounded-2xl overflow-hidden flex-shrink-0 bg-[#09090B] border border-[#27272A]">
+                          <Image
+                            src={post.metadata.image}
+                            alt={post.metadata.title}
+                            fill
+                            className="object-cover opacity-80 group-hover/item:opacity-100 group-hover/item:scale-105 transition-all duration-500 ease-out"
+                          />
+                        </div>
+                      )}
+                    </article>
+                  )}
+                </Link>
               </div>
-              <h3 className={`text-xl text-[#F8FAFC] font-medium mb-2 ${loraClassName}`}>
-                Maaf, Artikel Tidak Ditemukan
-              </h3>
-              <p className="text-sm text-[#9CA3AF] max-w-md mb-6 leading-relaxed">
-                Tidak ada artikel yang cocok dengan kata kunci &ldquo;<span className="text-[#34D399] font-medium">{searchQuery}</span>&rdquo; pada kategori &ldquo;<span className="text-[#34D399] font-medium">{selectedCategory}</span>&rdquo;.
-              </p>
-              <button
-                type="button"
-                onClick={handleReset}
-                className="flex items-center gap-2 bg-[#34D399]/15 hover:bg-[#34D399]/25 text-[#34D399] border border-[#34D399]/30 px-5 py-2.5 rounded-full text-sm font-medium transition-all shadow-md hover:scale-105 active:scale-95"
-              >
-                <RotateCcw className="w-4 h-4" />
-                <span>Reset Pencarian & Tampilkan Semua</span>
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            ))}
+          </div>
+        ) : (
+          /* ================= EMPTY SEARCH STATE ================= */
+          <div className="py-20 px-6 text-center flex flex-col items-center justify-center bg-[#131316]/30 rounded-3xl border border-[#27272A]/40">
+            <div className="w-14 h-14 rounded-full bg-[#27272A]/50 border border-[#3F3F46] flex items-center justify-center mb-4 text-[#9CA3AF]">
+              <SearchX className="w-6 h-6 text-[#9CA3AF]" />
+            </div>
+            <h3 className={`text-xl text-[#F8FAFC] font-medium mb-2 ${loraClassName}`}>
+              Maaf, Artikel Tidak Ditemukan
+            </h3>
+            <p className="text-sm text-[#9CA3AF] max-w-md mb-6 leading-relaxed">
+              Tidak ada artikel yang cocok dengan kata kunci &ldquo;<span className="text-[#34D399] font-medium">{searchQuery}</span>&rdquo; pada kategori &ldquo;<span className="text-[#34D399] font-medium">{selectedCategory}</span>&rdquo;.
+            </p>
+            <button
+              type="button"
+              onClick={handleReset}
+              className="flex items-center gap-2 bg-[#34D399]/15 hover:bg-[#34D399]/25 text-[#34D399] border border-[#34D399]/30 px-5 py-2.5 rounded-full text-sm font-medium transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>Reset Pencarian & Tampilkan Semua</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
