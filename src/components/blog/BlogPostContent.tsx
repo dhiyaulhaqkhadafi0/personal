@@ -6,7 +6,6 @@ import { notFound } from 'next/navigation';
 import { Navbar } from '@/components/shared/navbar';
 import TableOfContents from '@/components/blog/TableOfContents';
 import EngagementSection from '@/components/blog/EngagementSection';
-import MusicPlayer from '@/components/blog/MusicPlayer';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Lora, Plus_Jakarta_Sans } from 'next/font/google';
@@ -109,9 +108,6 @@ export default function BlogPostContent({ post, slug }: Props) {
 
       {/* Floating Collapsible ToC */}
       <TableOfContents content={post.content} />
-
-      {/* Floating Collapsible Music Player */}
-      <MusicPlayer />
     </div>
   );
 }
