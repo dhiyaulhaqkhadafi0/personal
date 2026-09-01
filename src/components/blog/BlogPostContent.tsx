@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import { Navbar } from '@/components/shared/navbar';
 import TableOfContents from '@/components/blog/TableOfContents';
 import EngagementSection from '@/components/blog/EngagementSection';
+import MusicPlayer from '@/components/blog/MusicPlayer';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Lora, Plus_Jakarta_Sans } from 'next/font/google';
@@ -109,25 +110,8 @@ export default function BlogPostContent({ post, slug }: Props) {
       {/* Floating Collapsible ToC */}
       <TableOfContents content={post.content} />
 
-      {/* Spotify Floating Mini Player (Bottom Right outside article) */}
-      <div className="fixed bottom-6 right-6 z-40 hidden md:block group rounded-2xl overflow-hidden shadow-2xl hover:scale-105 transition-transform duration-300">
-        {/* Glow effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#1DB954] to-[#1DB954]/50 opacity-20 blur-md group-hover:opacity-40 transition-opacity pointer-events-none" />
-        
-        {/* Iframe */}
-        <div className="relative rounded-xl border border-[#27272A] bg-[#09090B]">
-          <iframe 
-            style={{ borderRadius: '12px', display: 'block' }} 
-            src="https://open.spotify.com/embed/playlist/37i9dQZF1DWZeKCadgRdKQ?utm_source=generator&theme=0" 
-            width="300" 
-            height="80" 
-            frameBorder="0" 
-            allowFullScreen={false} 
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-            loading="lazy"
-          ></iframe>
-        </div>
-      </div>
+      {/* Floating Collapsible Music Player */}
+      <MusicPlayer />
     </div>
   );
 }
