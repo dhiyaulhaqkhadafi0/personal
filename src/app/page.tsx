@@ -356,18 +356,18 @@ const certificatesList = [
 ];
 
 const badgesList = [
-  { title: "Data Analytics Essentials", image: "/badge/data-analytics-essentials.png", link: "#" },
-  { title: "Data Science Orientation", image: "/badge/data-science-orientation.png", link: "#" },
-  { title: "Google AI for App Building", image: "/badge/google-ai-for-app-building.png", link: "#" },
-  { title: "Google AI for App Deployment", image: "/badge/google-ai-for-app-deployment.png", link: "#" },
-  { title: "Google AI for Brainstorming and Planning", image: "/badge/google-ai-for-brainstorming-and-planning.1.png", link: "#" },
-  { title: "Google AI for Content Creation", image: "/badge/google-ai-for-content-creation.png", link: "#" },
-  { title: "Google AI for Data Analysis", image: "/badge/google-ai-for-data-analysis.png", link: "#" },
-  { title: "Google AI for Research and Insights", image: "/badge/google-ai-for-research-and-insights.png", link: "#" },
-  { title: "Google AI for Writing and Communicating", image: "/badge/google-ai-for-writing-and-communicating.png", link: "#" },
-  { title: "Google AI Fundamentals", image: "/badge/google-ai-fundamentals.png", link: "#" },
-  { title: "Cybersecurity Tools & Cyber Attacks", image: "/badge/introduction-to-cybersecurity-tools-cyber-attacks.png", link: "#" },
-  { title: "Product Management Essentials", image: "/badge/product-management-essentials.png", link: "#" }
+  { title: "Data Analytics Essentials", image: "/badge/data-analytics-essentials.png", link: "https://www.credly.com/badges/f9ed8f12-2094-41ee-ba14-16180e871dc3/public_url" },
+  { title: "Data Science Orientation", image: "/badge/data-science-orientation.png", link: "https://www.credly.com/badges/c616fe7c-3896-41db-a6ef-7533d9d341a0/public_url" },
+  { title: "Google AI for App Building", image: "/badge/google-ai-for-app-building.png", link: "https://www.credly.com/badges/2f7f9d1a-a2c8-4fdd-9a70-fe70637b7f45/public_url" },
+  { title: "Google AI for App Deployment", image: "/badge/google-ai-for-app-deployment.png", link: "https://www.credly.com/badges/3180f40c-0a06-4bcc-a91b-18c113e6235f/public_url" },
+  { title: "Google AI for Brainstorming and Planning", image: "/badge/google-ai-for-brainstorming-and-planning.1.png", link: "https://www.credly.com/badges/6cf6936f-b594-4d11-acf7-108f3cb514db/public_url" },
+  { title: "Google AI for Content Creation", image: "/badge/google-ai-for-content-creation.png", link: "https://www.credly.com/badges/6ab0d54d-4cef-4610-b2d1-8ada571f1717/public_url" },
+  { title: "Google AI for Data Analysis", image: "/badge/google-ai-for-data-analysis.png", link: "https://www.credly.com/badges/3a074f96-e6d1-4e98-8530-4c52094eec51/public_url" },
+  { title: "Google AI for Research and Insights", image: "/badge/google-ai-for-research-and-insights.png", link: "https://www.credly.com/badges/930feb58-0310-4ff9-a64c-2ad25893601c/public_url" },
+  { title: "Google AI for Writing and Communicating", image: "/badge/google-ai-for-writing-and-communicating.png", link: "https://www.credly.com/badges/7d1b45db-0e82-4bff-8a65-1e13b70de31a/public_url" },
+  { title: "Google AI Fundamentals", image: "/badge/google-ai-fundamentals.png", link: "https://www.credly.com/badges/e4bc5476-beff-44d2-8b8d-ea207f798027/public_url" },
+  { title: "Cybersecurity Tools & Cyber Attacks", image: "/badge/introduction-to-cybersecurity-tools-cyber-attacks.png", link: "https://www.credly.com/badges/649e1d24-887c-44f2-90b0-64c13c557c10/public_url" },
+  { title: "Product Management Essentials", image: "/badge/product-management-essentials.png", link: "https://www.credly.com/badges/6b6c1243-6ab1-4f0c-b881-5692a084b90e/public_url" }
 ];
 
 export const SectionTransition = ({ imageSrc, title, variant = 1 }: { imageSrc: string; title: string; variant?: number }) => {
@@ -418,7 +418,7 @@ export default function Home() {
   const [selectedMockupIndex, setSelectedMockupIndex] = useState<number | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [panY, setPanY] = useState(0);
-  const [selectedCert, setSelectedCert] = useState<{ title: string; issuer: string; category: string; image: string } | null>(null);
+  const [selectedCert, setSelectedCert] = useState<{ title: string; issuer?: string; category?: string; image: string; link?: string } | null>(null);
   const [openLadderIndex, setOpenLadderIndex] = useState<number | null>(0);
   const [presentationProgress, setPresentationProgress] = useState(0);
   const [activeCertSection, setActiveCertSection] = useState<'certificates' | 'badges'>('certificates');
@@ -851,11 +851,10 @@ export default function Home() {
                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
                 >
                   {certificatesList.map((cert, cIdx) => (
-                    <motion.a
-                      href={cert.link}
-                      target="_blank"
+                    <motion.div
                       key={cIdx}
                       whileHover={{ y: -6, scale: 1.02 }}
+                      onClick={() => setSelectedCert(cert)}
                       className="cursor-pointer group relative bg-white/5 backdrop-blur-xl border border-white/10 hover:border-brand-accent/50 rounded-2xl overflow-hidden p-4 shadow-xl transition-all block"
                     >
                       <div className="relative aspect-[16/11] w-full rounded-xl overflow-hidden bg-[#0A0C10] mb-4">
@@ -880,7 +879,7 @@ export default function Home() {
                           {cert.title}
                         </h4>
                       </div>
-                    </motion.a>
+                    </motion.div>
                   ))}
                 </motion.div>
               ) : (
@@ -893,12 +892,11 @@ export default function Home() {
                   className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"
                 >
                   {badgesList.map((badge, bIdx) => (
-                    <motion.a
-                      href={badge.link}
-                      target="_blank"
+                    <motion.div
                       key={bIdx}
                       whileHover={{ y: -5, scale: 1.05 }}
-                      className="group relative block bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md border border-white/10 hover:border-emerald-500/50 rounded-3xl p-4 shadow-xl flex flex-col items-center text-center transition-all duration-300"
+                      onClick={() => setSelectedCert({ ...badge, issuer: "Credential", category: "Badge" })}
+                      className="cursor-pointer group relative block bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md border border-white/10 hover:border-emerald-500/50 rounded-3xl p-4 shadow-xl flex flex-col items-center text-center transition-all duration-300"
                     >
                       <div className="absolute inset-0 bg-emerald-500/0 group-hover:bg-emerald-500/10 rounded-3xl transition-colors duration-500" />
                       <div className="absolute -inset-[1px] bg-gradient-to-b from-emerald-500/30 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0" />
@@ -910,11 +908,14 @@ export default function Home() {
                           fill
                           className="object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.1)] group-hover:drop-shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all duration-500 scale-90 group-hover:scale-100"
                         />
+                        <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 rounded-3xl transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                          <ZoomIn className="w-5 h-5 text-emerald-400" />
+                        </div>
                       </div>
                       <h4 className="relative z-10 text-[10px] font-bold text-white/80 group-hover:text-emerald-300 transition-colors leading-snug line-clamp-2 px-1">
                         {badge.title}
                       </h4>
-                    </motion.a>
+                    </motion.div>
                   ))}
                 </motion.div>
               )}
@@ -2079,16 +2080,28 @@ export default function Home() {
               <div className="p-6 bg-white/5 backdrop-blur-xl border-t border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <span className="text-xs font-bold uppercase tracking-widest text-brand-accent block mb-1">
-                    {selectedCert.issuer} • {selectedCert.category}
+                    {selectedCert.issuer} {selectedCert.issuer && "•"} {selectedCert.category}
                   </span>
                   <h3 className="text-lg md:text-xl font-bold text-white">{selectedCert.title}</h3>
                 </div>
-                <button
-                  onClick={() => setSelectedCert(null)}
-                  className="px-6 py-2.5 rounded-xl bg-white text-black font-bold text-xs uppercase tracking-wider hover:bg-white/90 transition-colors shadow-lg"
-                >
-                  Tutup
-                </button>
+                <div className="flex flex-wrap items-center gap-3">
+                  {selectedCert.link && selectedCert.link !== "#" && (
+                    <a
+                      href={selectedCert.link}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-6 py-2.5 rounded-xl bg-brand-accent text-white font-bold text-xs uppercase tracking-wider hover:bg-brand-accent/90 transition-colors shadow-lg flex items-center justify-center"
+                    >
+                      Lihat Asli
+                    </a>
+                  )}
+                  <button
+                    onClick={() => setSelectedCert(null)}
+                    className="px-6 py-2.5 rounded-xl bg-white text-black font-bold text-xs uppercase tracking-wider hover:bg-white/90 transition-colors shadow-lg"
+                  >
+                    Tutup
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>
