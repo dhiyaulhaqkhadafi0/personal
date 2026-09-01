@@ -291,23 +291,23 @@ const arsenalGroups = [
 
 const certificatesList = [
   {
-    title: "Enterprise Design Thinking Practitioner",
+    title: "Introduction to Cybersecurity Tools & Cyber Attacks",
     issuer: "IBM",
-    category: "Design Thinking",
+    category: "Cybersecurity",
     image: "/certificate/IBMDesign20251026-29-av8of9_page-0001.jpg",
     link: "#",
   },
   {
-    title: "Enterprise Design Thinking Co-Creator",
+    title: "Data Analytics Essentials",
     issuer: "IBM",
-    category: "Design Leadership",
+    category: "Data Analytics",
     image: "/certificate/IBMDesign20251026-30-snhmp9_page-0001 (1).jpg",
     link: "#",
   },
   {
-    title: "Enterprise Design Thinking Team Essentials for AI",
+    title: "Product Management Essentials",
     issuer: "IBM",
-    category: "AI & Product Design",
+    category: "Product Management",
     image: "/certificate/IBMDesign20260830-20-s0mimw_page-0001.jpg",
     link: "#",
   },
@@ -356,18 +356,18 @@ const certificatesList = [
 ];
 
 const badgesList = [
-  { title: "Data Analytics Essentials", image: "/assets/logo AAPE.png", link: "#" },
-  { title: "Data Science Orientation", image: "/assets/logo AAPE.png", link: "#" },
-  { title: "Google AI for App Building", image: "/assets/logo AAPE.png", link: "#" },
-  { title: "Google AI for App Deployment", image: "/assets/logo AAPE.png", link: "#" },
-  { title: "Google AI for Brainstorming and Planning", image: "/assets/logo AAPE.png", link: "#" },
-  { title: "Google AI for Content Creation", image: "/assets/logo AAPE.png", link: "#" },
-  { title: "Google AI for Data Analysis", image: "/assets/logo AAPE.png", link: "#" },
-  { title: "Google AI for Research and Insights", image: "/assets/logo AAPE.png", link: "#" },
-  { title: "Google AI for Writing and Communicating", image: "/assets/logo AAPE.png", link: "#" },
-  { title: "Google AI Fundamentals", image: "/assets/logo AAPE.png", link: "#" },
-  { title: "Cybersecurity Tools & Cyber Attacks", image: "/assets/logo AAPE.png", link: "#" },
-  { title: "Product Management Essentials", image: "/assets/logo AAPE.png", link: "#" }
+  { title: "Data Analytics Essentials", image: "/badge/data-analytics-essentials.png", link: "#" },
+  { title: "Data Science Orientation", image: "/badge/data-science-orientation.png", link: "#" },
+  { title: "Google AI for App Building", image: "/badge/google-ai-for-app-building.png", link: "#" },
+  { title: "Google AI for App Deployment", image: "/badge/google-ai-for-app-deployment.png", link: "#" },
+  { title: "Google AI for Brainstorming and Planning", image: "/badge/google-ai-for-brainstorming-and-planning.1.png", link: "#" },
+  { title: "Google AI for Content Creation", image: "/badge/google-ai-for-content-creation.png", link: "#" },
+  { title: "Google AI for Data Analysis", image: "/badge/google-ai-for-data-analysis.png", link: "#" },
+  { title: "Google AI for Research and Insights", image: "/badge/google-ai-for-research-and-insights.png", link: "#" },
+  { title: "Google AI for Writing and Communicating", image: "/badge/google-ai-for-writing-and-communicating.png", link: "#" },
+  { title: "Google AI Fundamentals", image: "/badge/google-ai-fundamentals.png", link: "#" },
+  { title: "Cybersecurity Tools & Cyber Attacks", image: "/badge/introduction-to-cybersecurity-tools-cyber-attacks.png", link: "#" },
+  { title: "Product Management Essentials", image: "/badge/product-management-essentials.png", link: "#" }
 ];
 
 export const SectionTransition = ({ imageSrc, title, variant = 1 }: { imageSrc: string; title: string; variant?: number }) => {
