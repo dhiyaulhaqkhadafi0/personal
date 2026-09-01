@@ -632,6 +632,22 @@ export default function Home() {
   const [presentationProgress, setPresentationProgress] = useState(0);
   const [activeCertSection, setActiveCertSection] = useState<'certificates' | 'badges'>('certificates');
 
+  // Subscription Form State
+  const [isSubmittingForm, setIsSubmittingForm] = useState(false);
+  const [isFormSubmitted, setIsFormSubmitted] = useState(false);
+  const [formData, setFormData] = useState({ email: '', phone: '' });
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.email || !formData.phone) return;
+    setIsSubmittingForm(true);
+    // Simulate API call
+    setTimeout(() => {
+      setIsSubmittingForm(false);
+      setIsFormSubmitted(true);
+    }, 1500);
+  };
+
   const handleNextMockup = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (selectedMockupIndex !== null) {
@@ -2504,6 +2520,160 @@ export default function Home() {
           );
         })()}
       </AnimatePresence>
+
+      {/* Subscription Form Section */}
+      <section className="relative w-full border-t border-white/10 bg-[#05050A] py-24 overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-accent/5 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute inset-0 bg-[url('/assets/noise.png')] opacity-20 mix-blend-overlay pointer-events-none" />
+
+        <div className="container mx-auto px-4 max-w-6xl relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center bg-white/5 border border-white/10 p-8 md:p-12 lg:p-16 rounded-[2.5rem] backdrop-blur-xl shadow-2xl">
+            
+            {/* Left Column: Context & Social Proof */}
+            <div className="lg:col-span-5 space-y-8">
+              <div>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 font-bold text-xs uppercase tracking-widest mb-6">
+                  <Zap className="w-4 h-4" />
+                  Berlangganan Catatan Kehidupan
+                </div>
+                <h2 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4">
+                  Akses Catatan & <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-accent to-purple-400">
+                    Blueprint Produk AI
+                  </span>
+                </h2>
+              </div>
+              
+              <div className="bg-black/40 border border-white/10 p-6 rounded-2xl relative overflow-hidden group hover:border-brand-accent/30 transition-colors">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-brand-accent/10 blur-[40px] rounded-full group-hover:bg-brand-accent/20 transition-colors" />
+                <p className="text-white/80 italic text-sm md:text-base leading-relaxed mb-4 relative z-10">
+                  "Bergabunglah dengan 500+ tech builder, developer, dan kreator produk digital yang ingin membangun sistem modern lebih cepat."
+                </p>
+                <div className="flex items-center gap-3 relative z-10">
+                  <div className="flex gap-0.5 text-yellow-400">
+                    {[...Array(5)].map((_, i) => (
+                      <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                  <span className="text-white/60 text-xs font-bold uppercase tracking-wider">
+                    500+ pembaca & builder aktif
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Form or Thank You */}
+            <div className="lg:col-span-7">
+              <div className="bg-black/60 border border-white/10 p-8 md:p-10 rounded-[2rem] shadow-2xl relative overflow-hidden min-h-[400px] flex flex-col justify-center">
+                
+                <AnimatePresence mode="wait">
+                  {isFormSubmitted ? (
+                    <motion.div
+                      key="success"
+                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                      transition={{ duration: 0.4 }}
+                      className="text-center"
+                    >
+                      <div className="w-20 h-20 bg-brand-success/10 border border-brand-success/30 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
+                        <CheckCircle2 className="w-10 h-10 text-brand-success" />
+                      </div>
+                      <h3 className="text-2xl font-black text-white mb-3">Terima Kasih!</h3>
+                      <p className="text-white/70 max-w-sm mx-auto mb-8 text-sm leading-relaxed">
+                        Kamu sudah berhasil bergabung. Cek email kamu untuk catatan pertama dan akses blueprint produk digital.
+                      </p>
+                      <button
+                        onClick={() => {
+                          setIsFormSubmitted(false);
+                          setFormData({ email: '', phone: '' });
+                        }}
+                        className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-white font-bold text-sm"
+                      >
+                        Kembali
+                      </button>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="form"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <p className="text-brand-secondary text-sm md:text-base leading-relaxed mb-8">
+                        Setiap minggu, saya membagikan breakdown taktis pembangunan produk digital zero-to-one, eksplorasi AI workflow, dan starter resource langsung ke kotak masuk & WhatsApp kamu. Ini gratis, dan akan selalu gratis.
+                      </p>
+
+                      <form onSubmit={handleSubscribe} className="space-y-5">
+                        <div className="space-y-1.5">
+                          <label htmlFor="email" className="text-xs font-bold text-white/70 uppercase tracking-widest ml-1">Email Utama</label>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                              <MailIcon className="w-5 h-5 text-white/40" />
+                            </div>
+                            <input 
+                              type="email" 
+                              id="email"
+                              required
+                              value={formData.email}
+                              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                              placeholder="nama@emailkamu.com" 
+                              className="w-full bg-[#0A0C10] border border-white/15 focus:border-brand-accent/60 focus:ring-1 focus:ring-brand-accent/60 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-white/30 outline-none transition-all"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label htmlFor="phone" className="text-xs font-bold text-white/70 uppercase tracking-widest ml-1">Nomor WhatsApp</label>
+                          <div className="relative flex">
+                            <div className="flex items-center gap-2 bg-[#12141A] border border-white/15 border-r-0 rounded-l-xl py-3.5 px-4 pointer-events-none">
+                              <span className="text-lg">🇮🇩</span>
+                              <span className="text-white/70 font-medium">+62</span>
+                            </div>
+                            <input 
+                              type="tel" 
+                              id="phone"
+                              required
+                              value={formData.phone}
+                              onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                              placeholder="812-xxxx-xxxx" 
+                              className="w-full bg-[#0A0C10] border border-white/15 border-l-0 focus:border-brand-accent/60 focus:ring-1 focus:ring-brand-accent/60 rounded-r-xl py-3.5 px-4 text-white placeholder-white/30 outline-none transition-all"
+                            />
+                          </div>
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={isSubmittingForm || !formData.email || !formData.phone}
+                          className="w-full bg-brand-accent hover:bg-brand-accent/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl mt-4 transition-all hover:shadow-[0_0_20px_rgba(129,140,248,0.4)] flex items-center justify-center gap-2 group"
+                        >
+                          {isSubmittingForm ? (
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          ) : (
+                            <>
+                              Dapatkan Blueprint & Berlangganan 
+                              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            </>
+                          )}
+                        </button>
+
+                        <p className="text-[10px] text-white/40 text-center leading-relaxed mt-6">
+                          Dengan mengirimkan form ini, kamu akan menerima catatan berkala dan update tool gratis. Kamu bisa berhenti berlangganan kapan saja tanpa rasa tersinggung 😉. Privasi 100% aman.
+                        </p>
+                      </form>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
     </main>
   );
