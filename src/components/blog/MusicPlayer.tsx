@@ -1,7 +1,7 @@
 "use client";
 
 import { useMusic, ATMOSPHERES } from "@/context/MusicContext";
-import { Headphones, Minimize2, Sparkles, Music } from "lucide-react";
+import { Headphones, Minimize2, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 
 const SpotifyLogo = ({ className }: { className?: string }) => (
@@ -21,13 +21,13 @@ export default function MusicPlayer() {
   } = useMusic();
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-auto">
-      {/* ================= 1. EXPANDED ATMOSPHERE DOCK (Never destroyed from DOM to keep playback alive!) ================= */}
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-auto select-none">
+      {/* ================= 1. EXPANDED ATMOSPHERE DOCK (Persistent in DOM, smooth GPU transition) ================= */}
       <div
-        className={`w-[340px] sm:w-[380px] bg-[#111113]/95 backdrop-blur-2xl border border-[#27272A] rounded-3xl p-5 shadow-[0_16px_50px_rgba(0,0,0,0.85)] relative overflow-hidden transition-all duration-300 ${
+        className={`w-[340px] sm:w-[380px] bg-[#111113]/95 backdrop-blur-2xl border border-[#27272A] rounded-3xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.9)] relative overflow-hidden transition-all duration-300 ease-out origin-bottom-right ${
           isExpanded
             ? "opacity-100 scale-100 translate-y-0 pointer-events-auto mb-3"
-            : "opacity-0 scale-95 translate-y-6 pointer-events-none absolute bottom-0 right-0 -z-10"
+            : "opacity-0 scale-95 translate-y-8 pointer-events-none absolute bottom-0 right-0"
         }`}
       >
         {/* Spotify Green Ambient Glow */}
@@ -42,6 +42,7 @@ export default function MusicPlayer() {
             </span>
           </div>
           <button
+            type="button"
             onClick={() => setIsExpanded(false)}
             className="p-1.5 rounded-full text-[#9CA3AF] hover:text-[#F8FAFC] hover:bg-[#27272A] transition-colors"
             title="Kecilkan Player"
@@ -54,7 +55,7 @@ export default function MusicPlayer() {
         <div className="mb-4">
           <div className="text-[11px] font-mono text-[#9CA3AF] uppercase tracking-wider mb-2.5 flex items-center justify-between">
             <span>Reading Soundscape</span>
-            <span className="text-[#34D399] flex items-center gap-1 font-sans text-xs">
+            <span className="text-[#34D399] flex items-center gap-1 font-sans text-xs font-medium">
               <Sparkles className="w-3 h-3" /> {currentAtmosphere.emoji} {currentAtmosphere.name}
             </span>
           </div>
@@ -65,10 +66,11 @@ export default function MusicPlayer() {
               return (
                 <button
                   key={atm.id}
+                  type="button"
                   onClick={() => selectAtmosphere(atm)}
                   className={`flex flex-col items-center justify-center p-2.5 rounded-2xl border text-center transition-all ${
                     isSelected
-                      ? "bg-[#1DB954]/15 border-[#1DB954] text-[#F8FAFC] shadow-[0_0_15px_rgba(29,185,84,0.2)] scale-[1.02]"
+                      ? "bg-[#1DB954]/15 border-[#1DB954] text-[#F8FAFC] shadow-[0_0_15px_rgba(29,185,84,0.25)] scale-[1.02]"
                       : "bg-[#09090B] border-[#27272A] text-[#9CA3AF] hover:border-[#3F3F46] hover:text-[#E2E8F0]"
                   }`}
                 >
@@ -80,12 +82,12 @@ export default function MusicPlayer() {
           </div>
         </div>
 
-        {/* Mood Description */}
-        <p className="text-xs text-[#6B7280] italic mb-3 text-center">
-          "{currentAtmosphere.tagline}"
+        {/* Mood Tagline */}
+        <p className="text-xs text-[#71717A] italic mb-3 text-center">
+          &ldquo;{currentAtmosphere.tagline}&rdquo;
         </p>
 
-        {/* Single Lazy-Loaded Spotify Embed (Preserved continuously in DOM once initiated) */}
+        {/* Single Lazy-Loaded Spotify Embed (Always alive in DOM once initiated) */}
         {hasLoadedIframe && (
           <div className="rounded-2xl overflow-hidden border border-[#27272A] bg-[#09090B] shadow-inner">
             <iframe
@@ -96,7 +98,7 @@ export default function MusicPlayer() {
               height="152"
               frameBorder="0"
               allowFullScreen={false}
-              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture; web-share"
               loading="lazy"
             />
           </div>
@@ -105,12 +107,13 @@ export default function MusicPlayer() {
 
       {/* ================= 2. COMPACT SLIM ATMOSPHERE PILL (Visible when minimized) ================= */}
       {!isExpanded && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 10 }}
+        <motion.button
+          type="button"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="flex items-center gap-2.5 bg-[#111113]/90 backdrop-blur-2xl border border-[#27272A] hover:border-[#1DB954]/50 rounded-full py-2 px-4 shadow-2xl transition-all cursor-pointer group"
+          className="flex items-center gap-2.5 bg-[#111113]/90 backdrop-blur-2xl border border-[#27272A] hover:border-[#1DB954]/60 rounded-full py-2 px-4 shadow-[0_10px_30px_rgba(0,0,0,0.8)] transition-all cursor-pointer group"
           onClick={toggleExpanded}
         >
           <SpotifyLogo className="w-4 h-4 text-[#1DB954] flex-shrink-0 group-hover:scale-110 transition-transform" />
@@ -122,9 +125,9 @@ export default function MusicPlayer() {
 
           <div className="flex items-center gap-1 text-[11px] font-mono text-[#6B7280] bg-[#18181B] px-2 py-0.5 rounded-full border border-[#27272A]">
             <Headphones className="w-3 h-3 text-[#34D399]" />
-            <span>{hasLoadedIframe ? "Sedang Memutar" : "Atmosphere"}</span>
+            <span>{hasLoadedIframe ? "Aktif" : "Atmosphere"}</span>
           </div>
-        </motion.div>
+        </motion.button>
       )}
     </div>
   );
