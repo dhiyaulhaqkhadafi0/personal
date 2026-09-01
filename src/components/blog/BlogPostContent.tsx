@@ -6,7 +6,7 @@ import { notFound } from 'next/navigation';
 import { Navbar } from '@/components/shared/navbar';
 import TableOfContents from '@/components/blog/TableOfContents';
 import EngagementSection from '@/components/blog/EngagementSection';
-import { ArrowLeft, Music } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Lora, Plus_Jakarta_Sans } from 'next/font/google';
 import { motion, useScroll, useSpring } from 'framer-motion';
@@ -45,7 +45,7 @@ export default function BlogPostContent({ post, slug }: Props) {
 
       <Navbar />
       
-      <main className="max-w-4xl mx-auto px-4 md:px-6 pt-32 pb-32 relative z-10 flex flex-col items-center">
+      <main className="max-w-4xl mx-auto px-4 md:px-6 pt-32 pb-48 relative z-10 flex flex-col items-center">
         
         <div className="w-full mb-10">
           <Link 
@@ -99,26 +99,6 @@ export default function BlogPostContent({ post, slug }: Props) {
               <MDXRemote source={post.content} />
             </div>
 
-            {/* Spotify Embedded Player (Lofi/Instrumental for Reading) */}
-            <div className="mt-20 mb-10 pt-10 border-t border-[#27272A]/50">
-              <div className="flex items-center gap-2 mb-6 text-[#9CA3AF] font-medium font-sans">
-                <Music className="w-4 h-4 text-[#34D399]" />
-                <h3>Alunan Pengiring Literasi</h3>
-              </div>
-              <div className="rounded-2xl overflow-hidden border border-[#27272A]/50 bg-[#09090B] shadow-inner p-2">
-                <iframe 
-                  style={{ borderRadius: '12px' }} 
-                  src="https://open.spotify.com/embed/playlist/37i9dQZF1DWZeKCadgRdKQ?utm_source=generator&theme=0" 
-                  width="100%" 
-                  height="152" 
-                  frameBorder="0" 
-                  allowFullScreen={false} 
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                  loading="lazy"
-                ></iframe>
-              </div>
-            </div>
-
             <EngagementSection slug={slug} />
 
           </article>
@@ -129,6 +109,25 @@ export default function BlogPostContent({ post, slug }: Props) {
       {/* Floating Collapsible ToC */}
       <TableOfContents content={post.content} />
 
+      {/* Spotify Floating Mini Player (Bottom Right outside article) */}
+      <div className="fixed bottom-6 right-6 z-40 hidden md:block group rounded-2xl overflow-hidden shadow-2xl hover:scale-105 transition-transform duration-300">
+        {/* Glow effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1DB954] to-[#1DB954]/50 opacity-20 blur-md group-hover:opacity-40 transition-opacity pointer-events-none" />
+        
+        {/* Iframe */}
+        <div className="relative rounded-xl border border-[#27272A] bg-[#09090B]">
+          <iframe 
+            style={{ borderRadius: '12px', display: 'block' }} 
+            src="https://open.spotify.com/embed/playlist/37i9dQZF1DWZeKCadgRdKQ?utm_source=generator&theme=0" 
+            width="300" 
+            height="80" 
+            frameBorder="0" 
+            allowFullScreen={false} 
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+            loading="lazy"
+          ></iframe>
+        </div>
+      </div>
     </div>
   );
 }
