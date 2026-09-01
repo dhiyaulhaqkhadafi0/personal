@@ -21,7 +21,7 @@ export default function MusicPlayer() {
   } = useMusic();
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-auto select-none">
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none select-none">
       {/* ================= 1. EXPANDED ATMOSPHERE DOCK (Persistent in DOM, smooth GPU transition) ================= */}
       <div
         className={`w-[340px] sm:w-[380px] bg-[#111113]/95 backdrop-blur-2xl border border-[#27272A] rounded-3xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.9)] relative overflow-hidden transition-all duration-300 ease-out origin-bottom-right ${
@@ -113,7 +113,7 @@ export default function MusicPlayer() {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="flex items-center gap-2.5 bg-[#111113]/90 backdrop-blur-2xl border border-[#27272A] hover:border-[#1DB954]/60 rounded-full py-2 px-4 shadow-[0_10px_30px_rgba(0,0,0,0.8)] transition-all cursor-pointer group"
+          className="pointer-events-auto flex items-center gap-2.5 bg-[#111113]/90 backdrop-blur-2xl border border-[#27272A] hover:border-[#1DB954]/60 rounded-full py-2 px-4 shadow-[0_10px_30px_rgba(0,0,0,0.8)] transition-all cursor-pointer group"
           onClick={toggleExpanded}
         >
           <SpotifyLogo className="w-4 h-4 text-[#1DB954] flex-shrink-0 group-hover:scale-110 transition-transform" />

@@ -230,7 +230,7 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
             </div>
 
             {/* View Toggles (List vs Grid vs Youtube) */}
-            <div className="flex items-center gap-1.5 bg-[#111113] p-1.5 rounded-xl border border-[#27272A] flex-shrink-0 w-full justify-center sm:w-auto sm:justify-end z-10">
+            <div className="flex items-center gap-1.5 bg-[#111113] p-1.5 rounded-xl border border-[#27272A] flex-shrink-0 w-full justify-center sm:w-auto sm:justify-end relative z-20 pointer-events-auto">
               <button
                 type="button"
                 onClick={() => setViewMode("youtube")}
