@@ -3,6 +3,7 @@
 import { Navbar } from '@/components/shared/navbar';
 import TableOfContents from '@/components/blog/TableOfContents';
 import EngagementSection from '@/components/blog/EngagementSection';
+import ScrollProgressNav from '@/components/blog/ScrollProgressNav';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Lora, Plus_Jakarta_Sans } from 'next/font/google';
@@ -42,6 +43,7 @@ export default function BlogPostContent({ post, slug, children }: Props) {
       </div>
 
       <Navbar />
+      <ScrollProgressNav />
       
       <main className="max-w-4xl mx-auto px-4 md:px-6 pt-32 pb-48 relative z-10 flex flex-col items-center">
         

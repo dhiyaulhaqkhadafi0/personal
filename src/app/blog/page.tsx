@@ -3,7 +3,6 @@ import { Navbar } from '@/components/shared/navbar';
 import { Lora } from 'next/font/google';
 import BlogSearchFilter from '@/components/blog/BlogSearchFilter';
 import HeroSlider from '@/components/blog/HeroSlider';
-import ScrollProgressNav from '@/components/blog/ScrollProgressNav';
 
 const lora = Lora({ subsets: ['latin'], style: ['normal', 'italic'] });
 
@@ -23,7 +22,6 @@ export default function BlogIndex() {
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[60%] rounded-full bg-[#6366F1]/5 blur-[150px] pointer-events-none animate-[spin_12s_linear_infinite_reverse] mix-blend-screen" />
 
       <Navbar />
-      <ScrollProgressNav />
       
       <main className="relative z-10 pt-24 pb-24 max-w-5xl mx-auto px-6 sm:px-8">
         
