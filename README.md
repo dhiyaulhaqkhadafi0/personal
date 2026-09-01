@@ -42,7 +42,7 @@ the existing MDX archive and rendered at `/blog/[slug]`.
 
 Setup:
 
-1. Copy `.env.example` to `.env.local` and fill the Supabase values.
+1. Copy `.env.example` to `.env.local` and fill the Supabase URL and publishable key.
 2. Set `BLOG_ADMIN_EMAIL` to the only email allowed to use Studio APIs.
 3. Run `supabase_blog_studio.sql` once in the Supabase SQL Editor.
 4. Add the same email privately to `blog_admin_emails` (do not commit it).
