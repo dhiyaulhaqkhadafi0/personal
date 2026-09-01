@@ -53,17 +53,17 @@ export function Navbar() {
       transition={{ duration: 0.6, ease: "easeOut" }}
       className="absolute top-2 left-0 right-0 z-[90] transition-all duration-300 px-4 md:px-6 pointer-events-auto"
     >
-      <div className={`max-w-7xl mx-auto flex items-center justify-between rounded-2xl px-6 py-3 transition-all duration-300 ${scrolled ? "bg-[#05050A]/80 backdrop-blur-xl border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)]" : "bg-transparent border border-transparent"}`}>
+      <div className={`max-w-7xl mx-auto flex items-center justify-between rounded-2xl px-6 py-4 transition-all duration-300 ${scrolled ? "bg-[#05050A]/80 backdrop-blur-xl border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)]" : "bg-transparent border border-transparent"}`}>
         {/* Logo */}
         <div className="flex items-center">
           <Link href="/" className="relative flex items-center justify-center group">
             <Image 
               src="/assets/logo%20AAPE.png" 
               alt="AAPE Logo" 
-              width={140}
-              height={42}
+              width={180}
+              height={54}
               priority
-              className="h-8 sm:h-9 w-auto object-contain group-hover:scale-[1.03] transition-transform duration-500 drop-shadow-[0_0_12px_rgba(255,255,255,0.35)] group-hover:drop-shadow-[0_0_20px_rgba(255,255,255,0.55)]" 
+              className="h-10 sm:h-11 md:h-12 w-auto object-contain group-hover:scale-[1.03] transition-transform duration-500 drop-shadow-[0_0_14px_rgba(255,255,255,0.35)] group-hover:drop-shadow-[0_0_22px_rgba(255,255,255,0.6)]" 
             />
           </Link>
         </div>
