@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { getAllPosts } from '@/lib/mdx';
-import { Calendar, ChevronRight } from 'lucide-react';
 import { Navbar } from '@/components/shared/navbar';
+import { Lora } from 'next/font/google';
+
+const lora = Lora({ subsets: ['latin'], style: ['normal', 'italic'] });
 
 export const metadata = {
   title: 'Digital Grimoire | Daffa Dhiyaulhaq Khadafi',
@@ -12,60 +14,57 @@ export default function BlogIndex() {
   const posts = getAllPosts();
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-slate-200 font-sans selection:bg-emerald-500/30 selection:text-emerald-200">
+    <div className="min-h-screen bg-[#0C0C0E] text-[#D1D5DB] font-sans selection:bg-[#34D399]/20 selection:text-[#E2E8F0]">
       <Navbar />
       
-      <main className="max-w-4xl mx-auto px-6 pt-32 pb-24">
-        <header className="mb-16">
-          <h1 className="text-4xl md:text-5xl font-serif text-white font-bold mb-4 drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+      <main className="max-w-3xl mx-auto px-6 pt-32 pb-24">
+        <header className="mb-20">
+          <h1 className={`text-4xl md:text-5xl text-[#F8FAFC] font-medium tracking-tight mb-6 ${lora.className}`}>
             The Digital Grimoire
           </h1>
-          <p className="text-slate-400 text-lg md:text-xl max-w-2xl font-light">
-            A repository of architectural concepts, AI integrations, and the subtle art of defensible product engineering.
+          <p className="text-[#9CA3AF] text-lg leading-relaxed max-w-2xl font-light">
+            Catatan perjalanan, arsip pemikiran, dan kerangka arsitektur. 
+            Menjembatani batas antara logika komputasi dan intuisi desain.
           </p>
         </header>
 
-        <div className="space-y-6">
+        <div className="space-y-12">
           {posts.map((post) => (
             <Link 
               key={post.metadata.slug} 
               href={`/blog/${post.metadata.slug}`}
               className="block group"
             >
-              <article className="p-6 md:p-8 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:border-emerald-500/50 hover:bg-zinc-900 transition-all duration-500 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 via-emerald-500/0 to-emerald-500/5 group-hover:to-emerald-500/10 transition-colors duration-500" />
+              <article className="flex flex-col md:flex-row md:items-baseline gap-2 md:gap-10 py-6 border-b border-[#27272A]/50 hover:border-[#52525B] transition-colors duration-300">
                 
-                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 text-xs font-mono text-emerald-500/80">
-                      <span className="uppercase tracking-wider font-semibold">{post.metadata.category}</span>
-                      <span className="w-1 h-1 rounded-full bg-zinc-700" />
-                      <span className="flex items-center gap-1.5 text-zinc-500">
-                        <Calendar className="w-3.5 h-3.5" />
-                        {post.metadata.date}
-                      </span>
-                    </div>
-                    
-                    <h2 className="text-2xl font-serif font-bold text-slate-100 group-hover:text-emerald-400 transition-colors">
-                      {post.metadata.title}
-                    </h2>
-                    
-                    <p className="text-slate-400 leading-relaxed max-w-2xl">
-                      {post.metadata.excerpt}
-                    </p>
-                  </div>
-                  
-                  <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-full border border-zinc-800 group-hover:border-emerald-500/30 group-hover:bg-emerald-500/10 transition-all">
-                    <ChevronRight className="w-5 h-5 text-zinc-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all" />
-                  </div>
+                {/* Meta Sidebar */}
+                <div className="flex-shrink-0 w-full md:w-32 flex items-center md:flex-col md:items-start gap-4 md:gap-1 text-sm">
+                  <span className="text-[#6B7280] font-mono tracking-wide">
+                    {new Date(post.metadata.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                  <span className="hidden md:inline text-[#3F3F46]">•</span>
+                  <span className="text-[#34D399]/80 font-medium tracking-wide uppercase text-xs">
+                    {post.metadata.category}
+                  </span>
                 </div>
+                
+                {/* Content Area */}
+                <div className="flex-grow space-y-3">
+                  <h2 className={`text-2xl text-[#E2E8F0] group-hover:text-white font-medium leading-snug transition-colors ${lora.className}`}>
+                    {post.metadata.title}
+                  </h2>
+                  <p className="text-[#9CA3AF] leading-relaxed text-base font-light max-w-2xl group-hover:text-[#D1D5DB] transition-colors">
+                    {post.metadata.excerpt}
+                  </p>
+                </div>
+                
               </article>
             </Link>
           ))}
           
           {posts.length === 0 && (
-            <div className="text-center py-20 text-slate-500 border border-dashed border-zinc-800 rounded-2xl">
-              The grimoire is currently empty.
+            <div className="py-20 text-[#6B7280] font-light italic text-center">
+              Belum ada catatan yang ditulis.
             </div>
           )}
         </div>

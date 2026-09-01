@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, Zap } from "lucide-react";
+import { Eye, Sparkles } from "lucide-react";
 
 type GrimoireMetricsProps = {
   slug: string;
@@ -14,7 +14,6 @@ export default function GrimoireMetrics({ slug }: GrimoireMetricsProps) {
   const [isIgniting, setIsIgniting] = useState(false);
 
   useEffect(() => {
-    // Increment view count on mount
     const recordView = async () => {
       try {
         const res = await fetch(`/api/metrics/${slug}`, {
@@ -31,8 +30,6 @@ export default function GrimoireMetrics({ slug }: GrimoireMetricsProps) {
         console.error("Failed to record view", error);
       }
     };
-    
-    // Only record once in development if StrictMode is on (prevent double fire by tracking state or local storage ideally, but this is fine for now)
     recordView();
   }, [slug]);
 
@@ -56,49 +53,57 @@ export default function GrimoireMetrics({ slug }: GrimoireMetricsProps) {
     
     setTimeout(() => {
       setIsIgniting(false);
-    }, 1000); // Prevent spamming
+    }, 800);
   };
 
   return (
-    <div className="flex items-center gap-6 py-8 border-t border-white/10 mt-12">
-      <div className="flex items-center gap-2 text-slate-400">
-        <Eye className="w-5 h-5 text-emerald-500/70" />
-        <span className="font-mono text-sm">{views !== null ? views : "---"} Views</span>
+    <div className="flex items-center gap-8 py-6 border-t border-[#27272A]/50">
+      
+      {/* View Counter */}
+      <div className="flex items-center gap-2.5 text-[#6B7280]">
+        <Eye className="w-4 h-4 text-[#9CA3AF]" strokeWidth={1.5} />
+        <span className="font-mono text-sm tracking-wide">
+          {views !== null ? views.toLocaleString() : "---"} views
+        </span>
       </div>
 
+      {/* Ignite Button (Subtle & Elegant) */}
       <button 
         onClick={handleIgnite}
         disabled={isIgniting}
-        className="group relative flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+        className="group flex items-center gap-2.5 text-[#6B7280] hover:text-[#D1D5DB] transition-colors relative"
       >
         <motion.div
-          whileTap={{ scale: 0.8 }}
+          whileTap={{ scale: 0.9 }}
           animate={isIgniting ? { 
-            scale: [1, 1.5, 1],
-            rotate: [0, 15, -15, 0],
-            color: "#10b981" 
+            scale: [1, 1.2, 1],
+            rotate: [0, 10, -10, 0],
           } : {}}
-          transition={{ duration: 0.5 }}
-          className="relative"
+          transition={{ duration: 0.4 }}
+          className="relative flex items-center justify-center"
         >
-          <Zap className={`w-5 h-5 ${isIgniting ? 'text-emerald-500 fill-emerald-500/20' : 'group-hover:text-emerald-500'}`} />
+          <Sparkles 
+            className={`w-4 h-4 transition-colors duration-300 ${isIgniting ? 'text-[#34D399] fill-[#34D399]/20' : 'group-hover:text-[#34D399]'}`} 
+            strokeWidth={1.5}
+          />
           
           <AnimatePresence>
             {isIgniting && (
               <motion.div
-                initial={{ opacity: 1, scale: 0 }}
-                animate={{ opacity: 0, scale: 2 }}
+                initial={{ opacity: 0.8, scale: 0.5 }}
+                animate={{ opacity: 0, scale: 2.5 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-emerald-500 rounded-full z-[-1]"
+                className="absolute inset-0 border border-[#34D399] rounded-full z-[-1]"
               />
             )}
           </AnimatePresence>
         </motion.div>
         
-        <span className="font-mono text-sm">
-          {ignites !== null ? ignites : "---"} Ignites
+        <span className={`font-mono text-sm tracking-wide transition-colors duration-300 ${isIgniting ? 'text-[#34D399]' : ''}`}>
+          {ignites !== null ? ignites.toLocaleString() : "---"} ignites
         </span>
       </button>
+
     </div>
   );
 }
