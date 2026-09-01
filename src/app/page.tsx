@@ -2052,13 +2052,13 @@ export default function Home() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setSelectedCert(null)}
-            className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-2xl flex items-center justify-center p-4 md:p-10"
+            className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-2xl flex items-center justify-center p-4 sm:p-6"
           >
             <button
               onClick={() => setSelectedCert(null)}
-              className="absolute top-6 right-6 z-[80] p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 shadow-2xl"
+              className="absolute top-4 right-4 md:top-6 md:right-6 z-[10000] p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 shadow-2xl"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 md:w-6 md:h-6" />
             </button>
 
             <motion.div
@@ -2066,9 +2066,9 @@ export default function Home() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative max-w-4xl w-full max-h-[85vh] bg-[#0A0C10] border border-white/20 rounded-3xl overflow-hidden shadow-2xl flex flex-col"
+              className="relative max-w-4xl w-full max-h-[90vh] bg-[#0A0C10] border border-white/20 rounded-3xl overflow-y-auto shadow-2xl flex flex-col mt-8 md:mt-0"
             >
-              <div className="relative flex-1 min-h-[350px] md:min-h-[500px] w-full bg-black/40 p-4">
+              <div className="relative w-full h-[45vh] md:h-[60vh] shrink-0 bg-black/40 p-4">
                 <Image
                   src={selectedCert.image}
                   alt={selectedCert.title}
@@ -2077,7 +2077,7 @@ export default function Home() {
                   quality={100}
                 />
               </div>
-              <div className="p-6 bg-white/5 backdrop-blur-xl border-t border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="p-4 md:p-6 bg-white/5 backdrop-blur-xl border-t border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
                 <div>
                   <span className="text-xs font-bold uppercase tracking-widest text-brand-accent block mb-1">
                     {selectedCert.issuer} {selectedCert.issuer && "•"} {selectedCert.category}
