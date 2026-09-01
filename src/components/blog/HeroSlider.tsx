@@ -16,7 +16,7 @@ export default function HeroSlider() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % IMAGES.length);
-    }, 5000); // Ganti slide setiap 5 detik
+    }, 8000); // Ganti slide setiap 8 detik agar tenang dan nyaman
     return () => clearInterval(timer);
   }, []);
 

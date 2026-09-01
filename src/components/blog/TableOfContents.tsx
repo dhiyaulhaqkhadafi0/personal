@@ -55,15 +55,13 @@ export default function TableOfContents({ content }: Props) {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        // We might get multiple entries intersecting. 
-        // A simple approach is just picking the first intersecting one.
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             setActiveId(entry.target.id);
           }
         });
       },
-      { rootMargin: "-10% 0px -80% 0px" }
+      { rootMargin: "-10% 0px -75% 0px" }
     );
 
     headings.forEach((heading) => {
@@ -74,16 +72,28 @@ export default function TableOfContents({ content }: Props) {
     return () => observer.disconnect();
   }, [headings]);
 
+  const handleHeadingClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    setIsOpen(false);
+    setActiveId(id);
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+      window.history.pushState(null, "", `#${id}`);
+    }
+  };
+
   if (headings.length === 0) return null;
 
   return (
     <>
-      {/* Floating Toggle Button (Moved to Top Right) */}
+      {/* Floating Toggle Button (Top Right) */}
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
         className="fixed top-28 right-8 z-50 flex items-center justify-center w-12 h-12 bg-[#131316]/80 backdrop-blur-md border border-[#27272A] rounded-full shadow-2xl text-[#9CA3AF] hover:text-[#34D399] hover:border-[#34D399]/30 transition-colors"
+        title="Buka Daftar Isi"
       >
         <ListCollapse className="w-5 h-5" />
       </motion.button>
@@ -103,6 +113,7 @@ export default function TableOfContents({ content }: Props) {
               <button 
                 onClick={() => setIsOpen(false)}
                 className="text-[#6B7280] hover:text-[#E2E8F0] transition-colors"
+                title="Tutup"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -116,12 +127,12 @@ export default function TableOfContents({ content }: Props) {
                   <a
                     key={heading.id}
                     href={`#${heading.id}`}
-                    onClick={() => setIsOpen(false)}
-                    className={`block py-1.5 transition-all duration-300 relative font-sans ${
-                      isSub ? "ml-4 text-[13px]" : "text-[14px] mt-2"
+                    onClick={(e) => handleHeadingClick(e, heading.id)}
+                    className={`block py-1.5 transition-all duration-300 relative font-sans cursor-pointer ${
+                      isSub ? "ml-4 text-[13px]" : "text-[14px] mt-2 font-medium"
                     } ${
                       isActive 
-                        ? "text-[#34D399] font-medium" 
+                        ? "text-[#34D399]" 
                         : "text-[#9CA3AF] hover:text-[#D1D5DB]"
                     }`}
                   >

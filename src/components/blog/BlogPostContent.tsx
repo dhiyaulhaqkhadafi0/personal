@@ -1,8 +1,5 @@
 "use client";
 
-import { getPostBySlug, getPostSlugs } from '@/lib/mdx';
-import { MDXRemote } from 'next-mdx-remote/rsc';
-import { notFound } from 'next/navigation';
 import { Navbar } from '@/components/shared/navbar';
 import TableOfContents from '@/components/blog/TableOfContents';
 import EngagementSection from '@/components/blog/EngagementSection';
@@ -17,15 +14,16 @@ const sans = Plus_Jakarta_Sans({ subsets: ['latin'] });
 type Props = {
   post: any;
   slug: string;
+  children: React.ReactNode;
 };
 
-// Client Component to handle Scroll Progress
-export default function BlogPostContent({ post, slug }: Props) {
+// Client Component to handle Scroll Progress & Interactive UI
+export default function BlogPostContent({ post, slug, children }: Props) {
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
     damping: 30,
-    restDelta: 0.001
+    restDelta: 0.001,
   });
 
   return (
@@ -83,7 +81,7 @@ export default function BlogPostContent({ post, slug }: Props) {
               </p>
             </header>
 
-            {/* Typography Content */}
+            {/* Typography Content (Server-Rendered MDX passed as children) */}
             <div className={`prose prose-invert max-w-none 
               prose-p:text-[#D1D5DB] prose-p:leading-[2] prose-p:text-[1.1rem] ${lora.className}
               prose-headings:font-sans prose-headings:font-medium prose-headings:text-[#F8FAFC] prose-headings:tracking-tight
@@ -96,7 +94,7 @@ export default function BlogPostContent({ post, slug }: Props) {
               prose-pre:bg-[#09090B] prose-pre:border prose-pre:border-[#27272A]/50 prose-pre:font-sans prose-pre:shadow-inner
               prose-hr:border-[#27272A]/50 prose-hr:my-16
             `}>
-              <MDXRemote source={post.content} />
+              {children}
             </div>
 
             <EngagementSection slug={slug} />
