@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
+import type { StudioArticle, TiptapNode } from '@/lib/blog-types';
 
 const POSTS_DIRECTORY = path.join(process.cwd(), 'src/content/blog');
 
@@ -11,11 +13,17 @@ export type BlogPostMetadata = {
   excerpt: string;
   slug: string;
   image?: string;
+  readingTime?: number;
+  musicMood?: string;
+  musicEnabled?: boolean;
 };
 
 export type BlogPost = {
   metadata: BlogPostMetadata;
   content: string;
+  contentHtml?: string;
+  contentJson?: TiptapNode;
+  source: 'mdx' | 'studio';
 };
 
 export function getPostSlugs(): string[] {
@@ -45,6 +53,7 @@ export function getPostBySlug(slug: string): BlogPost | null {
         slug: realSlug,
       } as BlogPostMetadata,
       content,
+      source: 'mdx',
     };
   } catch (error) {
     console.error(`Error reading post with slug: ${slug}`, error);
@@ -52,12 +61,61 @@ export function getPostBySlug(slug: string): BlogPost | null {
   }
 }
 
-export function getAllPosts(): BlogPost[] {
+function studioArticleToPost(article: StudioArticle): BlogPost {
+  return {
+    metadata: {
+      title: article.title,
+      category: article.category,
+      date: article.published_at || article.updated_at,
+      excerpt: article.excerpt,
+      slug: article.slug,
+      image: article.cover_url || undefined,
+      readingTime: article.reading_time,
+      musicMood: article.music_mood,
+      musicEnabled: article.music_enabled,
+    },
+    content: '',
+    contentHtml: article.content_html,
+    contentJson: article.content_json,
+    source: 'studio',
+  };
+}
+
+async function getPublishedStudioPosts(): Promise<BlogPost[]> {
+  if (!isSupabaseConfigured) return [];
+  const { data, error } = await supabase
+    .from('blog_articles')
+    .select('*')
+    .eq('status', 'published')
+    .order('published_at', { ascending: false });
+  if (error) {
+    console.error('Error reading published studio articles:', error.message);
+    return [];
+  }
+  return (data as StudioArticle[]).map(studioArticleToPost);
+}
+
+export async function getAllPosts(): Promise<BlogPost[]> {
   const slugs = getPostSlugs();
-  const posts = slugs
+  const mdxPosts = slugs
     .map((slug) => getPostBySlug(slug))
-    .filter((post): post is BlogPost => post !== null)
-    .sort((post1, post2) => (post1.metadata.date > post2.metadata.date ? -1 : 1));
-  
-  return posts;
+    .filter((post): post is BlogPost => post !== null);
+  const studioPosts = await getPublishedStudioPosts();
+  const studioSlugs = new Set(studioPosts.map((post) => post.metadata.slug));
+  return [...studioPosts, ...mdxPosts.filter((post) => !studioSlugs.has(post.metadata.slug))]
+    .sort((post1, post2) => new Date(post2.metadata.date).getTime() - new Date(post1.metadata.date).getTime());
+}
+
+export async function getPublishedPostBySlug(slug: string): Promise<BlogPost | null> {
+  if (isSupabaseConfigured) {
+    const { data, error } = await supabase
+      .from('blog_articles')
+      .select('*')
+      .eq('slug', slug)
+      .eq('status', 'published')
+      .maybeSingle();
+    if (!error && data) return studioArticleToPost(data as StudioArticle);
+    if (error) console.error(`Error reading studio article ${slug}:`, error.message);
+  }
+  return getPostBySlug(slug);
 }

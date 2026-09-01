@@ -11,8 +11,10 @@ export const metadata = {
   description: 'A digital diary of an AI-Assisted Product Engineer. Concepts, thoughts, and architectural blueprints.',
 };
 
-export default function BlogIndex() {
-  const posts = getAllPosts();
+export const dynamic = 'force-dynamic';
+
+export default async function BlogIndex() {
+  const posts = await getAllPosts();
 
   return (
     <div className="min-h-screen bg-[#09090B] text-[#D1D5DB] font-sans selection:bg-[#34D399]/20 selection:text-[#E2E8F0] relative overflow-hidden">

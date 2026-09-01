@@ -8,12 +8,14 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Lora, Plus_Jakarta_Sans } from 'next/font/google';
 import { motion, useScroll, useSpring } from 'framer-motion';
+import ArticleAtmosphere from '@/components/blog/ArticleAtmosphere';
+import type { BlogPost } from '@/lib/mdx';
 
 const lora = Lora({ subsets: ['latin'], style: ['normal', 'italic'] });
 const sans = Plus_Jakarta_Sans({ subsets: ['latin'] });
 
 type Props = {
-  post: any;
+  post: BlogPost;
   slug: string;
   children: React.ReactNode;
 };
@@ -43,6 +45,7 @@ export default function BlogPostContent({ post, slug, children }: Props) {
       </div>
 
       <Navbar />
+      <ArticleAtmosphere mood={post.metadata.musicMood} enabled={post.metadata.musicEnabled} />
       <ScrollProgressNav />
       
       <main className="max-w-4xl mx-auto px-4 md:px-6 pt-32 pb-48 relative z-10 flex flex-col items-center">
@@ -81,6 +84,15 @@ export default function BlogPostContent({ post, slug, children }: Props) {
               <p className="text-xl text-[#A1A1AA] font-light leading-relaxed border-l-2 border-[#34D399]/30 pl-6 italic">
                 {post.metadata.excerpt}
               </p>
+
+              {post.metadata.image && (
+                <div
+                  className="mt-10 w-full aspect-[16/9] rounded-2xl border border-white/10 bg-cover bg-center shadow-[0_25px_70px_rgba(0,0,0,0.45)]"
+                  style={{ backgroundImage: `linear-gradient(180deg,transparent,rgba(9,9,11,.28)),url(${post.metadata.image})` }}
+                  role="img"
+                  aria-label={`Cover artikel ${post.metadata.title}`}
+                />
+              )}
             </header>
 
             {/* Typography Content (Server-Rendered MDX passed as children) */}

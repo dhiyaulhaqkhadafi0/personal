@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { SendHorizontal, LayoutGrid, List, ChevronDown, SearchX, RotateCcw, MonitorPlay, Eye, TrendingUp, Star, Clock, ArrowRight } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type BlogPost = {
@@ -43,7 +44,7 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
   }, [posts]);
 
   const categories = Object.keys(categoryCounts);
-  const sortOptions: { id: SortMode; icon: any; label: string }[] = [
+  const sortOptions: { id: SortMode; icon: LucideIcon; label: string }[] = [
     { id: "Terbaru", icon: Clock, label: "Terbaru" },
     { id: "Trending", icon: TrendingUp, label: "Sedang Trending" },
     { id: "Banyak Dilihat", icon: Eye, label: "Paling Banyak Dilihat" },
