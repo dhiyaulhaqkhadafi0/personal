@@ -27,22 +27,15 @@ export function Footer() {
       <div className="container mx-auto px-6 max-w-6xl py-16 md:py-20 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8 mb-16">
           <div className="md:col-span-2 pr-0 md:pr-12">
-            <Link href="/" className="inline-block mb-8 relative group overflow-hidden rounded-2xl p-1">
-              {/* Logo AAPE Container with Ambient Luxury Glow */}
+            <Link href="/" className="inline-block mb-8 relative group">
               <div className="relative flex items-center">
-                {/* Soft Radial Ambient Aura Behind Footer Logo */}
-                <div className="absolute -inset-4 bg-gradient-to-r from-[#34D399]/25 via-[#2DD4BF]/15 to-[#818CF8]/25 blur-2xl opacity-40 group-hover:opacity-100 transition-all duration-700 rounded-3xl pointer-events-none" />
-                
                 <Image
                   src="/assets/logo AAPE.png"
                   alt="AAPE Logo"
-                  width={260}
-                  height={84}
-                  className="w-auto h-20 sm:h-22 md:h-24 object-contain relative z-10 drop-shadow-[0_0_20px_rgba(52,211,153,0.3)] group-hover:drop-shadow-[0_0_35px_rgba(52,211,153,0.65)] group-hover:scale-105 transition-all duration-500"
+                  width={220}
+                  height={70}
+                  className="w-auto h-[72px] object-contain drop-shadow-[0_0_18px_rgba(255,255,255,0.3)] group-hover:drop-shadow-[0_0_28px_rgba(255,255,255,0.55)] group-hover:scale-[1.03] transition-all duration-500"
                 />
-
-                {/* Glossy Mengkilap / Shine Sweep Light Effect */}
-                <div className="absolute inset-0 z-20 pointer-events-none w-[60%] h-full bg-gradient-to-r from-transparent via-white/25 to-transparent animate-shine" />
               </div>
             </Link>
             <p className="text-slate-400 text-[15px] leading-relaxed max-w-sm mb-8 font-medium">
