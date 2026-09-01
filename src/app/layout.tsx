@@ -8,6 +8,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://daffakhadafi.com"),
   title: "Daffa Dhiyaulhaq Khadafi | AI-Assisted Product Engineer",
   description: "Daffa Dhiyaulhaq Khadafi is an AI-Assisted Product Engineer & Founder, specializing in building high-velocity, defensible digital products, AI architectures, and modern web applications.",
   keywords: ["AI Engineer", "Product Manager", "Digital Product Builder", "Daffa Dhiyaulhaq Khadafi", "AI Architecture", "Product Engineer", "AAPE"],

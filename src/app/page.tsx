@@ -2196,8 +2196,8 @@ export default function Home() {
                   {/* Left: Info */}
                   <div className="flex-1 min-w-0 text-center sm:text-left">
                     <span className="text-[11px] font-bold uppercase tracking-widest text-brand-accent block mb-0.5">
-                      {'issuer' in currentItem && currentItem.issuer 
-                        ? `${currentItem.issuer} • ${currentItem.category || 'Credential'}` 
+                      {isCert && 'issuer' in currentItem
+                        ? `${(currentItem as any).issuer} • ${(currentItem as any).category || 'Credential'}` 
                         : 'Credential Badge • Verified'}
                     </span>
                     <h3 className="text-sm md:text-lg font-bold text-white truncate max-w-lg">
