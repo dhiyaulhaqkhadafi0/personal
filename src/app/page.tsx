@@ -295,21 +295,21 @@ const certificatesList = [
     issuer: "IBM",
     category: "Cybersecurity",
     image: "/certificate/IBMDesign20251026-29-av8of9_page-0001.jpg",
-    link: "#",
+    link: "https://www.credly.com/badges/649e1d24-887c-44f2-90b0-64c13c557c10/public_url",
   },
   {
     title: "Data Analytics Essentials",
     issuer: "IBM",
     category: "Data Analytics",
     image: "/certificate/IBMDesign20251026-30-snhmp9_page-0001 (1).jpg",
-    link: "#",
+    link: "https://www.credly.com/badges/f9ed8f12-2094-41ee-ba14-16180e871dc3/public_url",
   },
   {
     title: "Product Management Essentials",
     issuer: "IBM",
     category: "Product Management",
     image: "/certificate/IBMDesign20260830-20-s0mimw_page-0001.jpg",
-    link: "#",
+    link: "https://www.credly.com/badges/6b6c1243-6ab1-4f0c-b881-5692a084b90e/public_url",
   },
   {
     title: "Mastering Product Management",
@@ -418,7 +418,12 @@ export default function Home() {
   const [selectedMockupIndex, setSelectedMockupIndex] = useState<number | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [panY, setPanY] = useState(0);
-  const [selectedCert, setSelectedCert] = useState<{ title: string; issuer?: string; category?: string; image: string; link?: string } | null>(null);
+
+  // Credentials (Certificate & Badge) Lightbox State
+  const [selectedCredState, setSelectedCredState] = useState<{ type: 'certificates' | 'badges'; index: number } | null>(null);
+  const [credZoomLevel, setCredZoomLevel] = useState(1);
+  const [credPanY, setCredPanY] = useState(0);
+
   const [openLadderIndex, setOpenLadderIndex] = useState<number | null>(0);
   const [presentationProgress, setPresentationProgress] = useState(0);
   const [activeCertSection, setActiveCertSection] = useState<'certificates' | 'badges'>('certificates');
@@ -441,6 +446,32 @@ export default function Home() {
     }
   };
 
+  const handleNextCred = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (selectedCredState !== null) {
+      const list = selectedCredState.type === 'certificates' ? certificatesList : badgesList;
+      setSelectedCredState({
+        type: selectedCredState.type,
+        index: (selectedCredState.index + 1) % list.length
+      });
+      setCredZoomLevel(1);
+      setCredPanY(0);
+    }
+  };
+
+  const handlePrevCred = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (selectedCredState !== null) {
+      const list = selectedCredState.type === 'certificates' ? certificatesList : badgesList;
+      setSelectedCredState({
+        type: selectedCredState.type,
+        index: (selectedCredState.index - 1 + list.length) % list.length
+      });
+      setCredZoomLevel(1);
+      setCredPanY(0);
+    }
+  };
+
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
@@ -448,15 +479,27 @@ export default function Home() {
     restDelta: 0.001
   });
 
-  // Native scroll tracking is used for the presentation modal to avoid hydration errors
-
   useEffect(() => {
-    if (showPresentation) {
+    if (showPresentation || selectedCredState !== null) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
     }
+  }, [showPresentation, selectedCredState]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (selectedCredState !== null) {
+        if (e.key === 'ArrowRight') handleNextCred();
+        if (e.key === 'ArrowLeft') handlePrevCred();
+        if (e.key === 'Escape') setSelectedCredState(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedCredState]);
+
+  useEffect(() => {
     const handleGlobalScroll = () => {
       if (window.scrollY > 300) setShowScrollTop(true);
       else setShowScrollTop(false);
@@ -854,7 +897,11 @@ export default function Home() {
                     <motion.div
                       key={cIdx}
                       whileHover={{ y: -6, scale: 1.02 }}
-                      onClick={() => setSelectedCert(cert)}
+                      onClick={() => {
+                        setSelectedCredState({ type: 'certificates', index: cIdx });
+                        setCredZoomLevel(1);
+                        setCredPanY(0);
+                      }}
                       className="cursor-pointer group relative bg-white/5 backdrop-blur-xl border border-white/10 hover:border-brand-accent/50 rounded-2xl overflow-hidden p-4 shadow-xl transition-all block"
                     >
                       <div className="relative aspect-[16/11] w-full rounded-xl overflow-hidden bg-[#0A0C10] mb-4">
@@ -895,7 +942,11 @@ export default function Home() {
                     <motion.div
                       key={bIdx}
                       whileHover={{ y: -5, scale: 1.05 }}
-                      onClick={() => setSelectedCert({ ...badge, issuer: "Credential", category: "Badge" })}
+                      onClick={() => {
+                        setSelectedCredState({ type: 'badges', index: bIdx });
+                        setCredZoomLevel(1);
+                        setCredPanY(0);
+                      }}
                       className="cursor-pointer group relative block bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md border border-white/10 hover:border-emerald-500/50 rounded-3xl p-4 shadow-xl flex flex-col items-center text-center transition-all duration-300"
                     >
                       <div className="absolute inset-0 bg-emerald-500/0 group-hover:bg-emerald-500/10 rounded-3xl transition-colors duration-500" />
@@ -2044,68 +2095,172 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* Certificate Lightbox Modal */}
+      {/* Credentials (Certificates & Badges) Full-Featured Lightbox Modal */}
       <AnimatePresence>
-        {selectedCert && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedCert(null)}
-            className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-2xl flex items-center justify-center p-4 sm:p-6"
-          >
-            <button
-              onClick={() => setSelectedCert(null)}
-              className="absolute top-4 right-4 md:top-6 md:right-6 z-[10000] p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 shadow-2xl"
-            >
-              <X className="w-5 h-5 md:w-6 md:h-6" />
-            </button>
+        {selectedCredState !== null && (() => {
+          const list = selectedCredState.type === 'certificates' ? certificatesList : badgesList;
+          const currentItem = list[selectedCredState.index];
+          if (!currentItem) return null;
+          const isCert = selectedCredState.type === 'certificates';
 
+          return (
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative max-w-4xl w-full max-h-[90vh] bg-[#0A0C10] border border-white/20 rounded-3xl overflow-y-auto shadow-2xl flex flex-col mt-8 md:mt-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedCredState(null)}
+              className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-5 md:p-8 select-none"
             >
-              <div className="relative w-full h-[45vh] md:h-[60vh] shrink-0 bg-black/40 p-4">
-                <Image
-                  src={selectedCert.image}
-                  alt={selectedCert.title}
-                  fill
-                  className="object-contain"
-                  quality={100}
-                />
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedCredState(null)}
+                className="absolute top-4 right-4 md:top-6 md:right-6 z-[10000] p-3 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-all border border-white/20 shadow-2xl hover:scale-110 active:scale-95"
+                title="Tutup (Esc)"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              {/* Navigation Counter at top-left */}
+              <div className="absolute top-4 left-4 md:top-6 md:left-6 z-[10000] px-4 py-2 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-white/90 text-xs font-semibold uppercase tracking-wider flex items-center gap-2 shadow-xl">
+                <span className="w-2 h-2 rounded-full bg-brand-accent animate-pulse" />
+                {isCert ? 'Sertifikat' : 'Badge'} • {selectedCredState.index + 1} / {list.length}
               </div>
-              <div className="p-4 md:p-6 bg-white/5 backdrop-blur-xl border-t border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-widest text-brand-accent block mb-1">
-                    {selectedCert.issuer} {selectedCert.issuer && "•"} {selectedCert.category}
-                  </span>
-                  <h3 className="text-lg md:text-xl font-bold text-white">{selectedCert.title}</h3>
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  {selectedCert.link && selectedCert.link !== "#" && (
-                    <a
-                      href={selectedCert.link}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="px-6 py-2.5 rounded-xl bg-brand-accent text-white font-bold text-xs uppercase tracking-wider hover:bg-brand-accent/90 transition-colors shadow-lg flex items-center justify-center"
+
+              {/* Previous Button */}
+              <button
+                onClick={handlePrevCred}
+                className="absolute left-2 sm:left-4 md:left-8 top-1/2 -translate-y-1/2 z-[10000] p-3.5 md:p-4 rounded-full bg-black/60 hover:bg-white/20 text-white backdrop-blur-xl border border-white/20 shadow-2xl transition-all hover:scale-110 active:scale-95 group"
+                title="Sebelumnya (Panah Kiri)"
+              >
+                <ArrowLeft className="w-6 h-6 md:w-7 md:h-7 group-hover:-translate-x-0.5 transition-transform" />
+              </button>
+
+              {/* Next Button */}
+              <button
+                onClick={handleNextCred}
+                className="absolute right-2 sm:right-4 md:right-8 top-1/2 -translate-y-1/2 z-[10000] p-3.5 md:p-4 rounded-full bg-black/60 hover:bg-white/20 text-white backdrop-blur-xl border border-white/20 shadow-2xl transition-all hover:scale-110 active:scale-95 group"
+                title="Selanjutnya (Panah Kanan)"
+              >
+                <ArrowRight className="w-6 h-6 md:w-7 md:h-7 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+
+              {/* Modal Main Box */}
+              <motion.div
+                initial={{ scale: 0.92, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.92, opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative max-w-6xl w-full h-[88vh] md:h-[92vh] bg-[#0A0C10] border border-white/20 rounded-3xl overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.8)] flex flex-col mx-auto"
+              >
+                {/* Pan Controls (When Zoomed > 1) */}
+                {credZoomLevel > 1 && (
+                  <div className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-40 bg-black/70 backdrop-blur-md p-2 rounded-full border border-white/15 shadow-2xl">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setCredPanY(p => p + 150); }}
+                      className="text-white/70 hover:text-white bg-white/5 hover:bg-white/20 p-2.5 rounded-full transition-all active:scale-95"
+                      title="Geser ke Atas"
                     >
+                      <ChevronUp className="w-5 h-5" />
+                    </button>
+                    <div className="w-full h-px bg-white/10 my-0.5" />
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setCredPanY(p => p - 150); }}
+                      className="text-white/70 hover:text-white bg-white/5 hover:bg-white/20 p-2.5 rounded-full transition-all active:scale-95"
+                      title="Geser ke Bawah"
+                    >
+                      <ChevronDown className="w-5 h-5" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Viewport Area */}
+                <div className="relative flex-1 w-full bg-gradient-to-b from-black/80 via-black/40 to-black/80 overflow-hidden flex items-center justify-center p-4 md:p-8">
+                  <div
+                    className="relative w-full h-full max-h-[72vh] flex items-center justify-center transition-transform duration-200 ease-out"
+                    style={{ transform: `translateY(${credPanY}px) scale(${credZoomLevel})` }}
+                  >
+                    <Image
+                      src={currentItem.image}
+                      alt={currentItem.title}
+                      fill
+                      className="object-contain drop-shadow-[0_0_30px_rgba(0,0,0,0.8)]"
+                      quality={100}
+                      priority
+                    />
+                  </div>
+                </div>
+
+                {/* Footer Control Bar */}
+                <div className="p-4 md:px-8 md:py-4 bg-[#0F1218]/90 backdrop-blur-2xl border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 z-40 shrink-0">
+                  {/* Left: Info */}
+                  <div className="flex-1 min-w-0 text-center sm:text-left">
+                    <span className="text-[11px] font-bold uppercase tracking-widest text-brand-accent block mb-0.5">
+                      {'issuer' in currentItem && currentItem.issuer 
+                        ? `${currentItem.issuer} • ${currentItem.category || 'Credential'}` 
+                        : 'Credential Badge • Verified'}
+                    </span>
+                    <h3 className="text-sm md:text-lg font-bold text-white truncate max-w-lg">
+                      {currentItem.title}
+                    </h3>
+                  </div>
+
+                  {/* Center: Zoom Controls */}
+                  <div className="flex items-center gap-2 bg-black/60 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/15 shadow-inner">
+                    <button
+                      className="text-white/70 hover:text-white hover:bg-white/15 p-1.5 rounded-full transition-all active:scale-95 disabled:opacity-30"
+                      onClick={(e) => { e.stopPropagation(); setCredZoomLevel(prev => Math.max(0.5, prev - 0.25)); }}
+                      disabled={credZoomLevel <= 0.5}
+                      title="Perkecil (Zoom Out)"
+                    >
+                      <ZoomOut className="w-4 h-4" />
+                    </button>
+                    <button
+                      className="text-white/90 font-mono text-xs px-2.5 py-0.5 hover:bg-white/10 rounded transition-colors font-bold min-w-[3.5rem] text-center"
+                      onClick={(e) => { e.stopPropagation(); setCredZoomLevel(1); setCredPanY(0); }}
+                      title="Reset Zoom (100%)"
+                    >
+                      {Math.round(credZoomLevel * 100)}%
+                    </button>
+                    <button
+                      className="text-white/70 hover:text-white hover:bg-white/15 p-1.5 rounded-full transition-all active:scale-95 disabled:opacity-30"
+                      onClick={(e) => { e.stopPropagation(); setCredZoomLevel(prev => Math.min(3, prev + 0.25)); }}
+                      disabled={credZoomLevel >= 3}
+                      title="Perbesar (Zoom In)"
+                    >
+                      <ZoomIn className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Right: Actions */}
+                  <div className="flex items-center gap-3">
+                    <a
+                      href={currentItem.link && currentItem.link !== "#" ? currentItem.link : "#"}
+                      target={currentItem.link && currentItem.link !== "#" ? "_blank" : undefined}
+                      rel="noreferrer"
+                      onClick={(e) => {
+                        if (!currentItem.link || currentItem.link === "#") {
+                          e.preventDefault();
+                          alert("Tautan kredensial asli untuk item ini akan segera diperbarui.");
+                        }
+                      }}
+                      className="px-5 py-2.5 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 shadow-[0_0_20px_rgba(129,140,248,0.4)] hover:shadow-[0_0_30px_rgba(129,140,248,0.7)] flex items-center gap-2 hover:scale-105 active:scale-95"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
                       Lihat Asli
                     </a>
-                  )}
-                  <button
-                    onClick={() => setSelectedCert(null)}
-                    className="px-6 py-2.5 rounded-xl bg-white text-black font-bold text-xs uppercase tracking-wider hover:bg-white/90 transition-colors shadow-lg"
-                  >
-                    Tutup
-                  </button>
+                    <button
+                      onClick={() => setSelectedCredState(null)}
+                      className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 border border-white/20 hover:scale-105 active:scale-95"
+                    >
+                      Tutup
+                    </button>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
+          );
+        })()}
       </AnimatePresence>
 
     </main>
