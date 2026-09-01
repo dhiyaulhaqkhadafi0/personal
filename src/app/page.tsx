@@ -295,70 +295,79 @@ const certificatesList = [
     issuer: "IBM",
     category: "Design Thinking",
     image: "/certificate/IBMDesign20251026-29-av8of9_page-0001.jpg",
+    link: "#",
   },
   {
     title: "Enterprise Design Thinking Co-Creator",
     issuer: "IBM",
     category: "Design Leadership",
     image: "/certificate/IBMDesign20251026-30-snhmp9_page-0001 (1).jpg",
+    link: "#",
   },
   {
     title: "Enterprise Design Thinking Team Essentials for AI",
     issuer: "IBM",
     category: "AI & Product Design",
     image: "/certificate/IBMDesign20260830-20-s0mimw_page-0001.jpg",
+    link: "#",
   },
   {
     title: "Mastering Product Management",
     issuer: "Refocus / MySkill",
     category: "Product Management",
     image: "/certificate/Daffa Dhiyaulhaq Khadafi's-Mastering Product Management-Completion-Certificate_page-0001.jpg",
+    link: "#",
   },
   {
     title: "Fundamental Product Marketing",
     issuer: "Executive Program",
     category: "Go-to-Market",
     image: "/certificate/Daffa Dhiyaulhaq Khadafi's-Fundamental Product Marketing-Completion-Certificate_page-0001.jpg",
+    link: "#",
   },
   {
     title: "Becoming a Product Manager",
     issuer: "IIBA Endorsed",
     category: "Product Strategy",
     image: "/certificate/Becoming a Product Manager - IIBA.jpg",
+    link: "#",
   },
   {
     title: "Certificate of Business Analysis",
     issuer: "IIBA",
     category: "Business Analysis",
     image: "/certificate/Certificate of Analysis Business - IIBA.jpg",
+    link: "#",
   },
   {
     title: "Google AI Professional",
     issuer: "Google",
     category: "AI Architecture Specialist",
     image: "/certificate/Sertifikat Google AI Proffesional.jpg",
+    link: "#",
   },
   {
     title: "Certified Product Manager",
     issuer: "MySkill Bootcamp",
     category: "End-to-End PM",
     image: "/certificate/Sertifikat PM_page-Myskill.jpg",
+    link: "#",
   }
 ];
 
 const badgesList = [
-  { title: "Data Analytics Essentials", image: "/badge/data-analytics-essentials.png" },
-  { title: "Data Science Orientation", image: "/badge/data-science-orientation.png" },
-  { title: "Google AI for App Building", image: "/badge/google-ai-for-app-building.png" },
-  { title: "Google AI for App Deployment", image: "/badge/google-ai-for-app-deployment.png" },
-  { title: "Google AI for Brainstorming and Planning", image: "/badge/google-ai-for-brainstorming-and-planning.1.png" },
-  { title: "Google AI for Content Creation", image: "/badge/google-ai-for-content-creation.png" },
-  { title: "Google AI for Data Analysis", image: "/badge/google-ai-for-data-analysis.png" },
-  { title: "Google AI for Research and Insights", image: "/badge/google-ai-for-research-and-insights.png" },
-  { title: "Google AI for Writing and Communicating", image: "/badge/google-ai-for-writing-and-communicating.png" },
-  { title: "Google AI Fundamentals", image: "/badge/google-ai-fundamentals.png" },
-  { title: "Cybersecurity Tools & Cyber Attacks", image: "/badge/introduction-to-cybersecurity-tools-cyber-attacks.png" },
-  { title: "Product Management Essentials", image: "/badge/product-management-essentials.png" }
+  { title: "Data Analytics Essentials", image: "/assets/logo AAPE.png", link: "#" },
+  { title: "Data Science Orientation", image: "/assets/logo AAPE.png", link: "#" },
+  { title: "Google AI for App Building", image: "/assets/logo AAPE.png", link: "#" },
+  { title: "Google AI for App Deployment", image: "/assets/logo AAPE.png", link: "#" },
+  { title: "Google AI for Brainstorming and Planning", image: "/assets/logo AAPE.png", link: "#" },
+  { title: "Google AI for Content Creation", image: "/assets/logo AAPE.png", link: "#" },
+  { title: "Google AI for Data Analysis", image: "/assets/logo AAPE.png", link: "#" },
+  { title: "Google AI for Research and Insights", image: "/assets/logo AAPE.png", link: "#" },
+  { title: "Google AI for Writing and Communicating", image: "/assets/logo AAPE.png", link: "#" },
+  { title: "Google AI Fundamentals", image: "/assets/logo AAPE.png", link: "#" },
+  { title: "Cybersecurity Tools & Cyber Attacks", image: "/assets/logo AAPE.png", link: "#" },
+  { title: "Product Management Essentials", image: "/assets/logo AAPE.png", link: "#" }
 ];
 
 export const SectionTransition = ({ imageSrc, title, variant = 1 }: { imageSrc: string; title: string; variant?: number }) => {
@@ -466,7 +475,7 @@ export default function Home() {
 
   return (
     <main className="w-full min-h-screen bg-brand-bg text-brand-primary overflow-x-hidden font-sans selection:bg-brand-accent/30 relative">
-      <Navbar />
+      {!showPresentation && <Navbar />}
       {/* Global Scroll Progress Bar */}
       <motion.div 
         className="fixed top-0 left-0 right-0 h-1.5 origin-left z-[100] bg-gradient-to-r from-brand-accent via-indigo-500 to-emerald-500 shadow-[0_0_15px_rgba(129,140,248,0.5)]" 
@@ -510,7 +519,7 @@ export default function Home() {
 
             <motion.h1 
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.1 }}
-              className="text-5xl lg:text-7xl font-black tracking-tighter whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-b from-white via-slate-300 to-slate-500 mb-4 drop-shadow-lg"
+              className="text-4xl md:text-5xl lg:text-7xl font-black tracking-tighter break-words whitespace-normal lg:whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-b from-white via-slate-300 to-slate-500 mb-4 drop-shadow-lg"
             >
               Daffa Dhiyaulhaq Khadafi
             </motion.h1>
@@ -542,7 +551,7 @@ export default function Home() {
 
             <motion.p 
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-base md:text-lg text-brand-secondary/90 max-w-xl leading-relaxed mb-12 font-medium"
+              className="text-base md:text-lg text-[#D4D4D8] max-w-xl leading-relaxed mb-12 font-medium"
             >
               Transforming ambiguous problem spaces into high-velocity digital products. Combining strategic scoping with modern AI acceleration to build defensible ecosystems.
             </motion.p>
@@ -553,7 +562,7 @@ export default function Home() {
             >
               <button
                 onClick={() => setShowPresentation(true)}
-                className="group relative px-8 py-4 rounded-xl bg-white text-black font-bold text-base overflow-hidden shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:shadow-[0_0_50px_rgba(129,140,248,0.4)] transition-all duration-500 hover:scale-105"
+                className="group relative px-8 py-4 rounded-xl bg-white text-black font-bold text-base overflow-hidden shadow-[0_0_20px_rgba(129,140,248,0.5)] ring-2 ring-brand-accent/50 ring-offset-2 ring-offset-brand-bg hover:shadow-[0_0_50px_rgba(129,140,248,0.8)] hover:ring-brand-accent transition-all duration-500 hover:scale-105"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-brand-accent/20 to-brand-success/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <span className="relative z-10 flex items-center gap-2">
@@ -842,11 +851,12 @@ export default function Home() {
                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
                 >
                   {certificatesList.map((cert, cIdx) => (
-                    <motion.div
+                    <motion.a
+                      href={cert.link}
+                      target="_blank"
                       key={cIdx}
                       whileHover={{ y: -6, scale: 1.02 }}
-                      onClick={() => setSelectedCert(cert)}
-                      className="cursor-pointer group relative bg-white/5 backdrop-blur-xl border border-white/10 hover:border-brand-accent/50 rounded-2xl overflow-hidden p-4 shadow-xl transition-all"
+                      className="cursor-pointer group relative bg-white/5 backdrop-blur-xl border border-white/10 hover:border-brand-accent/50 rounded-2xl overflow-hidden p-4 shadow-xl transition-all block"
                     >
                       <div className="relative aspect-[16/11] w-full rounded-xl overflow-hidden bg-[#0A0C10] mb-4">
                         <Image 
@@ -870,7 +880,7 @@ export default function Home() {
                           {cert.title}
                         </h4>
                       </div>
-                    </motion.div>
+                    </motion.a>
                   ))}
                 </motion.div>
               ) : (
@@ -883,10 +893,12 @@ export default function Home() {
                   className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"
                 >
                   {badgesList.map((badge, bIdx) => (
-                    <motion.div
+                    <motion.a
+                      href={badge.link}
+                      target="_blank"
                       key={bIdx}
                       whileHover={{ y: -5, scale: 1.05 }}
-                      className="group relative bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md border border-white/10 hover:border-emerald-500/50 rounded-3xl p-4 shadow-xl flex flex-col items-center text-center transition-all duration-300"
+                      className="group relative block bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-md border border-white/10 hover:border-emerald-500/50 rounded-3xl p-4 shadow-xl flex flex-col items-center text-center transition-all duration-300"
                     >
                       <div className="absolute inset-0 bg-emerald-500/0 group-hover:bg-emerald-500/10 rounded-3xl transition-colors duration-500" />
                       <div className="absolute -inset-[1px] bg-gradient-to-b from-emerald-500/30 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0" />
@@ -902,7 +914,7 @@ export default function Home() {
                       <h4 className="relative z-10 text-[10px] font-bold text-white/80 group-hover:text-emerald-300 transition-colors leading-snug line-clamp-2 px-1">
                         {badge.title}
                       </h4>
-                    </motion.div>
+                    </motion.a>
                   ))}
                 </motion.div>
               )}
@@ -986,10 +998,10 @@ export default function Home() {
       <AnimatePresence>
         {showPresentation && (
           <motion.div
-            initial={{ y: "100%", opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: "100%", opacity: 0 }}
-            transition={{ type: "spring", damping: 30, stiffness: 200 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, ease: "easeInOut" }}
             className="fixed inset-0 z-50 bg-[#05050A] flex flex-col"
           >
             <div className="fixed top-6 right-6 z-[60] flex items-center gap-4">
