@@ -2,7 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, Sparkles, Share2, Twitter, Linkedin, Link2, MessageSquare, Send } from "lucide-react";
+import { Eye, Sparkles, Share2, Link2, MessageSquare, Send } from "lucide-react";
+
+const TwitterIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/>
+  </svg>
+);
+
+const LinkedinIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+    <rect width="4" height="12" x="2" y="9"/>
+    <circle cx="4" cy="4" r="2"/>
+  </svg>
+);
 
 type Props = {
   slug: string;
@@ -172,10 +186,10 @@ export default function EngagementSection({ slug }: Props) {
                 className="absolute right-0 bottom-full mb-3 flex items-center gap-2 bg-[#18181B] p-2 rounded-xl border border-[#27272A] shadow-xl"
               >
                 <a href={`https://twitter.com/intent/tweet?url=${typeof window !== 'undefined' ? window.location.href : ''}`} target="_blank" rel="noreferrer" className="p-2 text-[#9CA3AF] hover:text-[#1DA1F2] hover:bg-[#1DA1F2]/10 rounded-lg transition-colors">
-                  <Twitter className="w-4 h-4" />
+                  <TwitterIcon className="w-4 h-4" />
                 </a>
                 <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${typeof window !== 'undefined' ? window.location.href : ''}`} target="_blank" rel="noreferrer" className="p-2 text-[#9CA3AF] hover:text-[#0A66C2] hover:bg-[#0A66C2]/10 rounded-lg transition-colors">
-                  <Linkedin className="w-4 h-4" />
+                  <LinkedinIcon className="w-4 h-4" />
                 </a>
                 <button onClick={copyLink} className="p-2 text-[#9CA3AF] hover:text-[#E2E8F0] hover:bg-[#27272A] rounded-lg transition-colors">
                   <Link2 className="w-4 h-4" />
