@@ -169,34 +169,34 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
                   <Link href={`/blog/${post.metadata.slug}`} className="block group h-full">
                     {viewMode === "grid" ? (
                       /* ---------------- GRID MODE ---------------- */
-                      <article className="flex flex-col h-full bg-[#131316]/40 border border-[#27272A]/50 rounded-[2rem] overflow-hidden hover:border-[#34D399]/30 transition-all duration-500 hover:shadow-[0_8px_30px_rgb(52,211,153,0.05)]">
+                      <article className="flex flex-col h-full bg-[#131316]/40 border border-[#27272A]/50 rounded-[1.75rem] overflow-hidden hover:border-[#34D399]/30 transition-all duration-500 hover:shadow-[0_8px_30px_rgb(52,211,153,0.05)]">
                         {post.metadata.image && (
-                          <div className="relative w-full h-52 overflow-hidden bg-[#09090B]">
+                          <div className="relative w-full h-44 sm:h-48 overflow-hidden bg-[#09090B]">
                             <Image 
                               src={post.metadata.image} 
                               alt={post.metadata.title}
                               fill
-                              className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out"
+                              className="object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-[#131316] via-[#131316]/20 to-transparent" />
                           </div>
                         )}
                         
-                        <div className={`p-8 flex flex-col flex-grow relative ${post.metadata.image ? '-mt-10' : ''}`}>
-                          <div className="flex items-center justify-between text-xs font-mono tracking-wider mb-5 relative z-10">
-                            <span className="bg-[#09090B] text-[#34D399] px-3 py-1.5 rounded-full border border-[#27272A] uppercase font-medium shadow-lg">
+                        <div className={`p-6 sm:p-7 flex flex-col flex-grow relative ${post.metadata.image ? '-mt-8' : ''}`}>
+                          <div className="flex items-center justify-between text-xs font-mono tracking-wider mb-4 relative z-10">
+                            <span className="bg-[#09090B] text-[#34D399] px-3 py-1 rounded-full border border-[#27272A] uppercase font-medium shadow-md">
                               {post.metadata.category}
                             </span>
-                            <span className="text-[#9CA3AF] bg-[#09090B] px-3 py-1.5 rounded-full border border-[#27272A] shadow-lg">
+                            <span className="text-[#9CA3AF] bg-[#09090B] px-3 py-1 rounded-full border border-[#27272A] shadow-md">
                               {new Date(post.metadata.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                             </span>
                           </div>
                           
-                          <h2 className={`text-[1.65rem] text-[#E2E8F0] group-hover:text-white font-medium leading-[1.3] transition-colors mb-4 ${loraClassName}`}>
+                          <h2 className={`text-xl sm:text-[1.4rem] text-[#E2E8F0] group-hover:text-white font-medium leading-[1.35] transition-colors mb-3 ${loraClassName}`}>
                             {post.metadata.title}
                           </h2>
                           
-                          <p className="text-[#9CA3AF] leading-relaxed text-[0.95rem] font-light group-hover:text-[#D1D5DB] transition-colors flex-grow">
+                          <p className="text-[#9CA3AF] leading-relaxed text-sm font-light group-hover:text-[#D1D5DB] transition-colors flex-grow">
                             {post.metadata.excerpt}
                           </p>
                         </div>

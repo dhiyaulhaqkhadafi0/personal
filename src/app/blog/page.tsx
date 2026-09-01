@@ -23,7 +23,7 @@ export default function BlogIndex() {
 
       <Navbar />
       
-      <main className="relative z-10 pt-24 pb-24 max-w-[85rem] mx-auto px-4 sm:px-6">
+      <main className="relative z-10 pt-24 pb-24 max-w-5xl mx-auto px-6 sm:px-8">
         
         <HeroSlider />
 
