@@ -70,6 +70,10 @@ CREATE INDEX IF NOT EXISTS blog_articles_author_id_idx
 
 ALTER TABLE public.blog_articles ENABLE ROW LEVEL SECURITY;
 
+REVOKE ALL ON public.blog_articles FROM anon, authenticated;
+GRANT SELECT ON public.blog_articles TO anon, authenticated;
+GRANT INSERT, UPDATE, DELETE ON public.blog_articles TO authenticated;
+
 DROP POLICY IF EXISTS "Published articles are public" ON public.blog_articles;
 CREATE POLICY "Published articles are public" ON public.blog_articles
   FOR SELECT USING (
