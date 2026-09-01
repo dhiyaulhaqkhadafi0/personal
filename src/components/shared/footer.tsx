@@ -18,55 +18,73 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
   
   return (
-    <footer className="w-full border-t border-white/10 bg-[#05050A] mt-auto relative z-20">
-      <div className="container mx-auto px-4 max-w-6xl py-12 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8 mb-12">
-          <div className="md:col-span-2">
-            <Link href="/" className="text-xl font-black tracking-tight text-white inline-block mb-4">
-              Gerak<span className="text-brand-accent">asa.</span>
+    <footer className="w-full border-t border-white/10 bg-[#020204] mt-auto relative z-20 overflow-hidden">
+      {/* Subtle Background Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-px bg-gradient-to-r from-transparent via-brand-accent/50 to-transparent opacity-50" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-brand-accent/5 blur-[120px] rounded-full pointer-events-none" />
+
+      <div className="container mx-auto px-6 max-w-6xl py-16 md:py-20 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8 mb-16">
+          <div className="md:col-span-2 pr-0 md:pr-12">
+            <Link href="/" className="inline-block mb-6 relative group">
+              {/* Logo AAPE */}
+              <div className="relative">
+                <span className="text-4xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 relative z-10 group-hover:to-brand-accent transition-all duration-500">
+                  AAPE
+                </span>
+                <span className="absolute inset-0 text-4xl font-black tracking-tighter text-brand-accent blur-[15px] opacity-40 group-hover:opacity-80 transition-opacity duration-500 animate-pulse">
+                  AAPE
+                </span>
+              </div>
             </Link>
-            <p className="text-white/60 text-sm leading-relaxed max-w-sm mb-6">
-              Membangun produk digital yang defensibel dengan kecepatan tinggi menggunakan pendekatan AI-Assisted Engineering.
+            <p className="text-slate-400 text-[15px] leading-relaxed max-w-sm mb-8 font-medium">
+              Membangun produk digital yang defensibel dengan kecepatan tinggi menggunakan pendekatan <span className="text-slate-200">AI-Assisted Engineering</span>.
             </p>
             <div className="flex items-center gap-4">
-              <a href="https://github.com/daffak" target="_blank" rel="noreferrer" className="p-2.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/30 text-white/70 hover:text-white transition-all">
-                <GithubIcon className="w-4 h-4" />
+              <a href="https://github.com/daffak" target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/30 text-slate-400 hover:text-white transition-all hover:scale-105 active:scale-95 shadow-lg group">
+                <GithubIcon className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
               </a>
-              <a href="https://www.linkedin.com/in/khdfii9/" target="_blank" rel="noreferrer" className="p-2.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/30 text-white/70 hover:text-white transition-all">
-                <LinkedinIcon className="w-4 h-4" />
+              <a href="https://www.linkedin.com/in/khdfii9/" target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/30 text-slate-400 hover:text-white transition-all hover:scale-105 active:scale-95 shadow-lg group">
+                <LinkedinIcon className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
               </a>
-              <a href="mailto:daffadhiyaulhaqkhadafi@gmail.com" className="p-2.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/30 text-white/70 hover:text-white transition-all">
-                <MailIcon className="w-4 h-4" />
+              <a href="mailto:daffadhiyaulhaqkhadafi@gmail.com" className="p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/30 text-slate-400 hover:text-white transition-all hover:scale-105 active:scale-95 shadow-lg group">
+                <MailIcon className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
               </a>
             </div>
           </div>
           
           <div>
-            <h3 className="text-white font-bold text-sm uppercase tracking-widest mb-6">Navigasi</h3>
-            <ul className="space-y-4">
-              <li><Link href="/" className="text-white/60 hover:text-brand-accent text-sm transition-colors">Home</Link></li>
-              <li><Link href="/about" className="text-white/60 hover:text-brand-accent text-sm transition-colors">Tentang Saya</Link></li>
-              <li><Link href="/changelog" className="text-white/60 hover:text-brand-accent text-sm transition-colors">Changelog</Link></li>
+            <h3 className="text-white font-bold text-xs uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+              <span className="w-8 h-px bg-white/20" />
+              Navigasi
+            </h3>
+            <ul className="space-y-5">
+              <li><Link href="/" className="text-slate-400 hover:text-brand-accent text-[15px] font-medium transition-all hover:translate-x-1 inline-block">Home</Link></li>
+              <li><Link href="/about" className="text-slate-400 hover:text-brand-accent text-[15px] font-medium transition-all hover:translate-x-1 inline-block">Tentang Saya</Link></li>
+              <li><Link href="/changelog" className="text-slate-400 hover:text-brand-accent text-[15px] font-medium transition-all hover:translate-x-1 inline-block">Changelog</Link></li>
             </ul>
           </div>
           
           <div>
-            <h3 className="text-white font-bold text-sm uppercase tracking-widest mb-6">Legalitas</h3>
-            <ul className="space-y-4">
-              <li><Link href="/privacy" className="text-white/60 hover:text-brand-accent text-sm transition-colors">Kebijakan Privasi</Link></li>
-              <li><Link href="/terms" className="text-white/60 hover:text-brand-accent text-sm transition-colors">Syarat & Ketentuan</Link></li>
+            <h3 className="text-white font-bold text-xs uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+              <span className="w-8 h-px bg-white/20" />
+              Legalitas
+            </h3>
+            <ul className="space-y-5">
+              <li><Link href="/privacy" className="text-slate-400 hover:text-brand-accent text-[15px] font-medium transition-all hover:translate-x-1 inline-block">Kebijakan Privasi</Link></li>
+              <li><Link href="/terms" className="text-slate-400 hover:text-brand-accent text-[15px] font-medium transition-all hover:translate-x-1 inline-block">Syarat & Ketentuan</Link></li>
             </ul>
           </div>
         </div>
         
-        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-white/40 text-xs text-center md:text-left">
+        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6">
+          <p className="text-slate-500 text-sm font-medium text-center md:text-left">
             © {currentYear === 2026 ? '2026' : `2026 - ${currentYear}`} Daffa Dhiyaulhaq Khadafi. All rights reserved.
           </p>
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <p className="text-white/60 text-[11px] font-medium tracking-wide">
-              Designed & Vibe-Coded with Next.js, Tailwind, and AI Copilots
+          <div className="flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 shadow-inner backdrop-blur-md">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.8)]" />
+            <p className="text-slate-300 text-xs font-semibold tracking-wide">
+              Designed & Vibe-Coded with Next.js, Tailwind, and AI
             </p>
           </div>
         </div>

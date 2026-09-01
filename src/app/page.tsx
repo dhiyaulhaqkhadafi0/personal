@@ -2561,7 +2561,7 @@ export default function Home() {
 
             {/* Right Column: Form or Thank You */}
             <div className="lg:col-span-7">
-              <div className="bg-black/60 border border-white/10 p-8 md:p-10 rounded-[2rem] shadow-2xl relative overflow-hidden min-h-[400px] flex flex-col justify-center">
+              <div className="bg-gradient-to-br from-indigo-950/40 via-[#0A0C10]/80 to-[#05050A] border border-indigo-500/10 p-8 md:p-10 rounded-[2rem] shadow-2xl relative overflow-hidden min-h-[400px] flex flex-col justify-center">
                 
                 <AnimatePresence mode="wait">
                   {isFormSubmitted ? (
