@@ -8,13 +8,13 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://daffakhadafi.com"),
+  metadataBase: new URL("https://khadafidaffa.com"),
   title: "Daffa Dhiyaulhaq Khadafi | AI-Assisted Product Engineer",
   description: "Daffa Dhiyaulhaq Khadafi is an AI-Assisted Product Engineer & Founder, specializing in building high-velocity, defensible digital products, AI architectures, and modern web applications.",
   keywords: ["AI Engineer", "Product Manager", "Digital Product Builder", "Daffa Dhiyaulhaq Khadafi", "AI Architecture", "Product Engineer", "AAPE"],
   icons: {
     icon: [
-      { url: "/favicon/favicon.ico" },
+      { url: "/favicon.ico" },
       { url: "/favicon/favicon-16x16.png", sizes: "16x16", type: "image/png" },
       { url: "/favicon/favicon-32x32.png", sizes: "32x32", type: "image/png" },
       { url: "/favicon/favicon-96x96.png", sizes: "96x96", type: "image/png" },
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Daffa Dhiyaulhaq Khadafi | AI-Assisted Product Engineer",
     description: "Transforming ambiguous problem spaces into high-velocity digital products.",
-    url: "https://your-domain.com",
+    url: "https://khadafidaffa.com",
     siteName: "Daffa Dhiyaulhaq Khadafi Persona",
     images: [
       {
