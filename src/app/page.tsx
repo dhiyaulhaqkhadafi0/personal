@@ -1248,13 +1248,7 @@ export default function Home() {
           </div>
         </motion.div>
 
-        {/* The Sign-off */}
-        <div className="text-slate-600 text-sm text-center flex flex-col items-center gap-2 pb-8">
-          <p>© 2026 Daffa Dhiyaulhaq Khadafi. All rights reserved.</p>
-          <p className="flex items-center gap-1.5 justify-center">
-            Designed & Vibe-Coded with Next.js, Tailwind, and AI Copilots
-          </p>
-        </div>
+
 
       </div>
 

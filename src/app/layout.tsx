@@ -59,6 +59,8 @@ export const metadata: Metadata = {
   }
 };
 
+import { Footer } from "@/components/shared/footer";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -66,8 +68,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={`${plusJakartaSans.variable} antialiased scroll-smooth`}>
-      <body className="min-h-screen bg-brand-bg text-brand-primary font-sans">
-        {children}
+      <body className="min-h-screen flex flex-col bg-brand-bg text-brand-primary font-sans">
+        <main className="flex-1 flex flex-col">
+          {children}
+        </main>
+        <Footer />
       </body>
     </html>
   );
