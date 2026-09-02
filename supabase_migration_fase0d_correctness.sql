@@ -268,7 +268,7 @@ BEGIN
   ) INTO v_exists;
 
   IF NOT v_exists THEN
-    RAISE EXCEPTION 'NOT_FOUND: Artikel dengan slug "%" tidak ditemukan dalam artikel terbit.'
+    RAISE EXCEPTION 'NOT_FOUND: Artikel dengan slug % tidak ditemukan dalam artikel terbit.', p_slug
       USING ERRCODE = '02000';
   END IF;
 
