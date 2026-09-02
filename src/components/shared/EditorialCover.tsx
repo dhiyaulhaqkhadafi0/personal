@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export type EditorialCoverProps = {
   src?: string | null;
@@ -102,12 +102,16 @@ export function EditorialCover({
   variant = 'card',
 }: EditorialCoverProps) {
   const [hasError, setHasError] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
 
-  // Reset error state whenever image source changes
+  // Reset error state whenever image source changes; verify if already loaded or broken in cache
   useEffect(() => {
     setHasError(false);
-    setIsLoaded(false);
+    if (imgRef.current && imgRef.current.complete) {
+      if (imgRef.current.naturalWidth === 0) {
+        setHasError(true);
+      }
+    }
   }, [src]);
 
   const cleanSrc = src && typeof src === 'string' && src.trim().length > 0 ? src.trim() : null;
@@ -125,15 +129,13 @@ export function EditorialCover({
         aria-label={alt || title || 'Cover artikel'}
       >
         <img
+          ref={imgRef}
           src={cleanSrc}
           alt={alt || title || 'Cover artikel'}
           loading={priority ? "eager" : "lazy"}
           decoding="async"
-          onLoad={() => setIsLoaded(true)}
           onError={() => setHasError(true)}
-          className={`w-full h-full object-cover object-center transition-opacity duration-300 ease-out ${
-            isLoaded ? 'opacity-100' : 'opacity-0'
-          } ${imageClassName}`}
+          className={`w-full h-full object-cover object-center ${imageClassName}`}
         />
         {/* Extremely thin inner border to ground edges without obstructing the photo */}
         <div className="absolute inset-0 pointer-events-none border border-white/5 rounded-[inherit]" />
