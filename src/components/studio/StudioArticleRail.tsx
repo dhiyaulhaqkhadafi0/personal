@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Plus, Search, LogOut, PanelLeftClose, Trash2, AlertTriangle, AlertCircle,
-  LoaderCircle, Undo2, X,
+  LoaderCircle, Undo2, X, MoreVertical, Copy,
 } from 'lucide-react';
 import type { StudioArticle } from '@/lib/blog-types';
 
@@ -26,6 +26,8 @@ type Props = {
   onToggleCollapse: () => void;
   onDeleteArticle?: (article: StudioArticle) => Promise<void>;
   onOpenPublishModal?: (target?: StudioArticle) => void;
+  onDuplicateArticle?: (article: StudioArticle) => Promise<void>;
+  isDuplicating?: boolean;
 };
 
 export function StudioArticleRail({
@@ -39,10 +41,28 @@ export function StudioArticleRail({
   onToggleCollapse,
   onDeleteArticle,
   onOpenPublishModal,
+  onDuplicateArticle,
+  isDuplicating,
 }: Props) {
   const [articleToDelete, setArticleToDelete] = useState<StudioArticle | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [activeMenu, setActiveMenu] = useState<{ id: string; top: number; left: number } | null>(null);
+
+  // Close context menu on outside click or Escape
+  useEffect(() => {
+    if (!activeMenu) return;
+    const handleClickOutside = () => setActiveMenu(null);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setActiveMenu(null);
+    };
+    window.addEventListener('click', handleClickOutside);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [activeMenu]);
 
   const filtered = articles.filter((item) =>
     (item.title || '').toLowerCase().includes(searchQuery.toLowerCase())
@@ -134,7 +154,7 @@ export function StudioArticleRail({
               <button
                 type="button"
                 onClick={() => onSelectArticle(item)}
-                className={`studio-article-row w-full text-left p-3 pr-10 rounded-xl transition-all flex items-start gap-3 border ${
+                className={`studio-article-row w-full text-left p-3 pr-16 rounded-xl transition-all flex items-start gap-3 border ${
                   isSelected
                     ? 'bg-[#181920] border-[#34D399]/40 text-[#F8FAFC] shadow-sm'
                     : 'bg-transparent border-transparent text-[#94A3B8] hover:bg-white/[0.04] hover:text-[#E2E8F0]'
@@ -162,18 +182,46 @@ export function StudioArticleRail({
                 </div>
               </button>
 
+              {/* Action Menu (3-dots context menu) */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setActiveMenu((prev) =>
+                    prev?.id === item.id
+                      ? null
+                      : {
+                          id: item.id,
+                          top: rect.bottom + 4,
+                          left: Math.min(rect.left, window.innerWidth - 180),
+                        }
+                  );
+                }}
+                title="Opsi naskah"
+                aria-label={`Opsi untuk ${item.title || 'artikel'}`}
+                className={`absolute right-8 p-1.5 rounded-lg text-[#71717A] hover:text-[#F8FAFC] hover:bg-white/10 transition-all ${
+                  isSelected || activeMenu?.id === item.id
+                    ? 'opacity-80 hover:opacity-100'
+                    : 'opacity-40 group-hover/item:opacity-100 hover:!opacity-100'
+                }`}
+              >
+                <MoreVertical className="w-3.5 h-3.5" />
+              </button>
+
               {/* Delete Trigger Button */}
               {onDeleteArticle && (
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
+                    setActiveMenu(null);
                     setDeleteError('');
                     setArticleToDelete(item);
                   }}
                   title={isItemPublished ? 'Artikel publik harus di-unpublish dulu' : 'Hapus naskah draft'}
                   aria-label={`Hapus ${item.title || 'artikel'}`}
-                  className={`absolute right-2 p-2 rounded-lg text-[#71717A] hover:text-[#EF4444] hover:bg-[#EF4444]/15 transition-all ${
+                  className={`absolute right-2 p-1.5 rounded-lg text-[#71717A] hover:text-[#EF4444] hover:bg-[#EF4444]/15 transition-all ${
                     isSelected ? 'opacity-80 hover:opacity-100' : 'opacity-40 group-hover/item:opacity-100 hover:!opacity-100'
                   }`}
                 >
@@ -319,6 +367,52 @@ export function StudioArticleRail({
           </div>
         </div>
       )}
+      {/* Fixed Context Menu Dropdown */}
+      {activeMenu && (() => {
+        const targetItem = articles.find((a) => a.id === activeMenu.id);
+        if (!targetItem) return null;
+        return (
+          <div
+            style={{ top: activeMenu.top, left: activeMenu.left }}
+            className="fixed z-50 w-44 rounded-xl bg-[#14151B] border border-white/10 shadow-2xl p-1 text-xs text-[#E2E8F0] animate-in fade-in zoom-in-95 duration-150 backdrop-blur-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {onDuplicateArticle && (
+              <button
+                type="button"
+                disabled={isDuplicating}
+                onClick={() => {
+                  setActiveMenu(null);
+                  void onDuplicateArticle(targetItem);
+                }}
+                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-white/10 text-left transition-colors text-[#F8FAFC] disabled:opacity-50"
+              >
+                {isDuplicating ? (
+                  <LoaderCircle className="w-3.5 h-3.5 animate-spin text-[#34D399]" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5 text-[#34D399]" />
+                )}
+                <span>Duplikat artikel</span>
+              </button>
+            )}
+
+            {onDeleteArticle && (
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveMenu(null);
+                  setDeleteError('');
+                  setArticleToDelete(targetItem);
+                }}
+                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-[#EF4444]/15 text-[#EF4444] text-left transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Hapus naskah</span>
+              </button>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }

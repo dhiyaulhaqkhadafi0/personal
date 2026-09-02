@@ -25,6 +25,9 @@ import { StudioPublishModal } from './StudioPublishModal';
 import { StudioSlashMenu } from './StudioSlashMenu';
 import { StudioBubbleMenu } from './StudioBubbleMenu';
 import { StudioImageToolbar } from './StudioImageToolbar';
+import { StudioTemplateModal } from './StudioTemplateModal';
+import { StudioUnsavedGuardModal } from './StudioUnsavedGuardModal';
+import { type StudioTemplate } from '@/lib/studio-templates';
 
 type SaveState = 'saved' | 'editing' | 'saving' | 'error';
 
@@ -117,6 +120,19 @@ export default function BlogStudio() {
   const [slashOpen, setSlashOpen] = useState(false);
   const [slashQuery, setSlashQuery] = useState('');
   const [slashPos, setSlashPos] = useState({ top: 0, left: 0 });
+
+  // Template Modal state
+  const [templateModalOpen, setTemplateModalOpen] = useState(false);
+  const [templateCreating, setTemplateCreating] = useState(false);
+
+  // Unsaved Guard Modal state
+  const [unsavedGuardOpen, setUnsavedGuardOpen] = useState(false);
+  const [pendingArticleToSelect, setPendingArticleToSelect] = useState<StudioArticle | null>(null);
+  const [guardSaving, setGuardSaving] = useState(false);
+  const [guardSaveError, setGuardSaveError] = useState('');
+
+  // Duplication state
+  const [isDuplicating, setIsDuplicating] = useState(false);
 
   const imageInput = useRef<HTMLInputElement>(null);
   const latestArticle = useRef<StudioArticle | null>(null);
@@ -388,16 +404,109 @@ export default function BlogStudio() {
     });
   };
 
-  const selectArticle = useCallback((next: StudioArticle, skipSave = false) => {
-    if (!skipSave && dirty && latestArticle.current && latestArticle.current.id !== next.id) {
-      if (!deletedArticleIds.current.has(latestArticle.current.id)) {
-        void saveNow(latestArticle.current).catch(() => {});
-      }
+  const selectArticle = useCallback((next: StudioArticle, skipGuard = false) => {
+    // If not skipping guard and there are unsaved local modifications
+    const isDirtyOrUnsaved = Boolean(
+      latestArticle.current &&
+      latestArticle.current.id !== next.id &&
+      (dirty || saveState === 'saving' || saveState === 'error')
+    );
+
+    if (!skipGuard && isDirtyOrUnsaved) {
+      setPendingArticleToSelect(next);
+      setGuardSaveError('');
+      setUnsavedGuardOpen(true);
+      return;
     }
+
     setDirty(false);
     setArticle(next);
     setNotice('');
-  }, [dirty, saveNow]);
+  }, [dirty, saveState]);
+
+  const handleGuardSaveAndSwitch = async () => {
+    if (!article || !pendingArticleToSelect) return;
+    setGuardSaving(true);
+    setGuardSaveError('');
+    try {
+      await saveNow(article);
+      const target = pendingArticleToSelect;
+      setUnsavedGuardOpen(false);
+      setPendingArticleToSelect(null);
+      setDirty(false);
+      setArticle(target);
+      setNotice(`Perubahan tersimpan. Beralih ke naskah "${target.title || 'Untitled story'}".`);
+    } catch (err) {
+      setGuardSaveError(err instanceof Error ? err.message : 'Gagal menyimpan naskah sebelum berpindah.');
+    } finally {
+      setGuardSaving(false);
+    }
+  };
+
+  const handleGuardDiscardAndSwitch = () => {
+    if (!pendingArticleToSelect) return;
+    const target = pendingArticleToSelect;
+    setDirty(false);
+    setSaveState('saved');
+    setUnsavedGuardOpen(false);
+    setPendingArticleToSelect(null);
+    setArticle(target);
+    setNotice(`Perubahan lokal dibuang. Beralih ke naskah "${target.title || 'Untitled story'}".`);
+  };
+
+  const handleGuardStay = () => {
+    setUnsavedGuardOpen(false);
+    setPendingArticleToSelect(null);
+    setGuardSaveError('');
+  };
+
+  const createArticleWithTemplate = useCallback(async (template: StudioTemplate) => {
+    setTemplateCreating(true);
+    try {
+      const body = (await api('/api/studio/articles', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: template.defaultTitle,
+          content_json: template.content_json,
+          content_html: template.content_html,
+          excerpt: template.defaultExcerpt,
+        }),
+      })) as { article: StudioArticle };
+
+      setArticles((items) => [body.article, ...items]);
+      setArticle(body.article);
+      setDirty(false);
+      setTemplateModalOpen(false);
+      setNotice(`Naskah baru dibuat dengan template "${template.name}".`);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : 'Gagal membuat naskah baru.');
+    } finally {
+      setTemplateCreating(false);
+    }
+  }, [api]);
+
+  const handleDuplicateArticle = useCallback(async (target: StudioArticle) => {
+    setIsDuplicating(true);
+    try {
+      if (dirty && latestArticle.current && latestArticle.current.id !== target.id) {
+        await saveNow(latestArticle.current).catch(() => {});
+      }
+
+      const body = (await api(`/api/studio/articles/${target.id}/duplicate`, {
+        method: 'POST',
+      })) as { article: StudioArticle };
+
+      setArticles((items) => [body.article, ...items]);
+      setArticle(body.article);
+      setDirty(false);
+      setNotice(`Naskah "${body.article.title}" berhasil diduplikasi sebagai draft.`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Gagal menduplikasi artikel.';
+      setNotice(msg);
+    } finally {
+      setIsDuplicating(false);
+    }
+  }, [api, dirty, saveNow]);
 
   const uploadFile = async (file: File) => {
     const data = new FormData();
@@ -669,11 +778,13 @@ export default function BlogStudio() {
               currentArticle={article}
               searchQuery={query}
               onSearchChange={setQuery}
-              onSelectArticle={selectArticle}
-              onCreateArticle={() => void createArticle()}
+              onSelectArticle={(target) => selectArticle(target)}
+              onCreateArticle={() => setTemplateModalOpen(true)}
               onSignOut={() => void supabase.auth.signOut()}
               onToggleCollapse={toggleLeft}
               onDeleteArticle={handleDeleteArticle}
+              onDuplicateArticle={handleDuplicateArticle}
+              isDuplicating={isDuplicating}
               onOpenPublishModal={(target?: StudioArticle) => {
                 setPublishError('');
                 if (target && target.id !== article.id) {
@@ -842,6 +953,26 @@ export default function BlogStudio() {
           </div>
         </div>
       )}
+
+      {/* 6. Template Selection Modal */}
+      <StudioTemplateModal
+        isOpen={templateModalOpen}
+        onClose={() => setTemplateModalOpen(false)}
+        onSelectTemplate={createArticleWithTemplate}
+        isCreating={templateCreating}
+      />
+
+      {/* 7. Unsaved Changes Guard Modal */}
+      <StudioUnsavedGuardModal
+        isOpen={unsavedGuardOpen}
+        currentArticleTitle={article?.title || ''}
+        targetArticleTitle={pendingArticleToSelect?.title || ''}
+        onSaveAndSwitch={handleGuardSaveAndSwitch}
+        onDiscardAndSwitch={handleGuardDiscardAndSwitch}
+        onStay={handleGuardStay}
+        isSaving={guardSaving}
+        saveError={guardSaveError}
+      />
     </main>
   );
 }
