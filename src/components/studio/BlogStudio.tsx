@@ -4,10 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
-import Underline from '@tiptap/extension-underline';
 import type { Session } from '@supabase/supabase-js';
 import {
-  ArrowLeft, Eye, LoaderCircle, X,
+  ArrowLeft, Eye, LoaderCircle, X, AlertCircle,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import {
@@ -99,6 +98,7 @@ export default function BlogStudio() {
   const [article, setArticle] = useState<StudioArticle | null>(null);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [initError, setInitError] = useState('');
   const [saveState, setSaveState] = useState<SaveState>('saved');
   const [dirty, setDirty] = useState(false);
   const [notice, setNotice] = useState('');
@@ -204,11 +204,22 @@ export default function BlogStudio() {
 
   // Supabase Auth
   useEffect(() => {
-    void supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    void supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        setSession(data?.session ?? null);
+      })
+      .catch((err) => {
+        console.error('Supabase auth getSession error:', err);
+      })
+      .finally(() => {
+        setAuthReady(true);
+      });
+
+    const { data } = supabase.auth.onAuthStateChange((_event, next) => {
+      setSession(next);
       setAuthReady(true);
     });
-    const { data } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
     return () => data.subscription.unsubscribe();
   }, []);
 
@@ -223,7 +234,15 @@ export default function BlogStudio() {
       },
     });
     const body = response.status === 204 ? null : await response.json();
-    if (!response.ok) throw new Error(body?.error || 'Permintaan gagal.');
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error(body?.error || 'Sesi tidak valid atau sudah berakhir. Silakan login kembali.');
+      }
+      if (response.status === 403) {
+        throw new Error(body?.error || 'Akun ini tidak memiliki akses ke Blog Studio.');
+      }
+      throw new Error(body?.error || 'Permintaan gagal.');
+    }
     return body;
   }, [session]);
 
@@ -237,23 +256,41 @@ export default function BlogStudio() {
     setDirty(false);
   }, [api]);
 
-  useEffect(() => {
+  const loadedUserIdRef = useRef<string | null>(null);
+
+  const loadArticles = useCallback(async () => {
     if (!session) return;
-    void (async () => {
-      setLoading(true);
-      setNotice('');
-      try {
-        const body = await api('/api/studio/articles') as { articles: StudioArticle[] };
-        setArticles(body.articles);
-        if (body.articles[0]) setArticle(body.articles[0]);
-        else await createArticle();
-      } catch (error) {
-        setNotice(error instanceof Error ? error.message : 'Studio gagal dimuat.');
-      } finally {
-        setLoading(false);
+    setLoading(true);
+    setInitError('');
+    setNotice('');
+    try {
+      const body = (await api('/api/studio/articles')) as { articles: StudioArticle[] };
+      setArticles(body.articles || []);
+      if (body.articles && body.articles.length > 0) {
+        setArticle(body.articles[0]);
+      } else {
+        await createArticle();
       }
-    })();
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Studio gagal dimuat.';
+      setInitError(msg);
+      setNotice(msg);
+    } finally {
+      setLoading(false);
+    }
   }, [session, api, createArticle]);
+
+  useEffect(() => {
+    const userId = session?.user?.id;
+    if (!userId) {
+      loadedUserIdRef.current = null;
+      return;
+    }
+    if (loadedUserIdRef.current !== userId) {
+      loadedUserIdRef.current = userId;
+      void loadArticles();
+    }
+  }, [session?.user?.id, loadArticles]);
 
   const deletedArticleIds = useRef<Set<string>>(new Set());
 
@@ -316,7 +353,6 @@ export default function BlogStudio() {
       }),
       EditorialBlockquote,
       EditorialFigure,
-      Underline,
       Placeholder.configure({
         placeholder: ({ node }) => {
           if (node.type.name === 'heading') return 'Subjudul...';
@@ -365,9 +401,8 @@ export default function BlogStudio() {
 
   const articleId = article?.id;
   useEffect(() => {
-    const current = latestArticle.current;
-    if (editor && current && current.id === articleId) {
-      editor.commands.setContent(current.content_json || emptyTiptapDocument, { emitUpdate: false });
+    if (editor && article && article.id === articleId) {
+      editor.commands.setContent(article.content_json || emptyTiptapDocument, { emitUpdate: false });
     }
   }, [editor, articleId]);
 
@@ -700,11 +735,68 @@ export default function BlogStudio() {
 
   if (!session) return <LoginPanel onAuthenticated={setSession} />;
 
-  if (loading || !article || !editor) {
+  if (initError) {
+    const isAuthError =
+      initError.toLowerCase().includes('login') ||
+      initError.toLowerCase().includes('sesi') ||
+      initError.includes('401') ||
+      initError.toLowerCase().includes('akses') ||
+      initError.includes('403');
+
+    return (
+      <main className="studio-error flex flex-col items-center justify-center min-h-screen bg-[#090A0D] text-[#F8FAFC] p-6 text-center select-none">
+        <div className="w-14 h-14 rounded-2xl bg-[#EF4444]/10 border border-[#EF4444]/20 flex items-center justify-center text-[#EF4444] mb-4">
+          <AlertCircle className="w-7 h-7" />
+        </div>
+        <h2 className="text-base font-bold mb-2">Gagal Memuat Blog Studio</h2>
+        <p className="text-xs text-[#94A3B8] max-w-md mb-6 leading-relaxed">
+          {initError}
+        </p>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => void loadArticles()}
+            className="px-5 py-2.5 rounded-xl bg-[#10B981] hover:bg-[#34D399] text-[#022C22] text-xs font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.2)] active:scale-95"
+          >
+            Coba Lagi
+          </button>
+          <button
+            type="button"
+            onClick={async () => {
+              await supabase.auth.signOut();
+              setSession(null);
+              setInitError('');
+            }}
+            className="px-5 py-2.5 rounded-xl bg-[#1F2028] hover:bg-[#2A2B36] text-[#CBD5E1] hover:text-white border border-white/10 text-xs font-medium transition-colors"
+          >
+            {isAuthError ? 'Login Ulang' : 'Keluar'}
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  if (loading) {
     return (
       <main className="studio-loading flex items-center justify-center min-h-screen bg-[#090A0D] text-[#94A3B8] gap-3 text-sm">
         <LoaderCircle className="w-5 h-5 text-[#34D399] animate-spin" />
         <span>Memuat ruang naskah...</span>
+      </main>
+    );
+  }
+
+  if (!article || !editor) {
+    return (
+      <main className="studio-loading flex flex-col items-center justify-center min-h-screen bg-[#090A0D] text-[#94A3B8] gap-4 text-sm p-6 text-center">
+        <LoaderCircle className="w-5 h-5 text-[#34D399] animate-spin" />
+        <span>Menyiapkan editor editorial...</span>
+        <button
+          type="button"
+          onClick={() => void loadArticles()}
+          className="text-xs text-[#34D399] underline hover:text-[#6EE7B7]"
+        >
+          Muat ulang naskah
+        </button>
       </main>
     );
   }
