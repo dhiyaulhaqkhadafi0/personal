@@ -1,16 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
 
-export const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+// These values are intentionally public: Supabase publishes the project URL and
+// publishable key to browser clients. Keeping safe fallbacks here also makes
+// Cloudflare branch previews work when the build dashboard omits NEXT_PUBLIC_*.
+const fallbackSupabaseUrl = 'https://mykgtajanxczdnzekycl.supabase.co';
+const fallbackSupabasePublishableKey = 'sb_publishable_WOicVaI6VxFP0g4X0dJrlA_LX4hBCGI';
+
+export const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || fallbackSupabaseUrl;
 export const supabasePublishableKey =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  'placeholder';
+  fallbackSupabasePublishableKey;
 
 export const isSupabaseConfigured =
-  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+  Boolean(supabaseUrl) &&
   Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    supabasePublishableKey,
   );
 
 // Create a single supabase client for interacting with your database
