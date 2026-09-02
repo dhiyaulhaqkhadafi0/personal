@@ -7,23 +7,10 @@ import type { LucideIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { EditorialCover } from "@/components/shared/EditorialCover";
 import { resolveArticleCover } from "@/lib/blog-types";
-
-type BlogPost = {
-  metadata: {
-    title: string;
-    category: string;
-    date: string;
-    excerpt: string;
-    slug: string;
-    image?: string;
-    cover_url?: string;
-    cover_image?: string;
-    cover_slides?: string[];
-  };
-};
+import type { BlogCardItem } from "@/lib/mdx";
 
 type Props = {
-  posts: BlogPost[];
+  posts: BlogCardItem[];
   loraClassName: string;
 };
 
