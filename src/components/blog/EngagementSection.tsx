@@ -68,7 +68,7 @@ export default function EngagementSection({ slug }: Props) {
           const data = await res.json();
           setComments(data);
         }
-      } catch (error) {
+      } catch {
         // Silently ignore if API not ready yet
       }
     };

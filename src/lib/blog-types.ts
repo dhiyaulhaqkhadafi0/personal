@@ -30,9 +30,8 @@ export type StudioArticle = {
   og_image: string;
   word_count: number;
   reading_time: number;
-  // published_snapshot kept for legacy fallback, will be removed after 0b migration
-  published_snapshot?: unknown;
   published_at: string | null;
+  last_published_at: string | null;
   created_at: string;
   updated_at: string;
 };

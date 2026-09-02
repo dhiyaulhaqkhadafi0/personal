@@ -3,7 +3,7 @@ import { requireBlogAdmin } from '@/lib/blog-auth';
 export const dynamic = 'force-dynamic';
 
 const editableFields = [
-  'title', 'slug', 'excerpt', 'content_json', 'content_html', 'status', 'category',
+  'title', 'slug', 'excerpt', 'content_json', 'content_html', 'category',
   'cover_url', 'cover_slides', 'theme', 'accent', 'music_uri', 'music_mood',
   'music_enabled', 'seo_title', 'seo_description', 'og_image', 'word_count', 'reading_time',
 ] as const;

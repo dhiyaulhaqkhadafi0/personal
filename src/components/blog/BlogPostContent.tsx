@@ -6,13 +6,12 @@ import EngagementSection from '@/components/blog/EngagementSection';
 import ScrollProgressNav from '@/components/blog/ScrollProgressNav';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { Lora, Plus_Jakarta_Sans } from 'next/font/google';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import { motion, useScroll, useSpring } from 'framer-motion';
 import ArticleAtmosphere from '@/components/blog/ArticleAtmosphere';
 import { ArticleRenderer } from '@/components/shared/ArticleRenderer';
 import type { BlogPost } from '@/lib/mdx';
 
-const lora = Lora({ subsets: ['latin'], style: ['normal', 'italic'] });
 const sans = Plus_Jakarta_Sans({ subsets: ['latin'] });
 
 type Props = {

@@ -31,9 +31,11 @@ export function ArticleRenderer({ article, contentHtml, children, footerContent,
       <header className="mb-16">
         <div className="flex items-center gap-3 text-sm font-mono tracking-wide mb-8">
           <span className="text-[#34D399] uppercase font-medium bg-[#34D399]/10 px-3 py-1 rounded-full border border-[#34D399]/20">{article.category}</span>
-          <span className="text-[#6B7280]">
-            {new Date(article.date || Date.now()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-          </span>
+          {article.date && (
+            <span className="text-[#6B7280]">
+              {new Date(article.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </span>
+          )}
           {article.reading_time > 0 && <span className="text-[#6B7280]">· {article.reading_time} min read</span>}
         </div>
         

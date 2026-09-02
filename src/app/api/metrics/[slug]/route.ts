@@ -3,10 +3,12 @@ import { supabase, createServiceRoleClient } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
+const SLUG_REGEX = /^[a-z0-9-]+$/i;
+
 /**
  * GET /api/metrics/[slug]
  * Reads view_count and ignite_count using the anon key.
- * Requires "Metrics are publicly readable" RLS policy (SELECT USING true).
+ * Requires SELECT privilege on public.blog_metrics for anon.
  */
 export async function GET(
   _request: Request,
@@ -15,35 +17,46 @@ export async function GET(
   try {
     const { slug } = await params;
 
+    if (!slug || !SLUG_REGEX.test(slug)) {
+      return NextResponse.json({ error: 'Slug tidak valid' }, { status: 400 });
+    }
+
     const { data, error } = await supabase
       .from('blog_metrics')
       .select('view_count, ignite_count')
       .eq('slug', slug)
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error fetching metrics:', error);
-      return NextResponse.json({ error: 'Failed to fetch metrics' }, { status: 500 });
+    if (error) {
+      console.error('Error fetching metrics:', error.message);
+      return NextResponse.json({ error: 'Gagal mengambil metrics' }, { status: 500 });
     }
 
-    if (!data) {
-      return NextResponse.json({ view_count: 0, ignite_count: 0 }, { status: 200 });
-    }
-
-    return NextResponse.json(data, { status: 200 });
+    return NextResponse.json(
+      {
+        view_count: data?.view_count ?? 0,
+        ignite_count: data?.ignite_count ?? 0,
+      },
+      { status: 200 },
+    );
   } catch (err) {
-    console.error('Unexpected error:', err);
+    console.error('Unexpected error in GET metrics:', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
 /**
  * POST /api/metrics/[slug]
- * Atomically increments view or ignite count using the service_role key.
  *
- * The service_role key bypasses RLS — this is intentional. Only the Next.js
- * server can call this endpoint, so we control the trust boundary here.
- * Anon clients cannot write directly to blog_metrics (no write policy exists).
+ * Atomic increment for view or ignite count using PostgreSQL RPC `increment_blog_metric`.
+ * Abuse protection (V1):
+ *   - First-party HTTP-only cookie per slug (24 hours expiry)
+ *   - If cookie already present, skips DB write and returns current metrics without incrementing
+ *   - Service role key is kept strictly on server (never exposed to browser client)
+ *   - Graceful degradation if SUPABASE_SERVICE_ROLE_KEY is not yet configured
+ *
+ * Note: For high-scale DDoS protection, IP/KV/Cloudflare WAF rate limiting can be added
+ * as an infrastructure layer in future phases.
  */
 export async function POST(
   request: Request,
@@ -52,81 +65,105 @@ export async function POST(
   try {
     const { slug } = await params;
 
-    const body = await request.json() as { type?: string };
+    if (!slug || !SLUG_REGEX.test(slug)) {
+      return NextResponse.json({ error: 'Slug tidak valid' }, { status: 400 });
+    }
+
+    const body = (await request.json().catch(() => ({}))) as { type?: string };
     const { type } = body;
 
     if (type !== 'view' && type !== 'ignite') {
-      return NextResponse.json({ error: 'Invalid type. Must be "view" or "ignite".' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid type. Harus "view" atau "ignite".' },
+        { status: 400 },
+      );
     }
 
-    // Use service_role client: bypasses RLS so we can safely upsert
-    // without needing a public write policy on blog_metrics
+    // --- Abuse Control (First-Party Cookie Check) ---
+    const sanitizedSlug = slug.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const cookieName = `khadafi_metric_${type}_${sanitizedSlug}`;
+    const cookieHeader = request.headers.get('cookie') || '';
+    const isThrottled = cookieHeader
+      .split(';')
+      .some((c) => c.trim().startsWith(`${cookieName}=`));
+
+    if (isThrottled) {
+      // Return current counts without incrementing
+      const { data: current } = await supabase
+        .from('blog_metrics')
+        .select('view_count, ignite_count')
+        .eq('slug', slug)
+        .maybeSingle();
+
+      return NextResponse.json(
+        {
+          view_count: current?.view_count ?? 0,
+          ignite_count: current?.ignite_count ?? 0,
+          throttled: true,
+        },
+        { status: 200 },
+      );
+    }
+
+    // --- Server-side Service Role Client ---
     let db: ReturnType<typeof createServiceRoleClient>;
     try {
       db = createServiceRoleClient();
     } catch {
-      // Graceful degradation: if service role key is not set, skip metric increment
-      // This prevents metrics from breaking the entire article rendering
-      console.warn('SUPABASE_SERVICE_ROLE_KEY not set — metrics increment skipped.');
-      return NextResponse.json({ ok: true, skipped: true }, { status: 200 });
+      // Graceful degradation: log warning and return current metrics
+      console.warn('SUPABASE_SERVICE_ROLE_KEY not configured — metrics increment skipped.');
+      const { data: current } = await supabase
+        .from('blog_metrics')
+        .select('view_count, ignite_count')
+        .eq('slug', slug)
+        .maybeSingle();
+
+      return NextResponse.json(
+        {
+          view_count: current?.view_count ?? 0,
+          ignite_count: current?.ignite_count ?? 0,
+          skipped: true,
+        },
+        { status: 200 },
+      );
     }
 
-    const incrementColumn = type === 'view' ? 'view_count' : 'ignite_count';
-
-    // Atomic upsert using PostgreSQL-level increment
-    // INSERT ... ON CONFLICT DO UPDATE ensures no race condition
-    const { data, error } = await db.rpc('increment_metric', {
+    // --- Atomic PostgreSQL RPC Call (No manual read-then-write fallback) ---
+    const { data, error } = await db.rpc('increment_blog_metric', {
       p_slug: slug,
-      p_column: incrementColumn,
+      p_type: type,
     });
 
     if (error) {
-      // Fallback: RPC might not exist yet, try manual upsert
-      console.warn('increment_metric RPC not available, using manual upsert:', error.message);
-      return await manualIncrement(db, slug, type);
+      if (error.code === '02000') {
+        return NextResponse.json(
+          { error: 'Artikel tidak ditemukan atau belum dipublikasikan.' },
+          { status: 404 },
+        );
+      }
+      console.error('Error executing increment_blog_metric RPC:', error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json(data ?? { ok: true }, { status: 200 });
+    const payload = (data as { view_count?: number; ignite_count?: number }) ?? {
+      view_count: 0,
+      ignite_count: 0,
+    };
+
+    // Set 24h first-party cookie on the response
+    const response = NextResponse.json(payload, { status: 200 });
+    response.cookies.set({
+      name: cookieName,
+      value: '1',
+      maxAge: 86400, // 24 hours
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+    });
+
+    return response;
   } catch (err) {
-    console.error('Unexpected error:', err);
+    console.error('Unexpected error in POST metrics:', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-}
-
-/**
- * Fallback: manual read-then-write increment.
- * Less ideal for high concurrency but acceptable for a personal blog.
- */
-async function manualIncrement(
-  db: ReturnType<typeof createServiceRoleClient>,
-  slug: string,
-  type: 'view' | 'ignite',
-) {
-  const { data: existing } = await db
-    .from('blog_metrics')
-    .select('view_count, ignite_count')
-    .eq('slug', slug)
-    .single();
-
-  const newValues = {
-    slug,
-    view_count: type === 'view'
-      ? (Number(existing?.view_count ?? 0) + 1)
-      : Number(existing?.view_count ?? 0),
-    ignite_count: type === 'ignite'
-      ? (Number(existing?.ignite_count ?? 0) + 1)
-      : Number(existing?.ignite_count ?? 0),
-  };
-
-  const { data: upserted, error: upsertError } = await db
-    .from('blog_metrics')
-    .upsert(newValues, { onConflict: 'slug' })
-    .select()
-    .single();
-
-  if (upsertError) {
-    return NextResponse.json({ error: 'Failed to update metrics' }, { status: 500 });
-  }
-
-  return NextResponse.json(upserted, { status: 200 });
 }

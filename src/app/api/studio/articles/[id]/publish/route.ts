@@ -56,7 +56,19 @@ export async function POST(
   revalidatePath('/blog');
   revalidatePath(`/blog/${result.slug}`);
 
-  return Response.json({ ok: true, id: result.id, slug: result.slug });
+  // Query fresh blog_articles row so Studio has full updated state (last_published_at, updated_at, status)
+  const { data: updatedDraft } = await auth.client
+    .from('blog_articles')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  return Response.json({
+    ok: true,
+    id: result.id,
+    slug: result.slug,
+    article: updatedDraft,
+  });
 }
 
 /**

@@ -1,16 +1,45 @@
 -- ============================================================
--- Blog Studio RPC Functions
+-- Migration Fase 0d: Correctness & Final Hardening
+-- Jalankan di Supabase SQL Editor
 -- ============================================================
--- 1. publish_article(article_id uuid) -> jsonb
--- 2. unpublish_article(article_id uuid) -> jsonb
--- 3. increment_blog_metric(p_slug text, p_type text) -> jsonb
+-- Ringkasan:
+--   1. GRANT SELECT ON public.blog_metrics TO anon, authenticated
+--   2. ALTER TABLE blog_articles ADD COLUMN last_published_at TIMESTAMPTZ + backfill
+--   3. Update publish_article() RPC (last_published_at + return fresh article)
+--   4. Update unpublish_article() RPC (return fresh article)
+--   5. Create atomic increment_blog_metric() RPC (service_role only)
+--   6. Hardening: REVOKE EXECUTE on rls_auto_enable() from PUBLIC, anon, authenticated
 -- ============================================================
 
+BEGIN;
+
 -- ------------------------------------------------------------
--- Function: publish_article
--- Melakukan snapshot upsert + update status dalam satu transaksi.
--- Mengatur published_at (first publish) dan last_published_at (every publish).
--- Mengembalikan row artikel terbaru.
+-- 1. Grant SELECT on blog_metrics to anon and authenticated
+--    (RLS and public SELECT policy are already active)
+-- ------------------------------------------------------------
+GRANT SELECT ON public.blog_metrics TO anon, authenticated;
+
+-- ------------------------------------------------------------
+-- 2. Add last_published_at column to blog_articles
+--    Membedakan tanggal publish pertama (published_at) dengan
+--    waktu snapshot publik terakhir dibuat (last_published_at).
+-- ------------------------------------------------------------
+ALTER TABLE public.blog_articles
+  ADD COLUMN IF NOT EXISTS last_published_at TIMESTAMPTZ;
+
+-- Backfill last_published_at dari published_blog_articles.updated_at
+-- (bukan blog_articles.updated_at karena draft bisa saja sudah diedit)
+UPDATE public.blog_articles ba
+SET last_published_at = pba.updated_at
+FROM public.published_blog_articles pba
+WHERE ba.id = pba.id;
+
+-- ------------------------------------------------------------
+-- 3. Update publish_article():
+--    - published_at tetap diisi hanya pertama kali
+--    - last_published_at = v_now pada setiap publish / perbarui
+--    - published_blog_articles.updated_at = v_now (sinkron dengan last_published_at)
+--    - Mengembalikan fresh article row
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.publish_article(article_id uuid)
 RETURNS jsonb
@@ -34,7 +63,7 @@ BEGIN
   FROM public.blog_articles
   WHERE id = article_id
     AND author_id = auth.uid()
-  FOR UPDATE;  -- Lock row untuk mencegah race condition
+  FOR UPDATE;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'NOT_FOUND: Artikel tidak ditemukan atau bukan milik Anda.'
@@ -149,8 +178,7 @@ END;
 $$;
 
 -- ------------------------------------------------------------
--- Function: unpublish_article
--- Menghapus snapshot publik + revert status dalam satu transaksi.
+-- 4. Update unpublish_article(): mengembalikan fresh article row
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.unpublish_article(article_id uuid)
 RETURNS jsonb
@@ -208,8 +236,14 @@ GRANT EXECUTE ON FUNCTION public.publish_article(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.unpublish_article(uuid) TO authenticated;
 
 -- ------------------------------------------------------------
--- Function: increment_blog_metric (Atomic write for metrics)
--- Hanya bisa dipanggil oleh service_role (backend Next.js)
+-- 5. Function: increment_blog_metric (Atomic write for metrics)
+--    - Validasi p_type ('view' | 'ignite')
+--    - Validasi slug benar-benar ada di published_blog_articles
+--    - Atomic INSERT ... ON CONFLICT DO UPDATE
+--    - Tanpa dynamic SQL
+--    - SECURITY DEFINER SET search_path = ''
+--    - REVOKE dari PUBLIC, anon, authenticated
+--    - GRANT hanya ke service_role
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.increment_blog_metric(p_slug text, p_type text)
 RETURNS jsonb
@@ -264,3 +298,13 @@ REVOKE ALL ON FUNCTION public.increment_blog_metric(text, text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.increment_blog_metric(text, text) FROM anon;
 REVOKE ALL ON FUNCTION public.increment_blog_metric(text, text) FROM authenticated;
 GRANT EXECUTE ON FUNCTION public.increment_blog_metric(text, text) TO service_role;
+
+-- ------------------------------------------------------------
+-- 6. Hardening: rls_auto_enable helper
+--    Revoke execute dari PUBLIC, anon, dan authenticated
+-- ------------------------------------------------------------
+REVOKE ALL ON FUNCTION public.rls_auto_enable() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.rls_auto_enable() FROM anon;
+REVOKE ALL ON FUNCTION public.rls_auto_enable() FROM authenticated;
+
+COMMIT;

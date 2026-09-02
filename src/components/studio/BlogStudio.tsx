@@ -203,7 +203,13 @@ export default function BlogStudio() {
         `/api/studio/articles/${article.id}/publish`,
         { method: 'POST' },
       ) as { ok: boolean; id: string; slug: string; article?: StudioArticle };
-      const next: StudioArticle = body.article ?? { ...article, status: 'published' as const };
+      const nowIso = new Date().toISOString();
+      const next: StudioArticle = body.article ?? {
+        ...article,
+        status: 'published' as const,
+        last_published_at: nowIso,
+        updated_at: nowIso,
+      };
       setArticle(next);
       setArticles((items) => items.map((item) => item.id === next.id ? next : item));
       setDirty(false);
@@ -246,7 +252,6 @@ export default function BlogStudio() {
   if (loading || !article || !editor) return <main className="studio-loading"><LoaderCircle className="studio-spin" /> Memuat ruang menulis...</main>;
 
   const filtered = articles.filter((item) => item.title.toLowerCase().includes(query.toLowerCase()));
-  const spotifyId = article.music_uri.match(/(?:spotify:playlist:|open\.spotify\.com\/playlist\/)([a-zA-Z0-9]+)/)?.[1];
 
   const articleRail = <div className="studio-rail-content">
     <div className="studio-brand"><div className="studio-brand-mark">K</div><div><strong>Khadafi</strong><span>Blog Studio</span></div></div>
@@ -302,7 +307,7 @@ export default function BlogStudio() {
           <button className="studio-mobile-button" onClick={() => setRightOpen(true)}><Settings2 /></button>
           {article.status === 'published' ? (
             <>
-              {(!article.published_at || new Date(article.updated_at).getTime() > new Date(article.published_at).getTime()) ? (
+              {(!article.last_published_at || new Date(article.updated_at).getTime() > new Date(article.last_published_at).getTime()) ? (
                 <button className="studio-publish" onClick={() => void publishArticle()}><Save /> Perbarui</button>
               ) : (
                 <button className="studio-publish" disabled style={{ opacity: 0.7, cursor: 'not-allowed' }}><Check /> Terbaru</button>
