@@ -62,7 +62,13 @@ export function StudioSlashMenu({
       title: "Kutipan (Quote)",
       description: "Kutipan pembicara atau referensi penting",
       icon: Quote,
-      action: (ed) => ed.chain().focus().toggleBlockquote().run(),
+      action: (ed) => {
+        ed.chain()
+          .focus()
+          .setBlockquote()
+          .updateAttributes("blockquote", { variant: "quote" })
+          .run();
+      },
     },
     {
       id: "pullquote",
@@ -72,7 +78,16 @@ export function StudioSlashMenu({
       action: (ed) => {
         ed.chain()
           .focus()
-          .insertContent('<blockquote class="pullquote"><p>“Tulis pernyataan kunci yang memikat di sini…”</p></blockquote><p></p>')
+          .insertContent({
+            type: "blockquote",
+            attrs: { variant: "pullquote" },
+            content: [
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "“Tulis pernyataan kunci yang memikat di sini…”" }],
+              },
+            ],
+          })
           .run();
       },
     },
@@ -98,7 +113,16 @@ export function StudioSlashMenu({
       action: (ed) => {
         ed.chain()
           .focus()
-          .insertContent('<blockquote class="callout"><p>💡 <strong>Catatan:</strong> Tulis informasi penting untuk pembaca di sini.</p></blockquote><p></p>')
+          .insertContent({
+            type: "blockquote",
+            attrs: { variant: "callout" },
+            content: [
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "💡 Catatan: Tulis informasi penting untuk pembaca di sini." }],
+              },
+            ],
+          })
           .run();
       },
     },

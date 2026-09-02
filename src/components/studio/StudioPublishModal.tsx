@@ -11,6 +11,7 @@ type Props = {
   onConfirmPublish: () => Promise<void>;
   onConfirmUnpublish?: () => Promise<void>;
   isPublishing: boolean;
+  publishError?: string;
 };
 
 export function StudioPublishModal({
@@ -21,6 +22,7 @@ export function StudioPublishModal({
   onConfirmPublish,
   onConfirmUnpublish,
   isPublishing,
+  publishError,
 }: Props) {
   if (!isOpen) return null;
 
@@ -181,8 +183,16 @@ export function StudioPublishModal({
           </div>
         </div>
 
+        {/* Error Note if publish was aborted / save failed */}
+        {publishError && (
+          <div className="p-3 rounded-lg bg-[#EF4444]/10 border border-[#EF4444]/30 text-xs text-[#EF4444] flex items-center gap-2 animate-in fade-in">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            <span className="font-medium">{publishError}</span>
+          </div>
+        )}
+
         {/* Warning Note if any item missing */}
-        {!allPassed && (
+        {!allPassed && !publishError && (
           <div className="p-3 rounded-lg bg-[#FBBF24]/10 border border-[#FBBF24]/20 text-xs text-[#FBBF24] flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 flex-shrink-0" />
             <span>Beberapa data belum lengkap, tetapi Anda tetap dapat menayangkannya sekarang.</span>

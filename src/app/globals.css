@@ -119,7 +119,9 @@ body:has(.studio-shell) > footer, body:has(.studio-login-shell) > footer, body:h
 
 /* Pull Quote styling */
 .studio-tiptap blockquote.pullquote,
-.prose blockquote.pullquote {
+.studio-tiptap blockquote[data-variant="pullquote"],
+.prose blockquote.pullquote,
+.prose blockquote[data-variant="pullquote"] {
   text-align: center;
   margin: 3.2rem auto;
   padding: 1.75rem 1.5rem;
@@ -136,13 +138,17 @@ body:has(.studio-shell) > footer, body:has(.studio-login-shell) > footer, body:h
 }
 
 .studio-tiptap blockquote.pullquote p,
-.prose blockquote.pullquote p {
+.studio-tiptap blockquote[data-variant="pullquote"] p,
+.prose blockquote.pullquote p,
+.prose blockquote[data-variant="pullquote"] p {
   margin: 0;
 }
 
 /* Callout styling */
 .studio-tiptap blockquote.callout,
-.prose blockquote.callout {
+.studio-tiptap blockquote[data-variant="callout"],
+.prose blockquote.callout,
+.prose blockquote[data-variant="callout"] {
   margin: 2.2rem 0;
   padding: 1rem 1.25rem;
   border-left: 3px solid #818CF8;
@@ -155,7 +161,9 @@ body:has(.studio-shell) > footer, body:has(.studio-login-shell) > footer, body:h
 }
 
 .studio-tiptap blockquote.callout p,
-.prose blockquote.callout p {
+.studio-tiptap blockquote[data-variant="callout"] p,
+.prose blockquote.callout p,
+.prose blockquote[data-variant="callout"] p {
   margin: 0;
 }
 
@@ -205,18 +213,46 @@ body:has(.studio-shell) > footer, body:has(.studio-login-shell) > footer, body:h
   border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.studio-tiptap .studio-editor-image {
+/* Editorial Figure & Figcaption styling */
+.studio-tiptap figure.studio-editorial-figure,
+.studio-editorial-figure,
+.prose figure {
+  display: block;
+  margin: 2.5rem auto;
+  padding: 0;
+}
+
+.studio-tiptap figure.studio-editorial-figure img,
+.studio-editor-image,
+.prose figure img {
   display: block;
   width: 100%;
-  margin: 2.5rem auto;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
   border-radius: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
 }
 
-.studio-tiptap img.ProseMirror-selectednode {
+.studio-tiptap figcaption.studio-editorial-figcaption,
+.studio-editorial-figcaption,
+.prose figcaption {
+  display: block;
+  margin-top: 0.85rem;
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #94A3B8;
+  text-align: center;
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+
+.studio-tiptap .ProseMirror-selectednode {
   outline: 2px solid #34D399;
-  outline-offset: 2px;
+  outline-offset: 3px;
+  border-radius: 0.75rem;
 }
 
 /* Studio Login & Loading Screens */

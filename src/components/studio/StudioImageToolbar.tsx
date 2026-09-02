@@ -22,11 +22,10 @@ export function StudioImageToolbar({ editor }: Props) {
         return;
       }
 
-      const domSelection = window.getSelection();
-      const selectedImg = document.querySelector(".studio-tiptap img.ProseMirror-selectednode");
+      const selectedNode = document.querySelector(".studio-tiptap .ProseMirror-selectednode");
 
-      if (selectedImg) {
-        const rect = selectedImg.getBoundingClientRect();
+      if (selectedNode) {
+        const rect = selectedNode.getBoundingClientRect();
         setPosition({
           top: Math.max(70, rect.top - 44),
           left: Math.max(16, rect.left + rect.width / 2 - 120),
@@ -50,14 +49,19 @@ export function StudioImageToolbar({ editor }: Props) {
   const handleEditAlt = () => {
     const nextAlt = window.prompt("Teks Alt Gambar (aksesibilitas & SEO):", currentAttrs.alt || "");
     if (nextAlt !== null) {
-      editor.chain().focus().updateAttributes("image", { alt: nextAlt }).run();
+      editor.chain().focus().updateAttributes("image", { alt: nextAlt.trim() }).run();
     }
   };
 
   const handleEditCaption = () => {
-    const nextTitle = window.prompt("Keterangan Gambar (Caption opsional):", currentAttrs.title || "");
-    if (nextTitle !== null) {
-      editor.chain().focus().updateAttributes("image", { title: nextTitle }).run();
+    const currentCaption = currentAttrs.caption || currentAttrs.title || "";
+    const nextCaption = window.prompt("Keterangan Gambar (Caption opsional):", currentCaption);
+    if (nextCaption !== null) {
+      const trimmed = nextCaption.trim();
+      editor.chain().focus().updateAttributes("image", {
+        caption: trimmed.length > 0 ? trimmed : null,
+        title: trimmed.length > 0 ? trimmed : null,
+      }).run();
     }
   };
 

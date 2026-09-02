@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
-import Image from '@tiptap/extension-image';
 import type { Session } from '@supabase/supabase-js';
 import {
   ArrowLeft, Eye, LoaderCircle, X,
@@ -15,6 +14,8 @@ import {
 } from '@/lib/blog-types';
 import { ArticleRenderer } from '@/components/shared/ArticleRenderer';
 
+import { EditorialBlockquote } from './tiptap-extensions/EditorialBlockquote';
+import { EditorialFigure } from './tiptap-extensions/EditorialFigure';
 import { StudioArticleRail } from './StudioArticleRail';
 import { StudioDocumentHeader } from './StudioDocumentHeader';
 import { StudioHeader } from './StudioHeader';
@@ -108,6 +109,7 @@ export default function BlogStudio() {
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [publishError, setPublishError] = useState('');
   const [uploading, setUploading] = useState(false);
 
   // Slash Menu state
@@ -240,9 +242,9 @@ export default function BlogStudio() {
     latestArticle.current = article;
   }, [article]);
 
-  const saveNow = useCallback(async (target?: StudioArticle | null) => {
+  const saveNow = useCallback(async (target?: StudioArticle | null): Promise<StudioArticle> => {
     const current = target || latestArticle.current;
-    if (!current) return;
+    if (!current) throw new Error('Tidak ada naskah yang dipilih.');
     const revision = editRevision.current;
     setSaveState('saving');
     try {
@@ -256,15 +258,18 @@ export default function BlogStudio() {
         setDirty(false);
       }
       setSaveState('saved');
+      return body.article;
     } catch (error) {
       setSaveState('error');
-      setNotice(error instanceof Error ? error.message : 'Perubahan belum tersimpan.');
+      const msg = error instanceof Error ? error.message : 'Perubahan belum tersimpan.';
+      setNotice(msg);
+      throw error;
     }
   }, [api]);
 
   useEffect(() => {
     if (!dirty || !article) return;
-    const timer = window.setTimeout(() => void saveNow(article), 1200);
+    const timer = window.setTimeout(() => void saveNow(article).catch(() => {}), 1200);
     return () => window.clearTimeout(timer);
   }, [article, dirty, saveNow]);
 
@@ -279,22 +284,20 @@ export default function BlogStudio() {
     immediatelyRender: false,
     extensions: [
       StarterKit.configure({
+        blockquote: false,
         heading: { levels: [2, 3] },
         link: {
           openOnClick: false,
           HTMLAttributes: { class: 'studio-editor-link' },
         },
       }),
+      EditorialBlockquote,
+      EditorialFigure,
       Placeholder.configure({
         placeholder: ({ node }) => {
           if (node.type.name === 'heading') return 'Subjudul...';
           return "Ketik '/' untuk memasukkan blok editorial atau mulai menulis naskah...";
         },
-      }),
-      Image.configure({
-        inline: false,
-        allowBase64: false,
-        HTMLAttributes: { class: 'studio-editor-image' },
       }),
     ],
     content: emptyTiptapDocument,
@@ -391,10 +394,21 @@ export default function BlogStudio() {
   const handleConfirmPublish = async () => {
     if (!article) return;
     setIsPublishing(true);
-    setSaveState('saving');
+    setPublishError('');
     try {
-      if (dirty) await saveNow(article);
+      if (dirty) {
+        try {
+          await saveNow(article);
+        } catch {
+          const msg = 'Perubahan belum tersimpan. Publish dibatalkan.';
+          setNotice(msg);
+          setPublishError(msg);
+          setIsPublishing(false);
+          return;
+        }
+      }
 
+      setSaveState('saving');
       const body = await api(
         `/api/studio/articles/${article.id}/publish`,
         { method: 'POST' },
@@ -416,7 +430,9 @@ export default function BlogStudio() {
       setNotice(`Artikel berhasil tayang di /blog/${body.slug ?? article.slug}`);
     } catch (error) {
       setSaveState('error');
-      setNotice(error instanceof Error ? error.message : 'Gagal mempublikasikan artikel.');
+      const msg = error instanceof Error ? error.message : 'Gagal mempublikasikan artikel.';
+      setNotice(msg);
+      setPublishError(msg);
     } finally {
       setIsPublishing(false);
     }
@@ -514,7 +530,10 @@ export default function BlogStudio() {
         onToggleRight={toggleRight}
         onToggleFocus={toggleFocus}
         onOpenPreview={() => setPreviewOpen(true)}
-        onOpenPublishModal={() => setPublishModalOpen(true)}
+        onOpenPublishModal={() => {
+          setPublishError('');
+          setPublishModalOpen(true);
+        }}
         canUpdate={hasUnpublishedChanges}
         onUndo={() => editor.chain().focus().undo().run()}
         onRedo={() => editor.chain().focus().redo().run()}
@@ -637,6 +656,7 @@ export default function BlogStudio() {
         onConfirmPublish={handleConfirmPublish}
         onConfirmUnpublish={handleConfirmUnpublish}
         isPublishing={isPublishing}
+        publishError={publishError}
       />
 
       {/* 5. Shared ArticleRenderer Preview Modal */}
