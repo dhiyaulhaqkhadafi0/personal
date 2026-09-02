@@ -97,33 +97,119 @@ export const emptyTiptapDocument: TiptapNode = {
 };
 
 /**
+ * Recursively extracts the first valid image URL from a Tiptap document tree.
+ * Defensively inspects nodes of type 'image', 'studioImage', 'figure', or any node with an image src attribute.
+ */
+export function extractFirstImageFromTiptap(node?: unknown): string | null {
+  if (!node || typeof node !== 'object') return null;
+
+  const n = node as Record<string, unknown>;
+
+  // Check if this node is an image node
+  if (n.type === 'image' || n.type === 'studioImage' || n.type === 'figure' || n.type === 'img') {
+    if (n.attrs && typeof n.attrs === 'object') {
+      const attrs = n.attrs as Record<string, unknown>;
+      const src = attrs.src || attrs.url || attrs.href;
+      if (typeof src === 'string' && src.trim().length > 0) {
+        return src.trim();
+      }
+    }
+  }
+
+  if (n.attrs && typeof n.attrs === 'object') {
+    const attrs = n.attrs as Record<string, unknown>;
+    if (typeof attrs.src === 'string' && (attrs.src.startsWith('http') || attrs.src.startsWith('/'))) {
+      return attrs.src.trim();
+    }
+  }
+
+  // Recurse into children
+  if (Array.isArray(n.content)) {
+    for (const child of n.content) {
+      const found = extractFirstImageFromTiptap(child);
+      if (found) return found;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Extracts the first image URL from raw markdown or HTML content.
+ */
+export function extractFirstImageFromMarkdown(content?: string | null): string | null {
+  if (!content || typeof content !== 'string') return null;
+
+  // 1. Markdown syntax: ![alt](url)
+  const mdMatch = content.match(/!\[.*?\]\((https?:\/\/[^\s)]+|\/[^\s)]+)\)/);
+  if (mdMatch && mdMatch[1] && mdMatch[1].trim()) {
+    return mdMatch[1].trim();
+  }
+
+  // 2. HTML img syntax: <img ... src="url" ... />
+  const htmlMatch = content.match(/<img[^>]+src=["'](https?:\/\/[^"']+|\/[^"']+)["']/i);
+  if (htmlMatch && htmlMatch[1] && htmlMatch[1].trim()) {
+    return htmlMatch[1].trim();
+  }
+
+  return null;
+}
+
+export type ArticleCoverSource = {
+  cover_image?: string | null;
+  cover_url?: string | null;
+  image?: string | null;
+  cover_slides?: string[] | unknown;
+  content_json?: TiptapNode | unknown;
+  content?: string | null;
+  content_html?: string | null;
+};
+
+/**
+ * Checks whether an article's resolved cover is automatically derived from its body images.
+ */
+export function isAutoExtractedCover(source?: ArticleCoverSource | null): boolean {
+  if (!source) return false;
+  if (typeof source.cover_image === 'string' && source.cover_image.trim()) return false;
+  if (typeof source.cover_url === 'string' && source.cover_url.trim()) return false;
+  if (typeof source.image === 'string' && source.image.trim()) return false;
+  if (Array.isArray(source.cover_slides) && source.cover_slides.some((s) => typeof s === 'string' && s.trim())) return false;
+
+  const autoImg = extractFirstImageFromTiptap(source.content_json) ||
+    extractFirstImageFromMarkdown(source.content) ||
+    extractFirstImageFromMarkdown(source.content_html);
+
+  return Boolean(autoImg);
+}
+
+/**
  * Normalizes and resolves the valid cover image for an article based on standard priority:
  * 1. cover_image (explicit single cover field)
  * 2. cover_url (Studio / PublishedArticle canonical field)
  * 3. image (MDX frontmatter field)
  * 4. cover_slides (first valid image URL from array or JSON string)
- * Returns null if all are empty/invalid, allowing the caller to render a premium fallback.
+ * 5. first image in article body (content_json Tiptap tree or markdown/HTML content)
+ * 6. null (caller renders typographic fallback with article title and category)
  */
-export function resolveArticleCover(source?: {
-  cover_image?: string | null;
-  cover_url?: string | null;
-  image?: string | null;
-  cover_slides?: string[] | unknown;
-} | null): string | null {
+export function resolveArticleCover(source?: ArticleCoverSource | null): string | null {
   if (!source) return null;
 
+  // 1. cover_image
   if (typeof source.cover_image === 'string' && source.cover_image.trim()) {
     return source.cover_image.trim();
   }
 
+  // 2. cover_url
   if (typeof source.cover_url === 'string' && source.cover_url.trim()) {
     return source.cover_url.trim();
   }
 
+  // 3. image
   if (typeof source.image === 'string' && source.image.trim()) {
     return source.image.trim();
   }
 
+  // 4. cover_slides
   if (Array.isArray(source.cover_slides) && source.cover_slides.length > 0) {
     for (const slide of source.cover_slides) {
       if (typeof slide === 'string' && slide.trim()) {
@@ -145,6 +231,22 @@ export function resolveArticleCover(source?: {
         return source.cover_slides.trim();
       }
     }
+  }
+
+  // 5. First image in article body
+  if (source.content_json) {
+    const tiptapImg = extractFirstImageFromTiptap(source.content_json);
+    if (tiptapImg) return tiptapImg;
+  }
+
+  if (source.content) {
+    const mdImg = extractFirstImageFromMarkdown(source.content);
+    if (mdImg) return mdImg;
+  }
+
+  if (source.content_html) {
+    const htmlImg = extractFirstImageFromMarkdown(source.content_html);
+    if (htmlImg) return htmlImg;
   }
 
   return null;

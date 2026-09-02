@@ -7,13 +7,13 @@ import Placeholder from '@tiptap/extension-placeholder';
 import Image from '@tiptap/extension-image';
 import type { Session } from '@supabase/supabase-js';
 import {
-  ArrowLeft, Bold, Check, ChevronDown, Code2, Eye, Heading2, ImageIcon,
+  ArrowLeft, Bold, Check, ChevronDown, Code2, Eye, Heading2, ImageIcon, Info,
   Italic, Link2, List, ListOrdered, LoaderCircle, LogOut, Menu, Minus, Music2,
-  Plus, Quote, Redo2, Save, Search, Send, Settings2, Strikethrough, Trash2,
+  Plus, Quote, Redo2, Save, Search, Send, Settings2, Sparkles, Strikethrough, Trash2,
   Undo2, Upload, X,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { emptyTiptapDocument, slugify, type StudioArticle } from '@/lib/blog-types';
+import { emptyTiptapDocument, slugify, extractFirstImageFromTiptap, type StudioArticle } from '@/lib/blog-types';
 import { ArticleRenderer } from '@/components/shared/ArticleRenderer';
 
 type SaveState = 'saved' | 'editing' | 'saving' | 'error';
@@ -264,6 +264,10 @@ export default function BlogStudio() {
     <div className="studio-owner"><span className="studio-owner-avatar">DK</span><span><strong>Daffa Khadafi</strong><small>Owner workspace</small></span><button title="Keluar" onClick={() => void supabase.auth.signOut()}><LogOut /></button></div>
   </div>;
 
+  const manualCover = article.cover_url || (article.cover_slides && article.cover_slides.length > 0 ? article.cover_slides[0] : null);
+  const autoCover = !manualCover ? extractFirstImageFromTiptap(article.content_json) : null;
+  const displayCover = manualCover || autoCover;
+
   const settings = <div className="studio-settings-content">
     <div className="studio-settings-head"><div><strong>Article settings</strong><span>Atur detail dan experience</span></div><Settings2 /></div>
     <div className="studio-settings-tabs">{(['article', 'experience', 'seo'] as SettingsTab[]).map((tab) => <button key={tab} className={settingsTab === tab ? 'active' : ''} onClick={() => setSettingsTab(tab)}>{tab === 'article' ? 'Artikel' : tab === 'experience' ? 'Experience' : 'SEO'}</button>)}</div>
@@ -275,7 +279,21 @@ export default function BlogStudio() {
       </section>}
       {settingsTab === 'experience' && <>
         <section className="studio-setting-group"><h3>Cover experience</h3>
-          <div className="studio-cover" style={article.cover_url ? { backgroundImage: `url(${article.cover_url})` } : undefined}>{!article.cover_url && <><ImageIcon /><span>Belum ada cover</span></>}<label><Upload /> {uploading ? 'Mengunggah...' : 'Upload cover'}<input type="file" accept="image/*" disabled={uploading} onChange={(e) => e.target.files?.[0] && void uploadCover(e.target.files[0])} /></label></div>
+          <div className="studio-cover" style={displayCover ? { backgroundImage: `url(${displayCover})` } : undefined}>
+            {!displayCover && <><ImageIcon /><span>Belum ada cover</span></>}
+            <label><Upload /> {uploading ? 'Mengunggah...' : 'Upload cover'}<input type="file" accept="image/*" disabled={uploading} onChange={(e) => e.target.files?.[0] && void uploadCover(e.target.files[0])} /></label>
+          </div>
+          {autoCover && !manualCover && (
+            <div className="mt-2.5 p-2.5 rounded-lg bg-[#34D399]/10 border border-[#34D399]/20 flex flex-col gap-1 text-xs">
+              <div className="flex items-center gap-1.5 text-[#34D399] font-medium">
+                <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>Cover otomatis memakai gambar pertama artikel</span>
+              </div>
+              <span className="text-[#9CA3AF] text-[11px] leading-relaxed">
+                Upload cover manual akan menggantikan cover otomatis.
+              </span>
+            </div>
+          )}
           {article.cover_slides?.length > 0 && <div className="studio-cover-list">{article.cover_slides.map((url, index) => <div key={url} className="studio-cover-thumb" style={{ backgroundImage: `url(${url})` }}><span>{index + 1}</span><button onClick={() => { const next = article.cover_slides.filter((item) => item !== url); update({ cover_slides: next, cover_url: article.cover_url === url ? (next[0] || '') : article.cover_url }); }}><X /></button></div>)}</div>}
           <label>Theme<select value={article.theme} onChange={(e) => update({ theme: e.target.value as StudioArticle['theme'] })}><option value="midnight">Midnight</option><option value="light">Editorial Light</option><option value="adaptive">Adaptive</option></select></label>
           <label>Accent<div className="studio-accents">{['silver', 'violet', 'blue', 'lime'].map((accent) => <button key={accent} className={article.accent === accent ? 'active' : ''} data-accent={accent} onClick={() => update({ accent })}><i />{accent}</button>)}</div></label>
@@ -364,6 +382,6 @@ export default function BlogStudio() {
       <footer className="studio-editor-footer"><span>{article.word_count} kata</span><span>{article.reading_time} menit baca</span><span>Konten tersimpan sebagai structured JSON</span></footer>
     </section>
     <aside className={`studio-right ${rightOpen ? 'open' : ''}`}>{settings}</aside>
-    {previewOpen && <div className="studio-preview-modal"><div className="studio-preview-head"><strong>Article preview</strong><div><button className={previewDevice === 'desktop' ? 'active' : ''} onClick={() => setPreviewDevice('desktop')}>Desktop</button><button className={previewDevice === 'mobile' ? 'active' : ''} onClick={() => setPreviewDevice('mobile')}>Mobile</button></div><button onClick={() => setPreviewOpen(false)}><X /></button></div><div className={`studio-preview-stage ${previewDevice}`}><ArticleRenderer previewMode article={{ title: article.title, excerpt: article.excerpt, category: article.category, reading_time: article.reading_time, date: article.updated_at, cover_url: article.cover_url, cover_slides: article.cover_slides, theme: article.theme, music_enabled: article.music_enabled, music_uri: article.music_uri }} contentHtml={article.content_html} /></div></div>}
+    {previewOpen && <div className="studio-preview-modal"><div className="studio-preview-head"><strong>Article preview</strong><div><button className={previewDevice === 'desktop' ? 'active' : ''} onClick={() => setPreviewDevice('desktop')}>Desktop</button><button className={previewDevice === 'mobile' ? 'active' : ''} onClick={() => setPreviewDevice('mobile')}>Mobile</button></div><button onClick={() => setPreviewOpen(false)}><X /></button></div><div className={`studio-preview-stage ${previewDevice}`}><ArticleRenderer previewMode article={{ title: article.title, slug: article.slug, excerpt: article.excerpt, category: article.category, reading_time: article.reading_time, date: article.updated_at, cover_url: article.cover_url, cover_slides: article.cover_slides, content_json: article.content_json, theme: article.theme, music_enabled: article.music_enabled, music_uri: article.music_uri }} contentHtml={article.content_html} /></div></div>}
   </main>;
 }

@@ -12,9 +12,13 @@ export type ArticleData = {
   category: string;
   reading_time: number;
   date: string;
+  slug?: string;
   cover_url?: string | null;
   cover_image?: string | null;
   cover_slides?: string[] | unknown;
+  content_json?: unknown;
+  content?: string | null;
+  content_html?: string | null;
   image?: string | null;
   theme?: string;
   music_enabled?: boolean;
@@ -41,11 +45,13 @@ export function ArticleRenderer({ article, contentHtml, children, footerContent,
           <EditorialCover
             src={resolvedCover}
             alt={`Cover artikel ${article.title || 'Untitled story'}`}
+            title={article.title}
+            category={article.category}
+            slug={article.slug}
             aspectRatio="aspect-[16/9]"
             className="w-full max-h-[440px]"
             priority={true}
             variant="hero"
-            category={article.category}
           />
         </div>
 

@@ -310,17 +310,19 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
                             <EditorialCover
                               src={resolveArticleCover(post.metadata)}
                               alt={`Cover artikel: ${post.metadata.title}`}
+                              title={post.metadata.title}
+                              category={post.metadata.category}
+                              slug={post.metadata.slug}
                               aspectRatio="aspect-[16/10]"
                               className="w-full h-full"
                               variant="card"
-                              category={post.metadata.category}
                             />
                           </div>
                           {/* Content strictly below cover */}
                           <div className="p-6 sm:p-7 flex flex-col flex-grow">
                             <div className="flex items-center justify-between text-xs font-mono tracking-wider mb-4">
                               <span className="bg-[#18181B] text-[#34D399] px-3 py-1 rounded-full border border-[#27272A] uppercase font-medium shadow-sm">{post.metadata.category}</span>
-                              <span className="text-[#9CA3AF] bg-[#18181B] px-3 py-1 rounded-full border border-[#27272A] shadow-sm">{new Date(post.metadata.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                              <span className="text-[#9CA3AF] bg-[#18181B] px-3 py-1 rounded-full border border-[#27272A] shadow-md">{new Date(post.metadata.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
                             </div>
                             <h2 className={`text-xl sm:text-[1.35rem] text-[#E2E8F0] group-hover:text-white font-medium leading-[1.35] transition-colors mb-3 line-clamp-2 ${loraClassName}`}>{post.metadata.title}</h2>
                             <p className="text-[#9CA3AF] leading-relaxed text-sm font-light group-hover:text-[#D1D5DB] transition-colors line-clamp-3 flex-grow">{post.metadata.excerpt}</p>
@@ -341,10 +343,12 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
                             <EditorialCover
                               src={resolveArticleCover(post.metadata)}
                               alt={post.metadata.title}
+                              title={post.metadata.title}
+                              category={post.metadata.category}
+                              slug={post.metadata.slug}
                               aspectRatio="aspect-[16/10]"
                               className="w-full h-full"
                               variant="thumbnail"
-                              category={post.metadata.category}
                             />
                           </div>
                         </article>
@@ -367,11 +371,13 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
                         <EditorialCover
                           src={resolveArticleCover(filteredPosts[0].metadata)}
                           alt={`Cover artikel unggulan: ${filteredPosts[0].metadata.title}`}
+                          title={filteredPosts[0].metadata.title}
+                          category={filteredPosts[0].metadata.category}
+                          slug={filteredPosts[0].metadata.slug}
                           aspectRatio="aspect-video"
                           className="w-full h-full"
                           priority={true}
                           variant="hero"
-                          category={filteredPosts[0].metadata.category}
                         />
                       </div>
 
@@ -413,10 +419,12 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
                             <EditorialCover
                               src={resolveArticleCover(post.metadata)}
                               alt={post.metadata.title}
+                              title={post.metadata.title}
+                              category={post.metadata.category}
+                              slug={post.metadata.slug}
                               aspectRatio="aspect-[16/10]"
                               className="w-full h-full"
                               variant="thumbnail"
-                              category={post.metadata.category}
                             />
                           </div>
                           <div className="flex flex-col py-1 justify-between flex-grow min-w-0">

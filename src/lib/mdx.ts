@@ -16,6 +16,7 @@ export type BlogPostMetadata = {
   cover_url?: string;
   cover_image?: string;
   cover_slides?: string[];
+  content_json?: TiptapNode;
   readingTime?: number;
   musicMood?: string;
   musicEnabled?: boolean;
@@ -51,7 +52,7 @@ export function getPostBySlug(slug: string): BlogPost | null {
     
     const fileContents = fs.readFileSync(fullPath, 'utf8');
     const { data, content } = matter(fileContents);
-    const resolvedCover = resolveArticleCover(data as Record<string, unknown>);
+    const resolvedCover = resolveArticleCover({ ...(data as Record<string, unknown>), content });
 
     return {
       metadata: {
@@ -80,6 +81,7 @@ function publishedArticleToPost(article: PublishedArticle): BlogPost {
       image: resolvedCover || undefined,
       cover_url: article.cover_url,
       cover_slides: article.cover_slides,
+      content_json: article.content_json,
       readingTime: article.reading_time,
       musicMood: article.music_mood,
       musicEnabled: article.music_enabled,

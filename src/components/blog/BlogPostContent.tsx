@@ -68,6 +68,7 @@ export default function BlogPostContent({ post, slug, children }: Props) {
           <ArticleRenderer 
             article={{
               title: post.metadata.title,
+              slug: post.metadata.slug,
               excerpt: post.metadata.excerpt || '',
               category: post.metadata.category,
               reading_time: post.metadata.readingTime || 0,
@@ -75,6 +76,9 @@ export default function BlogPostContent({ post, slug, children }: Props) {
               cover_url: post.metadata.cover_url || post.metadata.image,
               cover_slides: post.metadata.cover_slides,
               cover_image: post.metadata.cover_image,
+              content_json: post.contentJson,
+              content: post.content,
+              content_html: post.contentHtml,
               theme: post.metadata.theme,
               music_enabled: post.metadata.musicEnabled,
               music_uri: post.metadata.musicUri
