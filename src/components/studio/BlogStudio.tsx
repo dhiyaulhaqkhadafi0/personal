@@ -264,7 +264,9 @@ export default function BlogStudio() {
         <span className={`studio-save-state ${saveState}`}>{saveState === 'saving' ? <LoaderCircle className="studio-spin" /> : saveState === 'saved' ? <Check /> : saveState === 'error' ? <X /> : <i />}{saveState === 'saving' ? 'Menyimpan' : saveState === 'saved' ? 'Tersimpan' : saveState === 'error' ? 'Belum tersimpan' : 'Mengedit'}</span>
         <div className="studio-top-actions"><button onClick={() => setPreviewOpen(true)}><Eye /> Preview</button><button className="studio-mobile-button" onClick={() => setRightOpen(true)}><Settings2 /></button><button className="studio-publish" onClick={() => void togglePublish()}>{article.status === 'published' ? <Save /> : <Send />}{article.status === 'published' ? 'Unpublish' : 'Publish'}</button><button className="studio-delete" onClick={() => void deleteArticle()}><Trash2 /></button></div>
       </header>
-      {notice && <div className="studio-notice"><span>{notice}</span><button onClick={() => setNotice('')}><X /></button></div>}
+      <div className={`studio-notice${notice ? '' : ' empty'}`}>
+        {notice && <><span>{notice}</span><button onClick={() => setNotice('')}><X /></button></>}
+      </div>
       <div className="studio-toolbar">
         <div className="studio-block-menu"><Plus /> Tambah blok <ChevronDown /></div><span className="studio-divider" />
         <ToolbarButton label="Bold" active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()}><Bold /></ToolbarButton>
