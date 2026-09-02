@@ -317,28 +317,12 @@ export default function BlogStudio() {
     onUpdate: ({ editor }) => {
       const text = editor.getText().trim();
       const wordCount = text ? text.split(/\s+/).length : 0;
-      
-      const firstNode = editor.state.doc.firstChild;
-      const newTitle = (firstNode && firstNode.type.name === 'heading' && firstNode.textContent.trim() !== '') 
-        ? firstNode.textContent 
-        : 'Untitled story';
-
-      const patch: Partial<StudioArticle> = {
+      update({
         content_json: editor.getJSON(),
         content_html: editor.getHTML(),
         word_count: wordCount,
         reading_time: Math.max(1, Math.ceil(wordCount / 210)),
-        title: newTitle,
-      };
-
-      const currentTitleSlug = slugify(latestArticle.current?.title || '');
-      if (latestArticle.current?.status !== 'published') {
-        if (!latestArticle.current?.slug || latestArticle.current?.slug === currentTitleSlug || latestArticle.current?.slug === 'untitled-story') {
-          patch.slug = slugify(newTitle) || 'untitled-story';
-        }
-      }
-
-      update(patch);
+      });
 
       // Check for Slash Command trigger
       const { selection } = editor.state;
@@ -371,11 +355,35 @@ export default function BlogStudio() {
     }
   }, [editor, articleId]);
 
-  const preloadImage = (src: string): Promise<void> => {
+  const preloadImage = (src: string, timeoutMs = 8000): Promise<void> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.onload = () => resolve();
-      img.onerror = () => reject(new Error('Gambar gagal dimuat oleh browser.'));
+      let timer: NodeJS.Timeout | null = null;
+
+      const cleanup = () => {
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+        img.onload = null;
+        img.onerror = null;
+      };
+
+      timer = setTimeout(() => {
+        cleanup();
+        reject(new Error('Batas waktu memuat gambar habis (timeout 8 detik).'));
+      }, timeoutMs);
+
+      img.onload = () => {
+        cleanup();
+        resolve();
+      };
+
+      img.onerror = () => {
+        cleanup();
+        reject(new Error('Gambar gagal dimuat oleh browser. Format mungkin tidak didukung atau URL tidak valid.'));
+      };
+
       img.src = src;
     });
   };
