@@ -239,13 +239,18 @@ export default function BlogStudio() {
     })();
   }, [session, api, createArticle]);
 
+  const deletedArticleIds = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     latestArticle.current = article;
   }, [article]);
 
-  const saveNow = useCallback(async (target?: StudioArticle | null): Promise<StudioArticle> => {
+  const saveNow = useCallback(async (target?: StudioArticle | null): Promise<StudioArticle | null> => {
     const current = target || latestArticle.current;
     if (!current) throw new Error('Tidak ada naskah yang dipilih.');
+    if (deletedArticleIds.current.has(current.id)) {
+      return null;
+    }
     const revision = editRevision.current;
     setSaveState('saving');
     try {
@@ -270,6 +275,7 @@ export default function BlogStudio() {
 
   useEffect(() => {
     if (!dirty || !article) return;
+    if (deletedArticleIds.current.has(article.id)) return;
     const timer = window.setTimeout(() => void saveNow(article).catch(() => {}), 1200);
     return () => window.clearTimeout(timer);
   }, [article, dirty, saveNow]);
@@ -311,12 +317,28 @@ export default function BlogStudio() {
     onUpdate: ({ editor }) => {
       const text = editor.getText().trim();
       const wordCount = text ? text.split(/\s+/).length : 0;
-      update({
+      
+      const firstNode = editor.state.doc.firstChild;
+      const newTitle = (firstNode && firstNode.type.name === 'heading' && firstNode.textContent.trim() !== '') 
+        ? firstNode.textContent 
+        : 'Untitled story';
+
+      const patch: Partial<StudioArticle> = {
         content_json: editor.getJSON(),
         content_html: editor.getHTML(),
         word_count: wordCount,
         reading_time: Math.max(1, Math.ceil(wordCount / 210)),
-      });
+        title: newTitle,
+      };
+
+      const currentTitleSlug = slugify(latestArticle.current?.title || '');
+      if (latestArticle.current?.status !== 'published') {
+        if (!latestArticle.current?.slug || latestArticle.current?.slug === currentTitleSlug || latestArticle.current?.slug === 'untitled-story') {
+          patch.slug = slugify(newTitle) || 'untitled-story';
+        }
+      }
+
+      update(patch);
 
       // Check for Slash Command trigger
       const { selection } = editor.state;
@@ -349,12 +371,25 @@ export default function BlogStudio() {
     }
   }, [editor, articleId]);
 
-  const selectArticle = (next: StudioArticle) => {
-    if (dirty && article) void saveNow(article);
-    setArticle(next);
-    setDirty(false);
-    setNotice('');
+  const preloadImage = (src: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error('Gambar gagal dimuat oleh browser.'));
+      img.src = src;
+    });
   };
+
+  const selectArticle = useCallback((next: StudioArticle, skipSave = false) => {
+    if (!skipSave && dirty && latestArticle.current && latestArticle.current.id !== next.id) {
+      if (!deletedArticleIds.current.has(latestArticle.current.id)) {
+        void saveNow(latestArticle.current).catch(() => {});
+      }
+    }
+    setDirty(false);
+    setArticle(next);
+    setNotice('');
+  }, [dirty, saveNow]);
 
   const uploadFile = async (file: File) => {
     const data = new FormData();
@@ -366,9 +401,17 @@ export default function BlogStudio() {
   const insertImage = async (file: File) => {
     try {
       setUploading(true);
-      setNotice('Mengunggah gambar ke dalam naskah...');
+      setNotice('Mengunggah gambar ke server...');
       const url = await uploadFile(file);
-      editor?.chain().focus().setImage({ src: url, alt: file.name.replace(/\.[^/.]+$/, ""), title: '' }).run();
+
+      setNotice('Memverifikasi tampilan gambar...');
+      await preloadImage(url);
+
+      editor?.chain().focus().setImage({
+        src: url,
+        alt: file.name.replace(/\.[^/.]+$/, ""),
+        title: '',
+      }).run();
       setNotice('Gambar berhasil disisipkan ke dalam naskah.');
     } catch (error) {
       setNotice(error instanceof Error ? error.message : 'Upload gambar gagal.');
@@ -380,36 +423,64 @@ export default function BlogStudio() {
 
   const handleDeleteArticle = useCallback(async (target: StudioArticle) => {
     try {
+      const isCurrent = latestArticle.current?.id === target.id;
+      deletedArticleIds.current.add(target.id);
+
+      if (isCurrent) {
+        setDirty(false);
+        setSaveState('saved');
+      }
+
       await api(`/api/studio/articles/${target.id}`, { method: 'DELETE' });
       const nextArticles = articles.filter((item) => item.id !== target.id);
       setArticles(nextArticles);
-      if (article?.id === target.id) {
+
+      if (isCurrent) {
         if (nextArticles.length > 0) {
-          await selectArticle(nextArticles[0]);
+          selectArticle(nextArticles[0], true);
         } else {
           await createArticle();
         }
       }
       setNotice(`Naskah "${target.title || 'Untitled story'}" berhasil dihapus.`);
     } catch (err) {
+      deletedArticleIds.current.delete(target.id);
       const msg = err instanceof Error ? err.message : 'Gagal menghapus artikel.';
       setNotice(msg);
       throw err;
     }
-  }, [api, articles, article, selectArticle, createArticle]);
+  }, [api, articles, selectArticle, createArticle]);
 
   const uploadCover = async (file: File) => {
     if (!article) return;
     try {
       setUploading(true);
+      setNotice('Mengunggah cover visual...');
       const url = await uploadFile(file);
+
+      setNotice('Memvalidasi gambar cover...');
+      await preloadImage(url);
+
+      const existingSlides = Array.isArray(article.cover_slides) ? article.cover_slides : [];
+      const updatedSlides = [url];
+      if (article.cover_url && article.cover_url !== url) {
+        updatedSlides.push(article.cover_url);
+      }
+      for (const slide of existingSlides) {
+        if (slide && slide !== url && !updatedSlides.includes(slide)) {
+          updatedSlides.push(slide);
+        }
+      }
+
       update({
-        cover_url: article.cover_url || url,
-        cover_slides: [...(article.cover_slides || []), url],
+        cover_url: url,
+        cover_slides: updatedSlides,
       });
       setNotice('Cover visual berhasil diperbarui.');
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : 'Upload gagal.');
+      const msg = error instanceof Error ? error.message : 'Upload cover gagal.';
+      setNotice(msg);
+      throw error;
     } finally {
       setUploading(false);
     }
@@ -595,8 +666,11 @@ export default function BlogStudio() {
               onSignOut={() => void supabase.auth.signOut()}
               onToggleCollapse={toggleLeft}
               onDeleteArticle={handleDeleteArticle}
-              onOpenPublishModal={() => {
+              onOpenPublishModal={(target?: StudioArticle) => {
                 setPublishError('');
+                if (target && target.id !== article.id) {
+                  selectArticle(target);
+                }
                 setPublishModalOpen(true);
               }}
             />

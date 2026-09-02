@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useId } from 'react';
+import { useState, useId, useEffect, useRef } from 'react';
 import {
   Settings2, ImageIcon, Upload, X, Music2, Sparkles, PanelRightClose,
   AlertCircle, CheckCircle2, Copy, Check, Edit3, RotateCcw, ExternalLink,
@@ -19,9 +19,9 @@ type Props = {
   onToggleCollapse: () => void;
 };
 
-function isValidSpotifyUrl(url: string): boolean {
+function isValidSpotifyPlaylistUrl(url: string): boolean {
   if (!url || !url.trim()) return false;
-  return /^(https?:\/\/open\.spotify\.com\/(playlist|album|track|artist)\/|spotify:(playlist|album|track):)[a-zA-Z0-9]+/.test(
+  return /^(https?:\/\/open\.spotify\.com\/playlist\/|spotify:playlist:)[a-zA-Z0-9]+/.test(
     url.trim()
   );
 }
@@ -37,11 +37,27 @@ export function StudioSettings({
   const [activeTab, setActiveTab] = useState<SettingsTab>('article');
   const [copiedSlug, setCopiedSlug] = useState(false);
   const [isCustomSlug, setIsCustomSlug] = useState(() => {
-    // If slug is explicitly different from slugify(title), initialize as custom
-    return Boolean(article.slug && article.title && article.slug !== slugify(article.title));
+    const autoSlug = slugify(article.title || '');
+    return Boolean(article.slug && article.slug !== 'untitled-story' && article.slug !== autoSlug);
   });
   const [previewLoading, setPreviewLoading] = useState(false);
+  const previewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const coverInputId = useId();
+
+  // Reset custom slug status and preview state when switching articles
+  useEffect(() => {
+    const autoSlug = slugify(article.title || '');
+    const isCustom = Boolean(article.slug && article.slug !== 'untitled-story' && article.slug !== autoSlug);
+    setIsCustomSlug(isCustom);
+    setPreviewLoading(false);
+    if (previewTimeoutRef.current) clearTimeout(previewTimeoutRef.current);
+  }, [article.id]);
+
+  useEffect(() => {
+    return () => {
+      if (previewTimeoutRef.current) clearTimeout(previewTimeoutRef.current);
+    };
+  }, []);
 
   const manualCover = article.cover_url || (article.cover_slides && article.cover_slides.length > 0 ? article.cover_slides[0] : null);
   const displayCover = manualCover || autoCoverUrl;
@@ -62,15 +78,21 @@ export function StudioSettings({
 
   const handleUploadFile = async (file: File) => {
     setPreviewLoading(true);
+    if (previewTimeoutRef.current) clearTimeout(previewTimeoutRef.current);
+    previewTimeoutRef.current = setTimeout(() => {
+      setPreviewLoading(false);
+    }, 8000); // 8s safety fallback
+
     try {
       await onUploadCover(file);
-    } finally {
-      // previewLoading will turn false on <img> onLoad
+    } catch {
+      setPreviewLoading(false);
+      if (previewTimeoutRef.current) clearTimeout(previewTimeoutRef.current);
     }
   };
 
   const hasSpotifyUrl = Boolean(article.music_uri?.trim());
-  const isSpotifyValid = isValidSpotifyUrl(article.music_uri || '');
+  const isSpotifyValid = isValidSpotifyPlaylistUrl(article.music_uri || '');
 
   return (
     <div className="studio-settings-content flex flex-col h-full select-none bg-[#0C0D11]">
@@ -288,8 +310,14 @@ export function StudioSettings({
                     <img
                       src={displayCover}
                       alt={article.title || 'Cover'}
-                      onLoad={() => setPreviewLoading(false)}
-                      onError={() => setPreviewLoading(false)}
+                      onLoad={() => {
+                        setPreviewLoading(false);
+                        if (previewTimeoutRef.current) clearTimeout(previewTimeoutRef.current);
+                      }}
+                      onError={() => {
+                        setPreviewLoading(false);
+                        if (previewTimeoutRef.current) clearTimeout(previewTimeoutRef.current);
+                      }}
                       className={`w-full h-full object-cover transition-opacity duration-300 ${
                         previewLoading ? 'opacity-30 blur-sm' : 'opacity-100'
                       }`}
@@ -384,7 +412,7 @@ export function StudioSettings({
               {article.music_enabled && (
                 <div className="space-y-3 pt-3 border-t border-white/5 animate-in fade-in duration-150">
                   <div className="p-3 rounded-lg bg-[#14151B] border border-white/5 text-[11px] text-[#94A3B8] leading-relaxed">
-                    💡 <strong>Opsional:</strong> Tempelkan tautan playlist atau album Spotify. Player resmi Spotify akan muncul pada artikel publik; pembaca bebas memutar atau tidak (tanpa autoplay).
+                    💡 <strong>Opsional:</strong> Tempelkan tautan playlist Spotify. Player resmi Spotify akan muncul pada artikel publik; pembaca bebas memutar atau tidak (tanpa autoplay).
                   </div>
 
                   <div>
@@ -406,7 +434,7 @@ export function StudioSettings({
                         <>
                           <span className="text-[#1DB954] flex items-center gap-1 font-medium">
                             <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>Tautan Spotify valid</span>
+                            <span>Tautan playlist Spotify valid</span>
                           </span>
                           <a
                             href={article.music_uri}
@@ -421,7 +449,7 @@ export function StudioSettings({
                       ) : (
                         <span className="text-[#FBBF24] flex items-center gap-1 font-medium">
                           <AlertCircle className="w-3.5 h-3.5" />
-                          <span>Format belum sesuai (contoh: https://open.spotify.com/playlist/...)</span>
+                          <span>Format harus playlist Spotify (contoh: https://open.spotify.com/playlist/...)</span>
                         </span>
                       )}
                     </div>

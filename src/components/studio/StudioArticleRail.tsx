@@ -25,7 +25,7 @@ type Props = {
   onSignOut: () => void;
   onToggleCollapse: () => void;
   onDeleteArticle?: (article: StudioArticle) => Promise<void>;
-  onOpenPublishModal?: () => void;
+  onOpenPublishModal?: (target?: StudioArticle) => void;
 };
 
 export function StudioArticleRail({
@@ -174,7 +174,7 @@ export function StudioArticleRail({
                   title={isItemPublished ? 'Artikel publik harus di-unpublish dulu' : 'Hapus naskah draft'}
                   aria-label={`Hapus ${item.title || 'artikel'}`}
                   className={`absolute right-2 p-2 rounded-lg text-[#71717A] hover:text-[#EF4444] hover:bg-[#EF4444]/15 transition-all ${
-                    isSelected ? 'opacity-80 hover:opacity-100' : 'opacity-0 group-hover/item:opacity-80 hover:!opacity-100'
+                    isSelected ? 'opacity-80 hover:opacity-100' : 'opacity-40 group-hover/item:opacity-100 hover:!opacity-100'
                   }`}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -247,8 +247,12 @@ export function StudioArticleRail({
                     <button
                       type="button"
                       onClick={() => {
+                        const target = articleToDelete;
                         setArticleToDelete(null);
-                        onOpenPublishModal();
+                        if (target.id !== currentArticle.id) {
+                          onSelectArticle(target);
+                        }
+                        onOpenPublishModal(target);
                       }}
                       className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#FBBF24]/15 hover:bg-[#FBBF24]/25 text-[#FBBF24] border border-[#FBBF24]/30 flex items-center gap-1.5 transition-colors"
                     >

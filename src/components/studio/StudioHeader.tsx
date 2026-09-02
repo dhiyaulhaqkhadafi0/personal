@@ -199,7 +199,7 @@ export function StudioHeader({
             <button
               type="button"
               onClick={onOpenPublishModal}
-              className="flex items-center gap-2 h-10 px-4 rounded-xl bg-gradient-to-r from-[#10B981] to-[#059669] hover:from-[#059669] hover:to-[#047857] text-[#052E16] text-xs font-bold tracking-wider uppercase transition-all shadow-lg shadow-emerald-950/50 active:scale-95"
+              className="flex items-center gap-2.5 h-11 px-6 rounded-xl bg-[#10B981] hover:bg-[#34D399] text-[#022C22] text-[13px] font-bold tracking-wide transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_25px_rgba(52,211,153,0.4)] active:scale-95"
             >
               <Save className="w-4 h-4" />
               <span>Perbarui</span>
@@ -208,7 +208,7 @@ export function StudioHeader({
             <button
               type="button"
               onClick={onOpenPublishModal}
-              className="flex items-center gap-2 h-10 px-4 rounded-xl bg-[#181922] hover:bg-[#22242F] text-[#E2E8F0] border border-white/15 text-xs font-semibold transition-all shadow-sm"
+              className="flex items-center gap-2.5 h-11 px-5 rounded-xl bg-[#181922] hover:bg-[#22242F] text-[#E2E8F0] border border-white/15 text-[13px] font-semibold transition-all shadow-sm"
             >
               <Check className="w-4 h-4 text-[#34D399]" />
               <span>Terbaru</span>
@@ -218,7 +218,7 @@ export function StudioHeader({
           <button
             type="button"
             onClick={onOpenPublishModal}
-            className="flex items-center gap-2 h-10 px-5 rounded-xl bg-gradient-to-r from-[#10B981] to-[#059669] hover:from-[#059669] hover:to-[#047857] text-[#052E16] text-xs font-bold tracking-wider uppercase transition-all shadow-lg shadow-emerald-950/50 active:scale-95"
+            className="flex items-center gap-2.5 h-11 px-6 rounded-xl bg-[#10B981] hover:bg-[#34D399] text-[#022C22] text-[13px] font-bold tracking-wide transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_25px_rgba(52,211,153,0.4)] active:scale-95"
           >
             <Send className="w-4 h-4" />
             <span>Publish</span>
