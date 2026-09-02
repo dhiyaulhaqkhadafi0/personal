@@ -2,3 +2,5 @@ node_modules/
 .next/
 .open-next/
 .env*.local
+.wrangler/
+*.tsbuildinfo

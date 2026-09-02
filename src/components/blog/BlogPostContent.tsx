@@ -72,7 +72,9 @@ export default function BlogPostContent({ post, slug, children }: Props) {
               category: post.metadata.category,
               reading_time: post.metadata.readingTime || 0,
               date: post.metadata.date,
-              cover_url: post.metadata.image,
+              cover_url: post.metadata.cover_url || post.metadata.image,
+              cover_slides: post.metadata.cover_slides,
+              cover_image: post.metadata.cover_image,
               theme: post.metadata.theme,
               music_enabled: post.metadata.musicEnabled,
               music_uri: post.metadata.musicUri

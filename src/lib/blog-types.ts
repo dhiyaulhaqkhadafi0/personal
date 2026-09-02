@@ -96,6 +96,60 @@ export const emptyTiptapDocument: TiptapNode = {
   content: [{ type: 'paragraph' }],
 };
 
+/**
+ * Normalizes and resolves the valid cover image for an article based on standard priority:
+ * 1. cover_image (explicit single cover field)
+ * 2. cover_url (Studio / PublishedArticle canonical field)
+ * 3. image (MDX frontmatter field)
+ * 4. cover_slides (first valid image URL from array or JSON string)
+ * Returns null if all are empty/invalid, allowing the caller to render a premium fallback.
+ */
+export function resolveArticleCover(source?: {
+  cover_image?: string | null;
+  cover_url?: string | null;
+  image?: string | null;
+  cover_slides?: string[] | unknown;
+} | null): string | null {
+  if (!source) return null;
+
+  if (typeof source.cover_image === 'string' && source.cover_image.trim()) {
+    return source.cover_image.trim();
+  }
+
+  if (typeof source.cover_url === 'string' && source.cover_url.trim()) {
+    return source.cover_url.trim();
+  }
+
+  if (typeof source.image === 'string' && source.image.trim()) {
+    return source.image.trim();
+  }
+
+  if (Array.isArray(source.cover_slides) && source.cover_slides.length > 0) {
+    for (const slide of source.cover_slides) {
+      if (typeof slide === 'string' && slide.trim()) {
+        return slide.trim();
+      }
+    }
+  } else if (typeof source.cover_slides === 'string' && source.cover_slides.trim()) {
+    try {
+      const parsed = JSON.parse(source.cover_slides);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        for (const slide of parsed) {
+          if (typeof slide === 'string' && slide.trim()) {
+            return slide.trim();
+          }
+        }
+      }
+    } catch {
+      if (source.cover_slides.startsWith('http') || source.cover_slides.startsWith('/')) {
+        return source.cover_slides.trim();
+      }
+    }
+  }
+
+  return null;
+}
+
 export function slugify(value: string) {
   return value
     .toLowerCase()

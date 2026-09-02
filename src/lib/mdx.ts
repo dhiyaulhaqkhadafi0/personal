@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
-import type { PublishedArticle, TiptapNode } from '@/lib/blog-types';
+import { resolveArticleCover, type PublishedArticle, type TiptapNode } from '@/lib/blog-types';
 
 const POSTS_DIRECTORY = path.join(process.cwd(), 'src/content/blog');
 
@@ -13,6 +13,9 @@ export type BlogPostMetadata = {
   excerpt: string;
   slug: string;
   image?: string;
+  cover_url?: string;
+  cover_image?: string;
+  cover_slides?: string[];
   readingTime?: number;
   musicMood?: string;
   musicEnabled?: boolean;
@@ -48,11 +51,13 @@ export function getPostBySlug(slug: string): BlogPost | null {
     
     const fileContents = fs.readFileSync(fullPath, 'utf8');
     const { data, content } = matter(fileContents);
+    const resolvedCover = resolveArticleCover(data as Record<string, unknown>);
 
     return {
       metadata: {
         ...data,
         slug: realSlug,
+        image: resolvedCover || undefined,
       } as BlogPostMetadata,
       content,
       source: 'mdx',
@@ -64,6 +69,7 @@ export function getPostBySlug(slug: string): BlogPost | null {
 }
 
 function publishedArticleToPost(article: PublishedArticle): BlogPost {
+  const resolvedCover = resolveArticleCover(article);
   return {
     metadata: {
       title: article.title,
@@ -71,7 +77,9 @@ function publishedArticleToPost(article: PublishedArticle): BlogPost {
       date: article.published_at,
       excerpt: article.excerpt,
       slug: article.slug,
-      image: article.cover_url || undefined,
+      image: resolvedCover || undefined,
+      cover_url: article.cover_url,
+      cover_slides: article.cover_slides,
       readingTime: article.reading_time,
       musicMood: article.music_mood,
       musicEnabled: article.music_enabled,

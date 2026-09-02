@@ -1,4 +1,7 @@
 import { Lora, Plus_Jakarta_Sans } from 'next/font/google';
+import { Clock } from 'lucide-react';
+import { EditorialCover } from '@/components/shared/EditorialCover';
+import { resolveArticleCover } from '@/lib/blog-types';
 
 const lora = Lora({ subsets: ['latin'], style: ['normal', 'italic'] });
 const sans = Plus_Jakarta_Sans({ subsets: ['latin'] });
@@ -9,7 +12,10 @@ export type ArticleData = {
   category: string;
   reading_time: number;
   date: string;
-  cover_url?: string;
+  cover_url?: string | null;
+  cover_image?: string | null;
+  cover_slides?: string[] | unknown;
+  image?: string | null;
   theme?: string;
   music_enabled?: boolean;
   music_uri?: string;
@@ -24,43 +30,75 @@ type Props = {
 };
 
 export function ArticleRenderer({ article, contentHtml, children, footerContent, previewMode = false }: Props) {
+  const resolvedCover = resolveArticleCover(article);
   const spotifyId = article.music_uri?.match(/(?:spotify:playlist:|open\.spotify\.com\/playlist\/)([a-zA-Z0-9]+)/)?.[1];
 
   return (
-    <article className={`relative bg-[#111113]/90 backdrop-blur-3xl rounded-[2rem] border border-[#27272A]/40 shadow-2xl p-6 md:p-14 lg:p-16 h-full w-full ${sans.className} ${previewMode ? 'studio-preview-renderer' : ''} theme-${article.theme || 'midnight'}`}>
-      <header className="mb-16">
-        <div className="flex items-center gap-3 text-sm font-mono tracking-wide mb-8">
-          <span className="text-[#34D399] uppercase font-medium bg-[#34D399]/10 px-3 py-1 rounded-full border border-[#34D399]/20">{article.category}</span>
-          {article.date && (
-            <span className="text-[#6B7280]">
-              {new Date(article.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-            </span>
-          )}
-          {article.reading_time > 0 && <span className="text-[#6B7280]">· {article.reading_time} min read</span>}
+    <article className={`relative bg-[#111113]/90 backdrop-blur-3xl rounded-[2rem] border border-[#27272A]/40 shadow-2xl p-6 md:p-12 lg:p-14 h-full w-full ${sans.className} ${previewMode ? 'studio-preview-renderer' : ''} theme-${article.theme || 'midnight'}`}>
+      <header className="mb-12 md:mb-14">
+        {/* 1. Cover Editorial 16:9 with Premium Fallback (never overlaid with title) */}
+        <div className="w-full mb-8 md:mb-10 overflow-hidden rounded-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.45)]">
+          <EditorialCover
+            src={resolvedCover}
+            alt={`Cover artikel ${article.title || 'Untitled story'}`}
+            aspectRatio="aspect-[16/9]"
+            className="w-full max-h-[440px]"
+            priority={true}
+            variant="hero"
+            category={article.category}
+          />
         </div>
-        
-        <h1 className={`text-4xl md:text-[3rem] leading-[1.15] text-[#F8FAFC] font-medium tracking-tight mb-8 ${lora.className}`}>
+
+        {/* 2. Category & Date & Reading Time Metadata */}
+        <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm font-mono tracking-wide mb-6 text-[#9CA3AF]">
+          <span className="text-[#34D399] uppercase font-medium bg-[#34D399]/10 px-3.5 py-1 rounded-full border border-[#34D399]/20">
+            {article.category || 'Ideas'}
+          </span>
+          {article.date && (
+            <>
+              <span className="w-1 h-1 rounded-full bg-[#3F3F46]" />
+              <span className="text-[#71717A]">
+                {new Date(article.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </span>
+            </>
+          )}
+          {article.reading_time > 0 && (
+            <>
+              <span className="w-1 h-1 rounded-full bg-[#3F3F46]" />
+              <span className="text-[#71717A] flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-[#34D399]" /> {article.reading_time} min read
+              </span>
+            </>
+          )}
+        </div>
+
+        {/* 3. Big Article Title */}
+        <h1 className={`text-3xl sm:text-4xl md:text-[2.85rem] leading-[1.2] text-[#F8FAFC] font-medium tracking-tight mb-6 ${lora.className}`}>
           {article.title || 'Untitled story'}
         </h1>
-        
+
+        {/* 4. Excerpt / Deck */}
         {article.excerpt && (
-          <p className="text-xl text-[#A1A1AA] font-light leading-relaxed border-l-2 border-[#34D399]/30 pl-6 italic">
+          <p className="text-lg md:text-xl text-[#A1A1AA] font-light leading-relaxed border-l-2 border-[#34D399]/30 pl-6 italic mb-8">
             {article.excerpt}
           </p>
         )}
 
-        {article.cover_url && (
-          <div
-            className="mt-10 w-full aspect-[16/9] rounded-2xl border border-white/10 bg-cover bg-center shadow-[0_25px_70px_rgba(0,0,0,0.45)]"
-            style={{ backgroundImage: `url(${article.cover_url})` }}
-            role="img"
-            aria-label={`Cover artikel ${article.title}`}
-          />
-        )}
+        {/* 5. Author Metadata */}
+        <div className="flex items-center gap-3 pt-6 border-t border-[#27272A]/50 text-xs font-mono text-[#9CA3AF]">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#34D399]/20 to-[#6366F1]/20 border border-[#34D399]/30 flex items-center justify-center font-bold text-[#34D399] text-xs">
+            DK
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[#E2E8F0] font-medium">Daffa Khadafi</span>
+            <span className="text-[#71717A] text-[11px]">AI-Assisted Product Engineer</span>
+          </div>
+        </div>
       </header>
 
-      <div className={`prose prose-invert max-w-none 
-        prose-p:text-[#D1D5DB] prose-p:leading-[2] prose-p:text-[1.1rem] ${lora.className}
+      {/* 6. Body Article (Comfortable reading measure: max 720px) */}
+      <div className={`prose prose-invert max-w-[720px] mx-auto
+        prose-p:text-[#D1D5DB] prose-p:leading-[1.95] prose-p:text-[1.08rem] ${lora.className}
         prose-headings:font-sans prose-headings:font-medium prose-headings:text-[#F8FAFC] prose-headings:tracking-tight
         prose-h2:text-[1.85rem] prose-h2:mt-16 prose-h2:mb-6
         prose-h3:text-[1.4rem] prose-h3:mt-10 prose-h3:mb-4
@@ -74,8 +112,9 @@ export function ArticleRenderer({ article, contentHtml, children, footerContent,
         {contentHtml ? <div dangerouslySetInnerHTML={{ __html: contentHtml }} /> : children}
       </div>
 
+      {/* Spotify Atmospheric Player */}
       {article.music_enabled && spotifyId && (
-        <div className="mt-16 pt-8 border-t border-[#27272A]/50">
+        <div className="max-w-[720px] mx-auto mt-16 pt-8 border-t border-[#27272A]/50">
           <iframe 
             title="Spotify atmosphere" 
             loading="lazy" 
@@ -86,7 +125,11 @@ export function ArticleRenderer({ article, contentHtml, children, footerContent,
         </div>
       )}
 
-      {footerContent}
+      {footerContent && (
+        <div className="max-w-[720px] mx-auto">
+          {footerContent}
+        </div>
+      )}
     </article>
   );
 }

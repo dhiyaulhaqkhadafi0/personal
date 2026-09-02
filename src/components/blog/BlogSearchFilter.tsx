@@ -5,6 +5,8 @@ import Link from "next/link";
 import { SendHorizontal, LayoutGrid, List, ChevronDown, SearchX, RotateCcw, MonitorPlay, Eye, TrendingUp, Star, Clock, ArrowRight } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { EditorialCover } from "@/components/shared/EditorialCover";
+import { resolveArticleCover } from "@/lib/blog-types";
 
 type BlogPost = {
   metadata: {
@@ -14,6 +16,9 @@ type BlogPost = {
     excerpt: string;
     slug: string;
     image?: string;
+    cover_url?: string;
+    cover_image?: string;
+    cover_slides?: string[];
   };
 };
 
@@ -300,37 +305,48 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
                     <Link href={`/blog/${post.metadata.slug}`} className="block group h-full">
                       {viewMode === "grid" ? (
                         <article className="flex flex-col h-full bg-[#131316]/40 border border-[#27272A]/60 rounded-[1.75rem] overflow-hidden hover:border-[#34D399]/40 transition-all duration-500 hover:shadow-[0_10px_35px_rgba(52,211,153,0.06)] hover:-translate-y-1">
-                          {post.metadata.image && (
-                            <div className="relative w-full h-44 sm:h-48 overflow-hidden bg-[#09090B]">
-                              <img src={post.metadata.image} alt={post.metadata.title} className="absolute inset-0 w-full h-full object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out" />
-                              <div className="absolute inset-0 bg-gradient-to-t from-[#131316] via-[#131316]/20 to-transparent" />
+                          {/* 16:10 Cover at top of card */}
+                          <div className="relative w-full aspect-[16/10] overflow-hidden bg-[#09090B] border-b border-[#27272A]/40">
+                            <EditorialCover
+                              src={resolveArticleCover(post.metadata)}
+                              alt={`Cover artikel: ${post.metadata.title}`}
+                              aspectRatio="aspect-[16/10]"
+                              className="w-full h-full"
+                              variant="card"
+                              category={post.metadata.category}
+                            />
+                          </div>
+                          {/* Content strictly below cover */}
+                          <div className="p-6 sm:p-7 flex flex-col flex-grow">
+                            <div className="flex items-center justify-between text-xs font-mono tracking-wider mb-4">
+                              <span className="bg-[#18181B] text-[#34D399] px-3 py-1 rounded-full border border-[#27272A] uppercase font-medium shadow-sm">{post.metadata.category}</span>
+                              <span className="text-[#9CA3AF] bg-[#18181B] px-3 py-1 rounded-full border border-[#27272A] shadow-sm">{new Date(post.metadata.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
                             </div>
-                          )}
-                          <div className={`p-6 sm:p-7 flex flex-col flex-grow relative ${post.metadata.image ? "-mt-8" : ""}`}>
-                            <div className="flex items-center justify-between text-xs font-mono tracking-wider mb-4 relative z-10">
-                              <span className="bg-[#09090B] text-[#34D399] px-3 py-1 rounded-full border border-[#27272A] uppercase font-medium shadow-md">{post.metadata.category}</span>
-                              <span className="text-[#9CA3AF] bg-[#09090B] px-3 py-1 rounded-full border border-[#27272A] shadow-md">{new Date(post.metadata.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
-                            </div>
-                            <h2 className={`text-xl sm:text-[1.4rem] text-[#E2E8F0] group-hover:text-white font-medium leading-[1.35] transition-colors mb-3 ${loraClassName}`}>{post.metadata.title}</h2>
-                            <p className="text-[#9CA3AF] leading-relaxed text-sm font-light group-hover:text-[#D1D5DB] transition-colors flex-grow">{post.metadata.excerpt}</p>
+                            <h2 className={`text-xl sm:text-[1.35rem] text-[#E2E8F0] group-hover:text-white font-medium leading-[1.35] transition-colors mb-3 line-clamp-2 ${loraClassName}`}>{post.metadata.title}</h2>
+                            <p className="text-[#9CA3AF] leading-relaxed text-sm font-light group-hover:text-[#D1D5DB] transition-colors line-clamp-3 flex-grow">{post.metadata.excerpt}</p>
                           </div>
                         </article>
                       ) : (
                         <article className="flex flex-col sm:flex-row gap-6 p-6 sm:p-7 bg-[#131316]/50 border border-[#27272A]/70 rounded-[1.75rem] hover:border-[#34D399]/40 transition-all duration-300 hover:bg-[#18181C] items-center group/item hover:shadow-xl">
-                          <div className="flex-grow w-full">
+                          <div className="flex-grow w-full min-w-0">
                             <div className="flex items-center gap-3 text-xs font-mono tracking-wider mb-3">
                               <span className="text-[#34D399] uppercase font-semibold bg-[#34D399]/10 px-2.5 py-0.5 rounded-full border border-[#34D399]/20">{post.metadata.category}</span>
                               <span className="w-1 h-1 rounded-full bg-[#3F3F46]" />
                               <span className="text-[#71717A]">{new Date(post.metadata.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span>
                             </div>
-                            <h2 className={`text-xl sm:text-2xl text-[#E2E8F0] group-hover/item:text-[#34D399] font-medium leading-snug transition-colors mb-2.5 ${loraClassName}`}>{post.metadata.title}</h2>
+                            <h2 className={`text-xl sm:text-2xl text-[#E2E8F0] group-hover/item:text-[#34D399] font-medium leading-snug transition-colors mb-2.5 line-clamp-2 ${loraClassName}`}>{post.metadata.title}</h2>
                             <p className="text-[#9CA3AF] leading-relaxed text-sm font-light group-hover/item:text-[#D1D5DB] transition-colors line-clamp-2 max-w-3xl">{post.metadata.excerpt}</p>
                           </div>
-                          {post.metadata.image && (
-                            <div className="w-full sm:w-44 md:w-52 h-32 sm:h-28 relative rounded-2xl overflow-hidden flex-shrink-0 bg-[#09090B] border border-[#27272A]">
-                              <img src={post.metadata.image} alt={post.metadata.title} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover/item:opacity-100 group-hover/item:scale-105 transition-all duration-500 ease-out" />
-                            </div>
-                          )}
+                          <div className="w-full sm:w-44 md:w-52 h-32 sm:h-28 relative rounded-2xl overflow-hidden flex-shrink-0 bg-[#09090B] border border-[#27272A]">
+                            <EditorialCover
+                              src={resolveArticleCover(post.metadata)}
+                              alt={post.metadata.title}
+                              aspectRatio="aspect-[16/10]"
+                              className="w-full h-full"
+                              variant="thumbnail"
+                              category={post.metadata.category}
+                            />
+                          </div>
                         </article>
                       )}
                     </Link>
@@ -346,25 +362,31 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
                 <div className="lg:w-[55%] xl:w-[60%] h-full">
                   <Link href={`/blog/${filteredPosts[0].metadata.slug}`} className="block group h-full">
                     <article className="flex flex-col h-full bg-[#131316]/40 border border-[#27272A]/60 rounded-[2rem] overflow-hidden hover:border-[#34D399]/40 transition-all duration-500 hover:shadow-[0_10px_40px_rgba(52,211,153,0.08)]">
-                      {filteredPosts[0].metadata.image ? (
-                        <div className="relative w-full aspect-video max-h-[380px] overflow-hidden bg-[#09090B]">
-                          <img src={filteredPosts[0].metadata.image} alt={filteredPosts[0].metadata.title} className="absolute inset-0 w-full h-full object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#131316] via-[#131316]/10 to-transparent" />
-                        </div>
-                      ) : (
-                        <div className="w-full h-40 bg-gradient-to-tr from-[#18181B] to-[#27272A] relative" />
-                      )}
-                      <div className={`p-6 sm:p-8 flex flex-col flex-grow relative ${filteredPosts[0].metadata.image ? "-mt-10" : ""}`}>
-                        <div className="flex items-center gap-3 text-xs font-mono tracking-wider mb-4 relative z-10">
-                          <span className="bg-[#1DB954]/20 text-[#1DB954] backdrop-blur-md px-4 py-1.5 rounded-full border border-[#1DB954]/30 uppercase font-semibold shadow-xl flex items-center gap-2">
+                      {/* Cover 16:9 on top of card */}
+                      <div className="w-full aspect-video max-h-[360px] overflow-hidden bg-[#09090B] border-b border-[#27272A]/40">
+                        <EditorialCover
+                          src={resolveArticleCover(filteredPosts[0].metadata)}
+                          alt={`Cover artikel unggulan: ${filteredPosts[0].metadata.title}`}
+                          aspectRatio="aspect-video"
+                          className="w-full h-full"
+                          priority={true}
+                          variant="hero"
+                          category={filteredPosts[0].metadata.category}
+                        />
+                      </div>
+
+                      {/* Content strictly below cover */}
+                      <div className="p-6 sm:p-8 flex flex-col flex-grow relative">
+                        <div className="flex items-center gap-3 text-xs font-mono tracking-wider mb-4">
+                          <span className="bg-[#1DB954]/20 text-[#1DB954] px-3.5 py-1.5 rounded-full border border-[#1DB954]/30 uppercase font-semibold shadow-sm flex items-center gap-1.5">
                             <MonitorPlay className="w-3.5 h-3.5" /> Unggulan
                           </span>
-                          <span className="bg-[#09090B]/80 backdrop-blur-md text-[#34D399] px-4 py-1.5 rounded-full border border-[#27272A] uppercase font-medium shadow-md">
+                          <span className="bg-[#18181B] text-[#34D399] px-3.5 py-1.5 rounded-full border border-[#27272A] uppercase font-medium">
                             {filteredPosts[0].metadata.category}
                           </span>
                         </div>
-                        <h2 className={`text-2xl sm:text-3xl text-[#E2E8F0] group-hover:text-white font-medium leading-[1.35] transition-colors mb-3 ${loraClassName}`}>{filteredPosts[0].metadata.title}</h2>
-                        <p className="text-[#9CA3AF] text-sm leading-relaxed font-light group-hover:text-[#D1D5DB] transition-colors mb-5 line-clamp-3">{filteredPosts[0].metadata.excerpt}</p>
+                        <h2 className={`text-2xl sm:text-3xl text-[#E2E8F0] group-hover:text-white font-medium leading-[1.3] transition-colors mb-3 line-clamp-2 ${loraClassName}`}>{filteredPosts[0].metadata.title}</h2>
+                        <p className="text-[#9CA3AF] text-sm leading-relaxed font-light group-hover:text-[#D1D5DB] transition-colors mb-6 line-clamp-3">{filteredPosts[0].metadata.excerpt}</p>
                         <div className="flex items-center gap-4 text-xs font-mono text-[#71717A] mt-auto pt-4 border-t border-[#27272A]/50">
                           <span>{new Date(filteredPosts[0].metadata.date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</span>
                           <span className="w-1 h-1 rounded-full bg-[#3F3F46]" />
@@ -386,14 +408,17 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
                   <div className="flex flex-col gap-4 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-[#27272A] scrollbar-track-transparent">
                     {filteredPosts.slice(1).map((post) => (
                       <Link key={post.metadata.slug} href={`/blog/${post.metadata.slug}`} className="block group">
-                        <article className="flex gap-4 p-2.5 bg-transparent hover:bg-[#18181C] rounded-2xl transition-colors duration-300">
-                          {post.metadata.image ? (
-                            <div className="relative w-[120px] h-[75px] sm:w-[140px] sm:h-[85px] rounded-xl overflow-hidden flex-shrink-0 bg-[#09090B] border border-[#27272A]">
-                              <img src={post.metadata.image} alt={post.metadata.title} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-out" />
-                            </div>
-                          ) : (
-                            <div className="w-[120px] h-[75px] sm:w-[140px] sm:h-[85px] rounded-xl bg-gradient-to-br from-[#18181B] to-[#27272A] flex-shrink-0" />
-                          )}
+                        <article className="flex gap-4 p-2.5 bg-transparent hover:bg-[#18181C] rounded-2xl transition-colors duration-300 items-center">
+                          <div className="w-[120px] h-[75px] sm:w-[136px] sm:h-[85px] rounded-xl overflow-hidden flex-shrink-0 bg-[#09090B] border border-[#27272A]/70">
+                            <EditorialCover
+                              src={resolveArticleCover(post.metadata)}
+                              alt={post.metadata.title}
+                              aspectRatio="aspect-[16/10]"
+                              className="w-full h-full"
+                              variant="thumbnail"
+                              category={post.metadata.category}
+                            />
+                          </div>
                           <div className="flex flex-col py-1 justify-between flex-grow min-w-0">
                             <h3 className={`text-[13px] sm:text-sm text-[#E2E8F0] group-hover:text-[#34D399] font-medium leading-[1.4] line-clamp-2 pr-2 ${loraClassName}`}>{post.metadata.title}</h3>
                             <div className="flex flex-col gap-1 mt-1.5 text-[10px] font-mono text-[#71717A] truncate">
