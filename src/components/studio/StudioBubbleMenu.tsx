@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import type { Editor } from "@tiptap/react";
-import { Bold, Italic, Strikethrough, Link2, RemoveFormatting } from "lucide-react";
+import { Bold, Italic, Underline as UnderlineIcon, Strikethrough, Link2, RemoveFormatting } from "lucide-react";
 
 type Props = {
   editor: Editor | null;
@@ -42,7 +42,7 @@ export function StudioBubbleMenu({ editor }: Props) {
           return;
         }
 
-        const menuWidth = 190;
+        const menuWidth = 224;
         const menuHeight = 40;
 
         let top = rect.top - menuHeight - 8;
@@ -130,6 +130,20 @@ export function StudioBubbleMenu({ editor }: Props) {
         }`}
       >
         <Italic className="w-3.5 h-3.5" />
+      </button>
+
+      <button
+        type="button"
+        title="Garis bawah (Ctrl+U)"
+        aria-label="Underline"
+        onClick={() => editor.chain().focus().toggleUnderline().run()}
+        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
+          editor.isActive("underline")
+            ? "bg-[#34D399]/20 text-[#34D399]"
+            : "text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-white/10"
+        }`}
+      >
+        <UnderlineIcon className="w-3.5 h-3.5" />
       </button>
 
       <button

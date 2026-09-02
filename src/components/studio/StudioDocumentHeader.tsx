@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { Clock } from "lucide-react";
-import type { StudioArticle } from "@/lib/blog-types";
+import { slugify, type StudioArticle } from "@/lib/blog-types";
 
 type Props = {
   article: StudioArticle;
@@ -74,8 +74,15 @@ export function StudioDocumentHeader({ article, onUpdate }: Props) {
         placeholder="Judul naskah..."
         onChange={(e) => {
           const nextTitle = e.target.value;
+          const oldTitle = article.title || '';
+          const oldDefaultSlug = slugify(oldTitle);
+          const currentSlug = article.slug || '';
+          const isAutoSlug = !currentSlug || currentSlug === oldDefaultSlug || currentSlug.startsWith('untitled-');
+          const nextSlug = isAutoSlug ? slugify(nextTitle) || 'untitled-story' : currentSlug;
+
           onUpdate({
             title: nextTitle,
+            slug: nextSlug,
             seo_title: article.seo_title === article.title || !article.seo_title ? nextTitle : article.seo_title,
           });
           adjustTitleHeight();

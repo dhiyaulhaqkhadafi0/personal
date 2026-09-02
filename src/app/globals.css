@@ -213,6 +213,14 @@ body:has(.studio-shell) > footer, body:has(.studio-login-shell) > footer, body:h
   border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
+.studio-tiptap u,
+.prose u {
+  text-decoration: underline;
+  text-decoration-color: rgba(52, 211, 153, 0.6);
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1.5px;
+}
+
 /* Editorial Figure & Figcaption styling */
 .studio-tiptap figure.studio-editorial-figure,
 .studio-editorial-figure,

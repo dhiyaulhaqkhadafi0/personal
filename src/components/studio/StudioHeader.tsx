@@ -46,54 +46,56 @@ export function StudioHeader({
   const isPublished = article.status === 'published';
 
   return (
-    <header className="studio-topbar flex items-center justify-between px-3.5 py-2.5 bg-[#0C0D11]/90 backdrop-blur-md border-b border-white/5 select-none h-14 z-30">
+    <header className="studio-topbar flex items-center justify-between px-4 bg-[#0C0D11]/95 backdrop-blur-md border-b border-white/10 select-none h-16 z-30 shadow-sm">
       {/* Left controls: Sidebar toggle & Title/Status */}
-      <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
+      <div className="flex items-center gap-3 min-w-0 flex-1 mr-3">
         {!focusMode && (
           <button
             type="button"
             onClick={onToggleLeft}
-            title={leftCollapsed ? 'Buka daftar artikel' : 'Tutup daftar artikel'}
-            aria-label="Toggle sidebar artikel"
-            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-              leftCollapsed ? 'text-[#71717A] hover:text-[#E2E8F0] hover:bg-white/5' : 'text-[#34D399] bg-[#34D399]/10'
+            title={leftCollapsed ? 'Buka daftar naskah (Ctrl + \\)' : 'Tutup daftar naskah (Ctrl + \\)'}
+            aria-label="Toggle daftar naskah"
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border ${
+              leftCollapsed
+                ? 'text-[#94A3B8] bg-[#14151B] border-white/10 hover:text-[#F8FAFC] hover:bg-white/10 hover:border-white/20'
+                : 'text-[#34D399] bg-[#34D399]/15 border-[#34D399]/30 shadow-sm'
             }`}
           >
             <PanelLeft className="w-4 h-4" />
           </button>
         )}
 
-        <div className="flex items-center gap-2.5 min-w-0">
-          <span className="font-serif text-xs text-[#E2E8F0] truncate max-w-[200px] sm:max-w-[280px]">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="font-serif text-sm font-semibold text-[#F8FAFC] truncate max-w-[220px] sm:max-w-[320px]">
             {article.title || 'Untitled story'}
           </span>
 
-          <span className="w-1 h-1 rounded-full bg-[#3F3F46] flex-shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#3F3F46] flex-shrink-0" />
 
           {/* Autosave state indicator */}
-          <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#71717A] flex-shrink-0">
+          <div className="flex items-center gap-2 text-xs font-mono flex-shrink-0">
             {saveState === 'saving' && (
               <>
-                <LoaderCircle className="w-3 h-3 text-[#A78BFA] animate-spin" />
-                <span className="text-[#A78BFA]">Menyimpan…</span>
+                <LoaderCircle className="w-3.5 h-3.5 text-[#A78BFA] animate-spin" />
+                <span className="text-[#A78BFA] font-medium">Menyimpan…</span>
               </>
             )}
             {saveState === 'saved' && (
               <>
-                <Check className="w-3 h-3 text-[#34D399]" />
-                <span className="text-[#34D399]">Tersimpan</span>
+                <div className="w-2 h-2 rounded-full bg-[#34D399] shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+                <span className="text-[#34D399] font-medium">Tersimpan</span>
               </>
             )}
             {saveState === 'editing' && (
               <>
-                <span className="w-2 h-2 rounded-full bg-[#FBBF24] animate-pulse" />
-                <span className="text-[#FBBF24]">Menulis…</span>
+                <div className="w-2 h-2 rounded-full bg-[#FBBF24] animate-pulse" />
+                <span className="text-[#FBBF24] font-medium">Menulis…</span>
               </>
             )}
             {saveState === 'error' && (
               <>
-                <AlertCircle className="w-3 h-3 text-[#EF4444]" />
-                <span className="text-[#EF4444]">Gagal menyimpan — coba lagi</span>
+                <AlertCircle className="w-3.5 h-3.5 text-[#EF4444]" />
+                <span className="text-[#EF4444] font-medium">Gagal menyimpan</span>
               </>
             )}
           </div>
@@ -101,18 +103,18 @@ export function StudioHeader({
       </div>
 
       {/* Center minimal editing tools (Undo, Redo, Add Block) */}
-      <div className="hidden md:flex items-center gap-1 px-2 border-x border-white/5">
+      <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-[#121319] rounded-xl border border-white/10">
         <button
           type="button"
           onClick={onInsertBlockClick}
           title="Tambah blok editorial (/)"
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs text-[#94A3B8] hover:text-[#E2E8F0] hover:bg-white/5 transition-colors"
+          className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium text-[#E2E8F0] hover:text-white hover:bg-white/10 transition-colors"
         >
           <Plus className="w-3.5 h-3.5 text-[#34D399]" />
           <span>Tambah blok</span>
         </button>
 
-        <span className="w-px h-3.5 bg-white/10 mx-1" />
+        <span className="w-px h-4 bg-white/10 mx-0.5" />
 
         <button
           type="button"
@@ -120,9 +122,9 @@ export function StudioHeader({
           disabled={!canUndo}
           title="Undo (Ctrl+Z)"
           aria-label="Undo"
-          className="w-7 h-7 rounded-md flex items-center justify-center text-[#71717A] hover:text-[#E2E8F0] hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
-          <Undo2 className="w-3.5 h-3.5" />
+          <Undo2 className="w-4 h-4" />
         </button>
         <button
           type="button"
@@ -130,34 +132,34 @@ export function StudioHeader({
           disabled={!canRedo}
           title="Redo (Ctrl+Y)"
           aria-label="Redo"
-          className="w-7 h-7 rounded-md flex items-center justify-center text-[#71717A] hover:text-[#E2E8F0] hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
-          <Redo2 className="w-3.5 h-3.5" />
+          <Redo2 className="w-4 h-4" />
         </button>
       </div>
 
       {/* Right actions: Focus Mode, Preview, Settings Toggle, Publish/Update */}
-      <div className="flex items-center gap-2 flex-shrink-0">
+      <div className="flex items-center gap-2.5 flex-shrink-0">
         {/* Focus / Zen Mode Button */}
         <button
           type="button"
           onClick={onToggleFocus}
           title={focusMode ? 'Keluar Mode Fokus (Ctrl + \\)' : 'Mode Fokus / Zen Mode (Ctrl + \\)'}
           aria-label="Mode Fokus"
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+          className={`flex items-center gap-2 h-10 px-3.5 rounded-xl text-xs font-semibold transition-all border ${
             focusMode
-              ? 'bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/30'
-              : 'text-[#94A3B8] hover:text-[#E2E8F0] hover:bg-white/5'
+              ? 'bg-[#34D399]/15 text-[#34D399] border-[#34D399]/40 shadow-sm'
+              : 'bg-[#14151B] text-[#94A3B8] hover:text-[#F8FAFC] border-white/10 hover:border-white/20 hover:bg-white/5'
           }`}
         >
           {focusMode ? (
             <>
-              <Minimize2 className="w-3.5 h-3.5" />
+              <Minimize2 className="w-4 h-4" />
               <span className="hidden sm:inline">Keluar Fokus</span>
             </>
           ) : (
             <>
-              <Maximize2 className="w-3.5 h-3.5" />
+              <Maximize2 className="w-4 h-4" />
               <span className="hidden sm:inline">Fokus</span>
             </>
           )}
@@ -168,9 +170,9 @@ export function StudioHeader({
           type="button"
           onClick={onOpenPreview}
           title="Pratinjau naskah publik"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[#94A3B8] hover:text-[#E2E8F0] hover:bg-white/5 border border-white/5 transition-colors"
+          className="flex items-center gap-2 h-10 px-3.5 rounded-xl text-xs font-semibold text-[#CBD5E1] hover:text-[#F8FAFC] bg-[#14151B] hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all shadow-sm"
         >
-          <Eye className="w-3.5 h-3.5" />
+          <Eye className="w-4 h-4 text-[#60A5FA]" />
           <span className="hidden sm:inline">Preview</span>
         </button>
 
@@ -179,34 +181,36 @@ export function StudioHeader({
           <button
             type="button"
             onClick={onToggleRight}
-            title={rightCollapsed ? 'Buka panel pengaturan' : 'Tutup panel pengaturan'}
+            title={rightCollapsed ? 'Buka panel pengaturan (Ctrl + \\)' : 'Tutup panel pengaturan (Ctrl + \\)'}
             aria-label="Toggle panel pengaturan"
-            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-              rightCollapsed ? 'text-[#71717A] hover:text-[#E2E8F0] hover:bg-white/5' : 'text-[#34D399] bg-[#34D399]/10'
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border ${
+              rightCollapsed
+                ? 'text-[#94A3B8] bg-[#14151B] border-white/10 hover:text-[#F8FAFC] hover:bg-white/10 hover:border-white/20'
+                : 'text-[#34D399] bg-[#34D399]/15 border-[#34D399]/30 shadow-sm'
             }`}
           >
             <PanelRight className="w-4 h-4" />
           </button>
         )}
 
-        {/* Publish / Update Button */}
+        {/* Publish / Update Button (Hero Primary Action) */}
         {isPublished ? (
           canUpdate ? (
             <button
               type="button"
               onClick={onOpenPublishModal}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#34D399] hover:bg-[#2EB882] text-[#090A0D] text-xs font-semibold tracking-wide transition-all shadow-md"
+              className="flex items-center gap-2 h-10 px-4 rounded-xl bg-gradient-to-r from-[#10B981] to-[#059669] hover:from-[#059669] hover:to-[#047857] text-[#052E16] text-xs font-bold tracking-wider uppercase transition-all shadow-lg shadow-emerald-950/50 active:scale-95"
             >
-              <Save className="w-3.5 h-3.5" />
+              <Save className="w-4 h-4" />
               <span>Perbarui</span>
             </button>
           ) : (
             <button
               type="button"
               onClick={onOpenPublishModal}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-[#E2E8F0] text-xs font-medium transition-colors"
+              className="flex items-center gap-2 h-10 px-4 rounded-xl bg-[#181922] hover:bg-[#22242F] text-[#E2E8F0] border border-white/15 text-xs font-semibold transition-all shadow-sm"
             >
-              <Check className="w-3.5 h-3.5 text-[#34D399]" />
+              <Check className="w-4 h-4 text-[#34D399]" />
               <span>Terbaru</span>
             </button>
           )
@@ -214,9 +218,9 @@ export function StudioHeader({
           <button
             type="button"
             onClick={onOpenPublishModal}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[#34D399] hover:bg-[#2EB882] text-[#090A0D] text-xs font-semibold tracking-wide transition-all shadow-md"
+            className="flex items-center gap-2 h-10 px-5 rounded-xl bg-gradient-to-r from-[#10B981] to-[#059669] hover:from-[#059669] hover:to-[#047857] text-[#052E16] text-xs font-bold tracking-wider uppercase transition-all shadow-lg shadow-emerald-950/50 active:scale-95"
           >
-            <Send className="w-3.5 h-3.5" />
+            <Send className="w-4 h-4" />
             <span>Publish</span>
           </button>
         )}

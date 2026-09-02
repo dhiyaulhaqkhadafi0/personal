@@ -182,7 +182,40 @@ export function StudioSlashMenu({
     onClose();
   };
 
-  // Keyboard navigation
+  // Keyboard navigation & auto-scroll
+  const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const listRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState({ top: position.top, left: position.left, maxHeight: 340 });
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 1200;
+    const menuWidth = 300;
+    const desiredHeight = 360;
+
+    let top = position.top;
+    let left = Math.max(16, Math.min(position.left, vw - menuWidth - 20));
+
+    const spaceBelow = vh - position.top - 20;
+    const spaceAbove = position.top - 75;
+
+    let maxHeight = desiredHeight;
+
+    if (spaceBelow < 240 && spaceAbove > spaceBelow) {
+      // Open above the caret
+      maxHeight = Math.min(desiredHeight, Math.max(180, spaceAbove - 10));
+      top = Math.max(75, position.top - maxHeight - 12);
+    } else {
+      // Open below the caret, clamp to available viewport height
+      maxHeight = Math.min(desiredHeight, Math.max(180, spaceBelow));
+      top = Math.min(position.top, Math.max(75, vh - maxHeight - 20));
+    }
+
+    setCoords({ top, left, maxHeight });
+  }, [isOpen, position]);
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -208,46 +241,63 @@ export function StudioSlashMenu({
     return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [isOpen, selectedIndex, filteredCommands, editor]);
 
+  // Scroll active item into view
+  useEffect(() => {
+    if (isOpen && itemRefs.current[selectedIndex]) {
+      itemRefs.current[selectedIndex]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }, [isOpen, selectedIndex]);
+
   if (!isOpen || filteredCommands.length === 0) return null;
 
   return (
     <div
       ref={menuRef}
-      style={{ top: `${position.top}px`, left: `${position.left}px` }}
-      className="fixed z-50 w-72 max-h-80 overflow-y-auto rounded-xl bg-[#14151B]/95 border border-white/10 shadow-2xl backdrop-blur-xl p-1.5 scrollbar-thin scrollbar-thumb-[#27272A] animate-in fade-in zoom-in-95 duration-150"
+      style={{ top: `${coords.top}px`, left: `${coords.left}px`, maxHeight: `${coords.maxHeight}px` }}
+      className="fixed z-50 w-[300px] flex flex-col rounded-xl bg-[#14151B]/98 border border-white/15 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 overflow-hidden select-none"
     >
-      <div className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-[#71717A] border-b border-white/5 mb-1 flex items-center justify-between">
-        <span>Blok Editorial</span>
-        <span>{filteredCommands.length} opsi</span>
+      {/* Sticky Header */}
+      <div className="px-3 py-2 text-[11px] font-mono uppercase tracking-wider text-[#94A3B8] border-b border-white/10 flex items-center justify-between bg-[#181920] flex-shrink-0">
+        <span className="font-semibold text-[#E2E8F0]">Blok Editorial</span>
+        <span className="text-[#34D399] font-medium bg-[#34D399]/10 px-1.5 py-0.5 rounded text-[10px]">
+          {filteredCommands.length} opsi
+        </span>
       </div>
 
-      <div className="space-y-0.5">
+      {/* Scrollable Command List */}
+      <div
+        ref={listRef}
+        className="flex-1 overflow-y-auto overscroll-contain p-1.5 space-y-0.5 scrollbar-thin scrollbar-thumb-[#3F3F46] scrollbar-track-transparent"
+      >
         {filteredCommands.map((cmd, index) => {
           const Icon = cmd.icon;
           const isSelected = index === selectedIndex;
           return (
             <button
               key={cmd.id}
+              ref={(el) => {
+                itemRefs.current[index] = el;
+              }}
               type="button"
               onClick={() => executeCommand(cmd)}
               onMouseEnter={() => setSelectedIndex(index)}
               className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-left transition-colors ${
                 isSelected
-                  ? "bg-[#34D399]/15 text-[#F1F1ED]"
+                  ? "bg-[#34D399]/15 text-[#F8FAFC]"
                   : "text-[#94A3B8] hover:bg-white/5 hover:text-[#E2E8F0]"
               }`}
             >
               <div
-                className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${
+                className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 transition-colors ${
                   isSelected
-                    ? "bg-[#34D399]/20 text-[#34D399]"
+                    ? "bg-[#34D399]/25 text-[#34D399]"
                     : "bg-white/5 text-[#71717A]"
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
+                <Icon className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
-                <strong className="block text-xs font-medium leading-tight">
+                <strong className="block text-xs font-semibold leading-tight">
                   {cmd.title}
                 </strong>
                 <span className="block text-[11px] text-[#71717A] truncate leading-tight mt-0.5">

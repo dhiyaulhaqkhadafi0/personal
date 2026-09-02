@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
+import Underline from '@tiptap/extension-underline';
 import type { Session } from '@supabase/supabase-js';
 import {
   ArrowLeft, Eye, LoaderCircle, X,
@@ -293,6 +294,7 @@ export default function BlogStudio() {
       }),
       EditorialBlockquote,
       EditorialFigure,
+      Underline,
       Placeholder.configure({
         placeholder: ({ node }) => {
           if (node.type.name === 'heading') return 'Subjudul...';
@@ -364,15 +366,37 @@ export default function BlogStudio() {
   const insertImage = async (file: File) => {
     try {
       setUploading(true);
+      setNotice('Mengunggah gambar ke dalam naskah...');
       const url = await uploadFile(file);
-      editor?.chain().focus().setImage({ src: url, alt: file.name, title: '' }).run();
+      editor?.chain().focus().setImage({ src: url, alt: file.name.replace(/\.[^/.]+$/, ""), title: '' }).run();
       setNotice('Gambar berhasil disisipkan ke dalam naskah.');
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : 'Upload gagal.');
+      setNotice(error instanceof Error ? error.message : 'Upload gambar gagal.');
     } finally {
       setUploading(false);
+      if (imageInput.current) imageInput.current.value = '';
     }
   };
+
+  const handleDeleteArticle = useCallback(async (target: StudioArticle) => {
+    try {
+      await api(`/api/studio/articles/${target.id}`, { method: 'DELETE' });
+      const nextArticles = articles.filter((item) => item.id !== target.id);
+      setArticles(nextArticles);
+      if (article?.id === target.id) {
+        if (nextArticles.length > 0) {
+          await selectArticle(nextArticles[0]);
+        } else {
+          await createArticle();
+        }
+      }
+      setNotice(`Naskah "${target.title || 'Untitled story'}" berhasil dihapus.`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Gagal menghapus artikel.';
+      setNotice(msg);
+      throw err;
+    }
+  }, [api, articles, article, selectArticle, createArticle]);
 
   const uploadCover = async (file: File) => {
     if (!article) return;
@@ -570,6 +594,11 @@ export default function BlogStudio() {
               onCreateArticle={() => void createArticle()}
               onSignOut={() => void supabase.auth.signOut()}
               onToggleCollapse={toggleLeft}
+              onDeleteArticle={handleDeleteArticle}
+              onOpenPublishModal={() => {
+                setPublishError('');
+                setPublishModalOpen(true);
+              }}
             />
           </aside>
         )}
