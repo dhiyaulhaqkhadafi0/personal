@@ -34,3 +34,21 @@ export function createAuthenticatedSupabaseClient(accessToken: string) {
     },
   });
 }
+
+/**
+ * Creates a service-role Supabase client that bypasses RLS.
+ * ONLY use this in server-side API routes for trusted operations.
+ * NEVER expose the service role key to the client.
+ */
+export function createServiceRoleClient() {
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceRoleKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not set in environment variables.');
+  }
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}

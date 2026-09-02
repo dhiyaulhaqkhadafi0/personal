@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { emptyTiptapDocument, slugify, type StudioArticle } from '@/lib/blog-types';
+import { ArticleRenderer } from '@/components/shared/ArticleRenderer';
 
 type SaveState = 'saved' | 'editing' | 'saving' | 'error';
 type SettingsTab = 'article' | 'experience' | 'seo';
@@ -190,11 +191,45 @@ export default function BlogStudio() {
     finally { setUploading(false); }
   };
 
-  const togglePublish = async () => {
+  const publishArticle = async () => {
     if (!article) return;
-    const next = { ...article, status: article.status === 'published' ? 'draft' as const : 'published' as const };
-    setArticle(next); setDirty(false); await saveNow(next);
-    setNotice(next.status === 'published' ? `Artikel tayang di /blog/${next.slug}` : 'Artikel dikembalikan menjadi draft.');
+    setSaveState('saving');
+    try {
+      // Ensure latest draft is saved before publishing
+      if (dirty) await saveNow(article);
+      // RPC returns { ok, id, slug } — the actual article state update
+      // comes from refreshing the article list or optimistic update
+      const body = await api(
+        `/api/studio/articles/${article.id}/publish`,
+        { method: 'POST' },
+      ) as { ok: boolean; id: string; slug: string; article?: StudioArticle };
+      const next: StudioArticle = body.article ?? { ...article, status: 'published' as const };
+      setArticle(next);
+      setArticles((items) => items.map((item) => item.id === next.id ? next : item));
+      setDirty(false);
+      setSaveState('saved');
+      setNotice(`Artikel tayang di /blog/${body.slug ?? article.slug}`);
+    } catch (error) {
+      setSaveState('error');
+      setNotice(error instanceof Error ? error.message : 'Gagal mempublikasikan artikel.');
+    }
+  };
+
+  const unpublishArticle = async () => {
+    if (!article || !window.confirm('Kembalikan artikel ke draft? Artikel akan hilang dari halaman publik.')) return;
+    try {
+      const body = await api(
+        `/api/studio/articles/${article.id}/publish`,
+        { method: 'DELETE' },
+      ) as { article?: StudioArticle; ok?: boolean };
+      const next: StudioArticle = body.article ?? { ...article, status: 'draft' as const };
+      setArticle(next);
+      setArticles((items) => items.map((item) => item.id === next.id ? next : item));
+      setDirty(false);
+      setNotice('Artikel dikembalikan menjadi draft.');
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : 'Gagal unpublish artikel.');
+    }
   };
 
   const deleteArticle = async () => {
@@ -262,7 +297,23 @@ export default function BlogStudio() {
         <button className="studio-mobile-button" onClick={() => setLeftOpen(true)}><Menu /></button>
         <span className="studio-current-title">{article.title || 'Untitled story'}</span>
         <span className={`studio-save-state ${saveState}`}>{saveState === 'saving' ? <LoaderCircle className="studio-spin" /> : saveState === 'saved' ? <Check /> : saveState === 'error' ? <X /> : <i />}{saveState === 'saving' ? 'Menyimpan' : saveState === 'saved' ? 'Tersimpan' : saveState === 'error' ? 'Belum tersimpan' : 'Mengedit'}</span>
-        <div className="studio-top-actions"><button onClick={() => setPreviewOpen(true)}><Eye /> Preview</button><button className="studio-mobile-button" onClick={() => setRightOpen(true)}><Settings2 /></button><button className="studio-publish" onClick={() => void togglePublish()}>{article.status === 'published' ? <Save /> : <Send />}{article.status === 'published' ? 'Unpublish' : 'Publish'}</button><button className="studio-delete" onClick={() => void deleteArticle()}><Trash2 /></button></div>
+        <div className="studio-top-actions">
+          <button onClick={() => setPreviewOpen(true)}><Eye /> Preview</button>
+          <button className="studio-mobile-button" onClick={() => setRightOpen(true)}><Settings2 /></button>
+          {article.status === 'published' ? (
+            <>
+              {(!article.published_at || new Date(article.updated_at).getTime() > new Date(article.published_at).getTime()) ? (
+                <button className="studio-publish" onClick={() => void publishArticle()}><Save /> Perbarui</button>
+              ) : (
+                <button className="studio-publish" disabled style={{ opacity: 0.7, cursor: 'not-allowed' }}><Check /> Terbaru</button>
+              )}
+              <button className="studio-delete" title="Unpublish" onClick={() => void unpublishArticle()}><Minus /></button>
+            </>
+          ) : (
+            <button className="studio-publish" onClick={() => void publishArticle()}><Send /> Publish</button>
+          )}
+          <button className="studio-delete" title="Delete" onClick={() => void deleteArticle()}><Trash2 /></button>
+        </div>
       </header>
       <div className={`studio-notice${notice ? '' : ' empty'}`}>
         {notice && <><span>{notice}</span><button onClick={() => setNotice('')}><X /></button></>}
@@ -285,13 +336,29 @@ export default function BlogStudio() {
       </div>
       <div className="studio-editor-scroll"><article className="studio-editor-page">
         <div className="studio-editor-meta"><span>{article.status === 'published' ? 'Published' : 'Draft'}</span><span>{article.category}</span><i /> <span>{article.reading_time} min read</span></div>
-        <textarea className="studio-title-input" rows={2} value={article.title} placeholder="Judul artikel" onChange={(e) => { const title = e.target.value; update({ title, seo_title: article.seo_title || title, slug: article.slug.startsWith('untitled-') ? slugify(title) : article.slug }); }} />
+        <textarea 
+          className="studio-title-input" 
+          rows={1} 
+          value={article.title} 
+          placeholder="Judul artikel" 
+          onChange={(e) => { 
+            const title = e.target.value; 
+            update({ title, seo_title: article.seo_title || title, slug: article.slug.startsWith('untitled-') ? slugify(title) : article.slug }); 
+            e.target.style.height = 'auto';
+            e.target.style.height = `${e.target.scrollHeight}px`;
+          }}
+          onFocus={(e) => {
+            e.target.style.height = 'auto';
+            e.target.style.height = `${e.target.scrollHeight}px`;
+          }}
+          style={{ overflow: 'hidden', resize: 'none' }}
+        />
         <div className="studio-title-rule" /><EditorContent editor={editor} />
         <button className="studio-inline-add" onClick={() => editor.chain().focus().insertContent('<p></p>').run()}><Plus /> Tambah paragraf</button>
       </article></div>
       <footer className="studio-editor-footer"><span>{article.word_count} kata</span><span>{article.reading_time} menit baca</span><span>Konten tersimpan sebagai structured JSON</span></footer>
     </section>
     <aside className={`studio-right ${rightOpen ? 'open' : ''}`}>{settings}</aside>
-    {previewOpen && <div className="studio-preview-modal"><div className="studio-preview-head"><strong>Article preview</strong><div><button className={previewDevice === 'desktop' ? 'active' : ''} onClick={() => setPreviewDevice('desktop')}>Desktop</button><button className={previewDevice === 'mobile' ? 'active' : ''} onClick={() => setPreviewDevice('mobile')}>Mobile</button></div><button onClick={() => setPreviewOpen(false)}><X /></button></div><div className={`studio-preview-stage ${previewDevice}`}><article className={`studio-public-preview ${article.theme}`}><header style={article.cover_url ? { backgroundImage: `linear-gradient(180deg,rgba(4,5,7,.15),rgba(4,5,7,.9)),url(${article.cover_url})` } : undefined}><span>{article.category}</span><h1>{article.title}</h1><p>{article.excerpt}</p><small>{article.reading_time} min read · Daffa Khadafi</small></header><div className="studio-preview-body" dangerouslySetInnerHTML={{ __html: article.content_html }} />{article.music_enabled && spotifyId && <iframe title="Spotify atmosphere" loading="lazy" src={`https://open.spotify.com/embed/playlist/${spotifyId}?theme=0`} allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" />}</article></div></div>}
+    {previewOpen && <div className="studio-preview-modal"><div className="studio-preview-head"><strong>Article preview</strong><div><button className={previewDevice === 'desktop' ? 'active' : ''} onClick={() => setPreviewDevice('desktop')}>Desktop</button><button className={previewDevice === 'mobile' ? 'active' : ''} onClick={() => setPreviewDevice('mobile')}>Mobile</button></div><button onClick={() => setPreviewOpen(false)}><X /></button></div><div className={`studio-preview-stage ${previewDevice}`}><ArticleRenderer previewMode article={{ title: article.title, excerpt: article.excerpt, category: article.category, reading_time: article.reading_time, date: article.updated_at, cover_url: article.cover_url, theme: article.theme, music_enabled: article.music_enabled, music_uri: article.music_uri }} contentHtml={article.content_html} /></div></div>}
   </main>;
 }

@@ -15,7 +15,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const payload = (await request.json()) as Record<string, unknown>;
   const values: Record<string, unknown> = { updated_at: new Date().toISOString() };
   for (const field of editableFields) if (field in payload) values[field] = payload[field];
-  if (payload.status === 'published') values.published_at = new Date().toISOString();
+  // published_at is managed exclusively by the /publish endpoint, not autosave
 
   const { data, error } = await auth.client
     .from('blog_articles')

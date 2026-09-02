@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { SendHorizontal, LayoutGrid, List, ChevronDown, SearchX, RotateCcw, MonitorPlay, Eye, TrendingUp, Star, Clock, ArrowRight } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -303,7 +302,7 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
                         <article className="flex flex-col h-full bg-[#131316]/40 border border-[#27272A]/60 rounded-[1.75rem] overflow-hidden hover:border-[#34D399]/40 transition-all duration-500 hover:shadow-[0_10px_35px_rgba(52,211,153,0.06)] hover:-translate-y-1">
                           {post.metadata.image && (
                             <div className="relative w-full h-44 sm:h-48 overflow-hidden bg-[#09090B]">
-                              <Image unoptimized src={post.metadata.image} alt={post.metadata.title} fill className="object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out" />
+                              <img src={post.metadata.image} alt={post.metadata.title} className="absolute inset-0 w-full h-full object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out" />
                               <div className="absolute inset-0 bg-gradient-to-t from-[#131316] via-[#131316]/20 to-transparent" />
                             </div>
                           )}
@@ -329,7 +328,7 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
                           </div>
                           {post.metadata.image && (
                             <div className="w-full sm:w-44 md:w-52 h-32 sm:h-28 relative rounded-2xl overflow-hidden flex-shrink-0 bg-[#09090B] border border-[#27272A]">
-                              <Image unoptimized src={post.metadata.image} alt={post.metadata.title} fill className="object-cover opacity-80 group-hover/item:opacity-100 group-hover/item:scale-105 transition-all duration-500 ease-out" />
+                              <img src={post.metadata.image} alt={post.metadata.title} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover/item:opacity-100 group-hover/item:scale-105 transition-all duration-500 ease-out" />
                             </div>
                           )}
                         </article>
@@ -349,7 +348,7 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
                     <article className="flex flex-col h-full bg-[#131316]/40 border border-[#27272A]/60 rounded-[2rem] overflow-hidden hover:border-[#34D399]/40 transition-all duration-500 hover:shadow-[0_10px_40px_rgba(52,211,153,0.08)]">
                       {filteredPosts[0].metadata.image ? (
                         <div className="relative w-full aspect-video max-h-[380px] overflow-hidden bg-[#09090B]">
-                          <Image unoptimized src={filteredPosts[0].metadata.image} alt={filteredPosts[0].metadata.title} fill className="object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out" />
+                          <img src={filteredPosts[0].metadata.image} alt={filteredPosts[0].metadata.title} className="absolute inset-0 w-full h-full object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out" />
                           <div className="absolute inset-0 bg-gradient-to-t from-[#131316] via-[#131316]/10 to-transparent" />
                         </div>
                       ) : (
@@ -390,7 +389,7 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
                         <article className="flex gap-4 p-2.5 bg-transparent hover:bg-[#18181C] rounded-2xl transition-colors duration-300">
                           {post.metadata.image ? (
                             <div className="relative w-[120px] h-[75px] sm:w-[140px] sm:h-[85px] rounded-xl overflow-hidden flex-shrink-0 bg-[#09090B] border border-[#27272A]">
-                              <Image unoptimized src={post.metadata.image} alt={post.metadata.title} fill className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-out" />
+                              <img src={post.metadata.image} alt={post.metadata.title} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-out" />
                             </div>
                           ) : (
                             <div className="w-[120px] h-[75px] sm:w-[140px] sm:h-[85px] rounded-xl bg-gradient-to-br from-[#18181B] to-[#27272A] flex-shrink-0" />

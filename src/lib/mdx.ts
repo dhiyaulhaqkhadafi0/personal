@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
-import type { StudioArticle, TiptapNode } from '@/lib/blog-types';
+import type { PublishedArticle, TiptapNode } from '@/lib/blog-types';
 
 const POSTS_DIRECTORY = path.join(process.cwd(), 'src/content/blog');
 
@@ -16,6 +16,8 @@ export type BlogPostMetadata = {
   readingTime?: number;
   musicMood?: string;
   musicEnabled?: boolean;
+  theme?: string;
+  musicUri?: string;
 };
 
 export type BlogPost = {
@@ -61,18 +63,20 @@ export function getPostBySlug(slug: string): BlogPost | null {
   }
 }
 
-function studioArticleToPost(article: StudioArticle): BlogPost {
+function publishedArticleToPost(article: PublishedArticle): BlogPost {
   return {
     metadata: {
       title: article.title,
       category: article.category,
-      date: article.published_at || article.updated_at,
+      date: article.published_at,
       excerpt: article.excerpt,
       slug: article.slug,
       image: article.cover_url || undefined,
       readingTime: article.reading_time,
       musicMood: article.music_mood,
       musicEnabled: article.music_enabled,
+      theme: article.theme,
+      musicUri: article.music_uri,
     },
     content: '',
     contentHtml: article.content_html,
@@ -84,15 +88,14 @@ function studioArticleToPost(article: StudioArticle): BlogPost {
 async function getPublishedStudioPosts(): Promise<BlogPost[]> {
   if (!isSupabaseConfigured) return [];
   const { data, error } = await supabase
-    .from('blog_articles')
+    .from('published_blog_articles')
     .select('*')
-    .eq('status', 'published')
     .order('published_at', { ascending: false });
   if (error) {
     console.error('Error reading published studio articles:', error.message);
     return [];
   }
-  return (data as StudioArticle[]).map(studioArticleToPost);
+  return (data as PublishedArticle[]).map(publishedArticleToPost);
 }
 
 export async function getAllPosts(): Promise<BlogPost[]> {
@@ -109,13 +112,13 @@ export async function getAllPosts(): Promise<BlogPost[]> {
 export async function getPublishedPostBySlug(slug: string): Promise<BlogPost | null> {
   if (isSupabaseConfigured) {
     const { data, error } = await supabase
-      .from('blog_articles')
+      .from('published_blog_articles')
       .select('*')
       .eq('slug', slug)
-      .eq('status', 'published')
       .maybeSingle();
-    if (!error && data) return studioArticleToPost(data as StudioArticle);
-    if (error) console.error(`Error reading studio article ${slug}:`, error.message);
+
+    if (!error && data) return publishedArticleToPost(data as PublishedArticle);
+    if (error) console.error(`Error reading published article ${slug}:`, error.message);
   }
   return getPostBySlug(slug);
 }

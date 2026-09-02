@@ -30,10 +30,67 @@ export type StudioArticle = {
   og_image: string;
   word_count: number;
   reading_time: number;
+  // published_snapshot kept for legacy fallback, will be removed after 0b migration
+  published_snapshot?: unknown;
   published_at: string | null;
   created_at: string;
   updated_at: string;
 };
+
+/** Shape of a row in published_blog_articles — no internal fields. */
+export type PublishedArticle = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  content_json: TiptapNode;
+  content_html: string;
+  category: string;
+  cover_url: string;
+  cover_slides: string[];
+  theme: 'midnight' | 'light' | 'adaptive';
+  accent: string;
+  music_uri: string;
+  music_mood: string;
+  music_enabled: boolean;
+  seo_title: string;
+  seo_description: string;
+  og_image: string;
+  word_count: number;
+  reading_time: number;
+  published_at: string;
+  updated_at: string;
+};
+
+/**
+ * Serializes a StudioArticle into a clean PublishedArticle.
+ * Explicit whitelist — no author_id, timestamps, or internal fields.
+ */
+export function buildPublicSnapshot(article: StudioArticle, now: string): PublishedArticle {
+  return {
+    id: article.id,
+    slug: article.slug,
+    title: article.title,
+    excerpt: article.excerpt,
+    content_json: article.content_json,
+    content_html: article.content_html,
+    category: article.category,
+    cover_url: article.cover_url,
+    cover_slides: article.cover_slides,
+    theme: article.theme,
+    accent: article.accent,
+    music_uri: article.music_uri,
+    music_mood: article.music_mood,
+    music_enabled: article.music_enabled,
+    seo_title: article.seo_title,
+    seo_description: article.seo_description,
+    og_image: article.og_image,
+    word_count: article.word_count,
+    reading_time: article.reading_time,
+    published_at: article.published_at ?? now,
+    updated_at: now,
+  };
+}
 
 export const emptyTiptapDocument: TiptapNode = {
   type: 'doc',
