@@ -20,9 +20,25 @@ export async function generateMetadata(
     return { title: 'Post Not Found' };
   }
 
+  const title = `${post.metadata.title} | Digital Grimoire`;
+  const description = post.metadata.excerpt;
+  const coverImage = post.metadata.cover_url || post.metadata.image;
+
   return {
-    title: `${post.metadata.title} | Digital Grimoire`,
-    description: post.metadata.excerpt,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'article',
+      images: coverImage ? [{ url: coverImage }] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: coverImage ? [coverImage] : undefined,
+    },
   };
 }
 

@@ -10,7 +10,8 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import {
-  emptyTiptapDocument, slugify, extractFirstImageFromTiptap, type StudioArticle,
+  emptyTiptapDocument, slugify, extractFirstImageFromTiptap,
+  extractVisualSettings, applyVisualSettingsToContentJson, type StudioArticle,
 } from '@/lib/blog-types';
 import { ArticleRenderer } from '@/components/shared/ArticleRenderer';
 
@@ -369,8 +370,11 @@ export default function BlogStudio() {
     onUpdate: ({ editor }) => {
       const text = editor.getText().trim();
       const wordCount = text ? text.split(/\s+/).length : 0;
+      const currentVisual = extractVisualSettings(latestArticle.current?.content_json);
+      const json = editor.getJSON();
+      const nextContentJson = applyVisualSettingsToContentJson(json, currentVisual);
       update({
-        content_json: editor.getJSON(),
+        content_json: nextContentJson,
         content_html: editor.getHTML(),
         word_count: wordCount,
         reading_time: Math.max(1, Math.ceil(wordCount / 210)),
@@ -1035,6 +1039,7 @@ export default function BlogStudio() {
                   cover_url: article.cover_url,
                   cover_slides: article.cover_slides,
                   content_json: article.content_json,
+                  visual_settings: extractVisualSettings(article.content_json),
                   theme: article.theme,
                   music_enabled: article.music_enabled,
                   music_uri: article.music_uri,

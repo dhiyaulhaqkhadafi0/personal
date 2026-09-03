@@ -1,11 +1,49 @@
 export type ArticleStatus = 'draft' | 'published';
 
+export type FocalPoint = 'center' | 'top' | 'bottom' | 'left' | 'right';
+export type HeroLayout = 'editorial' | 'immersive' | 'cinematic';
+
+export type VisualSettings = {
+  focal_point: FocalPoint;
+  caption: string;
+  credit: string;
+  alt_text: string;
+  hero_layout: HeroLayout;
+};
+
+export const defaultVisualSettings: VisualSettings = {
+  focal_point: 'center',
+  caption: '',
+  credit: '',
+  alt_text: '',
+  hero_layout: 'editorial',
+};
+
+export const FOCAL_POINT_CSS: Record<FocalPoint, string> = {
+  center: '50% 50%',
+  top: '50% 0%',
+  bottom: '50% 100%',
+  left: '0% 50%',
+  right: '100% 50%',
+};
+
+export const FOCAL_POINT_LABELS: Record<FocalPoint, string> = {
+  center: 'Tengah',
+  top: 'Atas',
+  bottom: 'Bawah',
+  left: 'Kiri',
+  right: 'Kanan',
+};
+
 export type TiptapNode = {
   type?: string;
   attrs?: Record<string, unknown>;
   text?: string;
   content?: TiptapNode[];
   marks?: Array<{ type: string; attrs?: Record<string, unknown> }>;
+  visual_settings?: VisualSettings;
+  meta?: Record<string, unknown>;
+  [key: string]: unknown;
 };
 
 export type StudioArticle = {
@@ -287,3 +325,102 @@ export function addHeadingIds(html: string) {
     return `<${tag}${attrs} id="${headingId(body)}">${body}</${tag}>`;
   });
 }
+
+export function formatCreditDisplay(credit?: string | null): string {
+  if (!credit) return '';
+  const trimmed = credit.replace(/<[^>]*>/g, '').trim();
+  if (!trimmed) return '';
+  if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      const url = new URL(trimmed);
+      return url.hostname.replace(/^www\./i, '');
+    } catch {
+      return '';
+    }
+  }
+  return trimmed;
+}
+
+export function extractVisualSettings(source?: unknown): VisualSettings {
+  if (!source || typeof source !== 'object') {
+    return { ...defaultVisualSettings };
+  }
+
+  const obj = source as Record<string, unknown>;
+
+  let raw: unknown = obj.visual_settings;
+
+  if (!raw && obj.content_json && typeof obj.content_json === 'object') {
+    const cj = obj.content_json as Record<string, unknown>;
+    raw =
+      cj.visual_settings ||
+      (cj.meta && typeof cj.meta === 'object' ? (cj.meta as Record<string, unknown>).visual_settings : undefined) ||
+      (cj.attrs && typeof cj.attrs === 'object' ? (cj.attrs as Record<string, unknown>).visual_settings : undefined);
+  }
+
+  if (!raw && obj.meta && typeof obj.meta === 'object') {
+    raw = (obj.meta as Record<string, unknown>).visual_settings;
+  }
+  if (!raw && obj.attrs && typeof obj.attrs === 'object') {
+    raw = (obj.attrs as Record<string, unknown>).visual_settings;
+  }
+
+  if (!raw || typeof raw !== 'object') {
+    return { ...defaultVisualSettings };
+  }
+
+  const r = raw as Record<string, unknown>;
+
+  const focal: FocalPoint =
+    r.focal_point === 'top' || r.focal_point === 'bottom' || r.focal_point === 'left' || r.focal_point === 'right'
+      ? r.focal_point
+      : 'center';
+
+  const layout: HeroLayout =
+    r.hero_layout === 'immersive' || r.hero_layout === 'cinematic'
+      ? r.hero_layout
+      : 'editorial';
+
+  const cleanString = (val: unknown, maxLen: number) => {
+    if (typeof val !== 'string') return '';
+    return val.replace(/<[^>]*>/g, '').trim().slice(0, maxLen);
+  };
+
+  return {
+    focal_point: focal,
+    caption: cleanString(r.caption, 160),
+    credit: cleanString(r.credit, 80),
+    alt_text: cleanString(r.alt_text, 160),
+    hero_layout: layout,
+  };
+}
+
+export function applyVisualSettingsToContentJson(
+  contentJson: unknown,
+  settings: Partial<VisualSettings>,
+): TiptapNode {
+  const base: Record<string, unknown> =
+    contentJson && typeof contentJson === 'object'
+      ? { ...(contentJson as Record<string, unknown>) }
+      : { type: 'doc', content: [{ type: 'paragraph' }] };
+
+  const currentSettings = extractVisualSettings(base);
+  const nextSettings: VisualSettings = {
+    ...currentSettings,
+    ...settings,
+  };
+
+  const meta = base.meta && typeof base.meta === 'object' ? { ...(base.meta as Record<string, unknown>) } : {};
+  meta.visual_settings = nextSettings;
+
+  const attrs = base.attrs && typeof base.attrs === 'object' ? { ...(base.attrs as Record<string, unknown>) } : {};
+  attrs.visual_settings = nextSettings;
+
+  return {
+    ...base,
+    visual_settings: nextSettings,
+    meta,
+    attrs,
+  } as TiptapNode;
+}
+

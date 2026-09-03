@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { type FocalPoint, FOCAL_POINT_CSS } from "@/lib/blog-types";
 
 export type EditorialCoverProps = {
   src?: string | null;
@@ -13,6 +14,7 @@ export type EditorialCoverProps = {
   imageClassName?: string;
   priority?: boolean;
   variant?: 'hero' | 'card' | 'thumbnail';
+  focalPoint?: FocalPoint | string;
 };
 
 /**
@@ -100,6 +102,7 @@ export function EditorialCover({
   imageClassName = '',
   priority = false,
   variant = 'card',
+  focalPoint = 'center',
 }: EditorialCoverProps) {
   const [hasError, setHasError] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -122,6 +125,11 @@ export function EditorialCover({
   const palette = getDeterministicPalette(seed);
 
   if (!showFallback && cleanSrc) {
+    const objectPosition =
+      focalPoint && focalPoint in FOCAL_POINT_CSS
+        ? FOCAL_POINT_CSS[focalPoint as FocalPoint]
+        : focalPoint || '50% 50%';
+
     return (
       <div
         className={`relative w-full overflow-hidden bg-[#090A0D] select-none ${aspectRatio || ''} ${className}`}
@@ -135,7 +143,8 @@ export function EditorialCover({
           loading={priority ? "eager" : "lazy"}
           decoding="async"
           onError={() => setHasError(true)}
-          className={`w-full h-full object-cover object-center ${imageClassName}`}
+          style={{ objectPosition }}
+          className={`w-full h-full object-cover ${imageClassName}`}
         />
         {/* Extremely thin inner border to ground edges without obstructing the photo */}
         <div className="absolute inset-0 pointer-events-none border border-white/5 rounded-[inherit]" />
