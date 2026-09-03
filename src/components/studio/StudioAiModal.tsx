@@ -47,8 +47,7 @@ export function StudioAiModal({
 
   // Configuration check
   const [checkingConfig, setCheckingConfig] = useState(true);
-  const [isConfigured, setIsConfigured] = useState(true);
-  const [aiModel, setAiModel] = useState<string | null>(null);
+  const [isConfigured, setIsConfigured] = useState(false);
 
   // Selection tracking
   const [selectedText, setSelectedText] = useState('');
@@ -78,7 +77,7 @@ export function StudioAiModal({
       }
     }
 
-    // Fetch AI configuration status
+    // Fetch AI configuration status (checks both GEMINI_API_KEY and GEMINI_MODEL)
     setCheckingConfig(true);
     fetch('/api/studio/ai', {
       headers: {
@@ -89,7 +88,6 @@ export function StudioAiModal({
         if (res.ok) {
           const data = await res.json();
           setIsConfigured(Boolean(data.configured));
-          setAiModel(data.model || 'gemini-1.5-flash');
         } else {
           setIsConfigured(false);
         }
@@ -263,11 +261,9 @@ export function StudioAiModal({
                 <h2 className="text-base font-serif font-bold text-[#F8FAFC]">
                   AI Editorial Co‑Pilot
                 </h2>
-                {aiModel && (
-                  <span className="text-[10px] font-mono text-[#34D399] bg-[#34D399]/10 px-2 py-0.5 rounded-full border border-[#34D399]/20">
-                    {aiModel}
-                  </span>
-                )}
+                <span className="text-[10px] font-mono text-[#34D399] bg-[#34D399]/10 px-2 py-0.5 rounded-full border border-[#34D399]/20 font-semibold">
+                  Editorial Co‑Pilot
+                </span>
               </div>
               <p className="text-xs text-[#94A3B8] mt-0.5">
                 Teks yang kamu kirim akan diproses oleh penyedia AI. Hasil tidak diterapkan otomatis.
@@ -302,7 +298,7 @@ export function StudioAiModal({
                 AI Editorial belum dikonfigurasi
               </h3>
               <p className="text-xs text-[#94A3B8] max-w-md mx-auto leading-relaxed">
-                Tambahkan kunci <code className="text-[#34D399] bg-white/5 px-1 py-0.5 rounded">GEMINI_API_KEY</code> dan opsional <code className="text-[#34D399] bg-white/5 px-1 py-0.5 rounded">GEMINI_MODEL</code> di file environment server Anda untuk mengaktifkan asisten editorial ini.
+                Pastikan variabel <code className="text-[#34D399] bg-white/5 px-1 py-0.5 rounded">GEMINI_API_KEY</code> dan <code className="text-[#34D399] bg-white/5 px-1 py-0.5 rounded">GEMINI_MODEL</code> telah diatur di environment server Anda untuk mengaktifkan asisten editorial ini.
               </p>
             </div>
           ) : result ? (

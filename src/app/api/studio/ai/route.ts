@@ -18,11 +18,12 @@ export async function GET(request: Request) {
   if (!auth.ok) return auth.response;
 
   const apiKey = process.env.GEMINI_API_KEY?.trim();
-  const model = process.env.GEMINI_MODEL?.trim() || 'gemini-1.5-flash';
+  const model = process.env.GEMINI_MODEL?.trim();
 
+  // Both GEMINI_API_KEY and GEMINI_MODEL are strictly required.
+  // Never expose sensitive keys or model names to the client.
   return Response.json({
-    configured: Boolean(apiKey),
-    model: Boolean(apiKey) ? model : null,
+    configured: Boolean(apiKey && model),
   });
 }
 
@@ -31,14 +32,15 @@ export async function POST(request: Request) {
   if (!auth.ok) return auth.response;
 
   const apiKey = process.env.GEMINI_API_KEY?.trim();
-  const model = process.env.GEMINI_MODEL?.trim() || 'gemini-1.5-flash';
+  const model = process.env.GEMINI_MODEL?.trim();
 
-  if (!apiKey) {
+  // Explicit validation: both API Key and Model must be present. No fallback.
+  if (!apiKey || !model) {
     return Response.json(
       {
         ok: false,
         configured: false,
-        error: 'AI Editorial belum dikonfigurasi. Tambahkan GEMINI_API_KEY di environment server Anda.',
+        error: 'AI Editorial belum dikonfigurasi. Pastikan GEMINI_API_KEY dan GEMINI_MODEL telah diatur di environment server.',
       },
       { status: 503 }
     );
@@ -73,7 +75,7 @@ export async function POST(request: Request) {
   const cleanBody = body.slice(0, 12000).trim();
   const cleanHint = customHint.slice(0, 300).trim();
 
-  // Selected text actions require non-empty selection
+  // Selected text actions strictly require non-empty selection
   const isSelectionAction = SELECTION_ACTIONS.some((a) => a.id === aiAction);
   if (isSelectionAction && !cleanSelection) {
     return Response.json(
@@ -90,7 +92,8 @@ export async function POST(request: Request) {
     customHint: cleanHint,
   });
 
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  // Safely encode model and apiKey in the Gemini API URL
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
   try {
     const controller = new AbortController();
@@ -136,13 +139,19 @@ export async function POST(request: Request) {
 
       if (response.status === 400 && msg.includes('API key not valid')) {
         return Response.json(
-          { error: 'GEMINI_API_KEY tidak valid. Silakan periksa kunci API Anda.' },
+          { error: 'GEMINI_API_KEY tidak valid. Silakan periksa kunci API Anda di environment.' },
           { status: 401 }
+        );
+      }
+      if (response.status === 404) {
+        return Response.json(
+          { error: `Model Gemini tidak ditemukan atau tidak didukung pada versi API saat ini. Periksa nilai GEMINI_MODEL.` },
+          { status: 502 }
         );
       }
       if (response.status === 429) {
         return Response.json(
-          { error: 'Batas kuota penyedia AI tercapai. Silakan coba lagi beberapa saat lagi.' },
+          { error: 'Batas kuota penyedia AI tercapai. Silakan coba beberapa saat lagi.' },
           { status: 429 }
         );
       }
@@ -154,11 +163,39 @@ export async function POST(request: Request) {
     }
 
     const data = await response.json();
-    const rawResult: string = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    // Check Prompt-level Safety Blocks
+    if (data?.promptFeedback?.blockReason) {
+      return Response.json(
+        {
+          error: `Teks tidak dapat diproses karena dibatasi oleh filter keselamatan penyedia AI (${data.promptFeedback.blockReason}).`,
+        },
+        { status: 422 }
+      );
+    }
+
+    const candidate = data?.candidates?.[0];
+
+    // Check Candidate-level Finish Reasons (Safety, Recitation, etc.)
+    if (candidate?.finishReason === 'SAFETY') {
+      return Response.json(
+        { error: 'Hasil respon disaring oleh filter keamanan penyedia AI (SAFETY).' },
+        { status: 422 }
+      );
+    }
+    if (candidate?.finishReason === 'RECITATION') {
+      return Response.json(
+        { error: 'Hasil respon dibatasi oleh filter hak cipta / kutipan penyedia AI (RECITATION).' },
+        { status: 422 }
+      );
+    }
+
+    const rawResult: string = candidate?.content?.parts?.[0]?.text || '';
 
     if (!rawResult.trim()) {
+      const reason = candidate?.finishReason || 'NO_CANDIDATE';
       return Response.json(
-        { error: 'Penyedia AI tidak menghasilkan teks untuk naskah ini.' },
+        { error: `Penyedia AI tidak menghasilkan teks untuk naskah ini (status: ${reason}). Coba sesuaikan instruksi atau gunakan pilihan teks yang lebih spesifik.` },
         { status: 502 }
       );
     }
