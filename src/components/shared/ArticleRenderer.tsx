@@ -1,11 +1,16 @@
+import Link from 'next/link';
 import { Lora, Plus_Jakarta_Sans } from 'next/font/google';
-import { Clock } from 'lucide-react';
+import { Clock, ArrowUpRight } from 'lucide-react';
 import { EditorialCover } from '@/components/shared/EditorialCover';
+import { ArticleShareButtons } from '@/components/blog/ArticleShareButtons';
 import {
   resolveArticleCover,
   extractVisualSettings,
+  extractDistributionSettings,
+  isCtaCompleteAndEnabled,
   formatCreditDisplay,
   type VisualSettings,
+  type DistributionSettings,
 } from '@/lib/blog-types';
 
 const lora = Lora({ subsets: ['latin'], style: ['normal', 'italic'] });
@@ -29,6 +34,7 @@ export type ArticleData = {
   music_enabled?: boolean;
   music_uri?: string;
   visual_settings?: VisualSettings;
+  distribution_settings?: DistributionSettings;
 };
 
 type Props = {
@@ -77,6 +83,10 @@ export function ArticleRenderer({ article, contentHtml, children, footerContent,
   const { focal_point, hero_layout, caption, credit, alt_text } = visualSettings;
   const altText = alt_text?.trim() || article.title || 'Cover artikel';
 
+  const distributionSettings = extractDistributionSettings(
+    article.distribution_settings || article.content_json || article
+  );
+
   const renderMetadata = (className = 'mb-6 text-[#9CA3AF]') => (
     <div className={`flex flex-wrap items-center gap-3 text-xs sm:text-sm font-mono tracking-wide ${className}`}>
       <span className="text-[#34D399] uppercase font-medium bg-[#34D399]/10 px-3.5 py-1 rounded-full border border-[#34D399]/20">
@@ -103,12 +113,14 @@ export function ArticleRenderer({ article, contentHtml, children, footerContent,
 
   const renderAuthor = (className = 'pt-6 border-t border-[#27272A]/50 text-xs font-mono text-[#9CA3AF]') => (
     <div className={`flex items-center gap-3 ${className}`}>
-      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#34D399]/20 to-[#6366F1]/20 border border-[#34D399]/30 flex items-center justify-center font-bold text-[#34D399] text-xs">
-        DK
-      </div>
-      <div className="flex flex-col">
-        <span className="text-[#E2E8F0] font-medium">Daffa Khadafi</span>
-        <span className="text-[#71717A] text-[11px]">AI-Assisted Product Engineer</span>
+      <img
+        src="/assets/Profile%20Photo.png"
+        alt="Daffa Dhiyaulhaq Khadafi"
+        className="w-10 h-10 rounded-full object-cover border border-[#34D399]/40 shadow-sm flex-shrink-0"
+      />
+      <div className="flex flex-col min-w-0">
+        <span className="text-[#E2E8F0] font-medium truncate">Daffa Dhiyaulhaq Khadafi</span>
+        <span className="text-[#71717A] text-[11px] truncate">AI-Assisted Product Engineer</span>
       </div>
     </div>
   );
@@ -119,6 +131,8 @@ export function ArticleRenderer({ article, contentHtml, children, footerContent,
         {article.excerpt}
       </p>
     ) : null;
+
+  const articleUrl = `https://khadafidaffa.com/blog/${article.slug || ''}`;
 
   return (
     <article className={`relative bg-[#111113]/90 backdrop-blur-3xl rounded-[2rem] border border-[#27272A]/40 shadow-2xl p-6 md:p-12 lg:p-14 h-full w-full ${sans.className} ${previewMode ? 'studio-preview-renderer' : ''} theme-${article.theme || 'midnight'}`}>
@@ -256,9 +270,64 @@ export function ArticleRenderer({ article, contentHtml, children, footerContent,
         {contentHtml ? <div dangerouslySetInnerHTML={{ __html: contentHtml }} /> : children}
       </div>
 
+      {/* CTA (Call to Action) Card: Rendered after article body, before share actions */}
+      {isCtaCompleteAndEnabled(distributionSettings) && (
+        <div className="max-w-[720px] mx-auto mt-14 mb-4 select-none">
+          <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-[#14151C] via-[#101117] to-[#0A0B0E] border border-[#34D399]/30 shadow-[0_15px_35px_rgba(0,0,0,0.45)] relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-[#34D399]/5 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+              <div className="space-y-2 max-w-lg">
+                <span className="text-[10px] font-mono font-semibold uppercase tracking-widest text-[#34D399] bg-[#34D399]/10 px-2.5 py-0.5 rounded-full border border-[#34D399]/20 inline-block">
+                  Aksi Berikutnya
+                </span>
+                <h3 className="font-serif text-lg sm:text-xl font-bold text-[#F8FAFC] tracking-tight leading-snug">
+                  {distributionSettings.cta_title}
+                </h3>
+                {distributionSettings.cta_description && (
+                  <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed">
+                    {distributionSettings.cta_description}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex-shrink-0">
+                {distributionSettings.cta_button_url.startsWith('/') ? (
+                  <Link
+                    href={distributionSettings.cta_button_url}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#10B981] hover:bg-[#34D399] text-[#022C22] font-bold text-xs tracking-wide shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all active:scale-95 whitespace-nowrap"
+                  >
+                    <span>{distributionSettings.cta_button_label}</span>
+                    <ArrowUpRight className="w-4 h-4" />
+                  </Link>
+                ) : (
+                  <a
+                    href={distributionSettings.cta_button_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#10B981] hover:bg-[#34D399] text-[#022C22] font-bold text-xs tracking-wide shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all active:scale-95 whitespace-nowrap"
+                  >
+                    <span>{distributionSettings.cta_button_label}</span>
+                    <ArrowUpRight className="w-4 h-4" />
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share Actions */}
+      <div className="max-w-[720px] mx-auto">
+        <ArticleShareButtons
+          url={articleUrl}
+          title={article.title || 'Untitled story'}
+        />
+      </div>
+
       {/* Spotify Atmospheric Player */}
       {article.music_enabled && spotifyId && (
-        <div className="max-w-[720px] mx-auto mt-16 pt-8 border-t border-[#27272A]/50">
+        <div className="max-w-[720px] mx-auto mt-8 pt-8 border-t border-[#27272A]/50">
           <iframe 
             title="Spotify atmosphere" 
             loading="lazy" 
@@ -277,4 +346,5 @@ export function ArticleRenderer({ article, contentHtml, children, footerContent,
     </article>
   );
 }
+
 

@@ -1,4 +1,4 @@
-import { getPublishedPostBySlug, getPostSlugs } from '@/lib/mdx';
+import { getPublishedPostBySlug, getPostSlugs, getRelatedPosts } from '@/lib/mdx';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { MDXRemote } from 'next-mdx-remote/rsc';
@@ -85,14 +85,62 @@ export default async function BlogPost({ params }: Props) {
     notFound();
   }
 
+  const relatedPosts = await getRelatedPosts(slug, post.metadata.category, 3);
+  const siteUrl = 'https://khadafidaffa.com';
+  const articleUrl = `${siteUrl}/blog/${slug}`;
+  const coverImage = post.metadata.cover_url || post.metadata.image;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.metadata.title,
+    description: post.metadata.excerpt,
+    datePublished: post.metadata.date,
+    dateModified: post.metadata.date,
+    author: {
+      '@type': 'Person',
+      name: 'Daffa Dhiyaulhaq Khadafi',
+      url: siteUrl,
+    },
+    publisher: {
+      '@type': 'Person',
+      name: 'Daffa Dhiyaulhaq Khadafi',
+      url: siteUrl,
+    },
+    url: articleUrl,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': articleUrl,
+    },
+    image: coverImage ? [coverImage] : undefined,
+  };
+
+  const jsonLdScript = (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
+
   if (post.source === 'studio') {
     const tocContent = post.contentJson ? tiptapHeadingsToMarkdown(post.contentJson) : '';
-    return <BlogPostContent post={{ ...post, content: tocContent }} slug={slug}>
-      <div dangerouslySetInnerHTML={{ __html: addHeadingIds(post.contentHtml || '') }} />
-    </BlogPostContent>;
+    return (
+      <>
+        {jsonLdScript}
+        <BlogPostContent post={{ ...post, content: tocContent }} slug={slug} relatedPosts={relatedPosts}>
+          <div dangerouslySetInnerHTML={{ __html: addHeadingIds(post.contentHtml || '') }} />
+        </BlogPostContent>
+      </>
+    );
   }
 
-  return <BlogPostContent post={post} slug={slug}>
-    <MDXRemote source={post.content} components={mdxComponents} />
-  </BlogPostContent>;
+  return (
+    <>
+      {jsonLdScript}
+      <BlogPostContent post={post} slug={slug} relatedPosts={relatedPosts}>
+        <MDXRemote source={post.content} components={mdxComponents} />
+      </BlogPostContent>
+    </>
+  );
 }
+

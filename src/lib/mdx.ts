@@ -176,3 +176,26 @@ export async function getPublishedPostBySlug(slug: string): Promise<BlogPost | n
   }
   return getPostBySlug(slug);
 }
+
+/**
+ * Deterministically fetches up to `limit` related published articles.
+ * Excludes the current article. Prioritizes the same category first,
+ * and fills remaining slots with newest published articles from other categories.
+ */
+export async function getRelatedPosts(currentSlug: string, category?: string, limit = 3): Promise<BlogPost[]> {
+  const allPosts = await getAllPosts();
+  const candidates = allPosts.filter((post) => post.metadata.slug !== currentSlug);
+
+  if (candidates.length === 0) return [];
+
+  const sameCategory = category
+    ? candidates.filter((post) => post.metadata.category?.toLowerCase() === category.toLowerCase())
+    : [];
+
+  const others = category
+    ? candidates.filter((post) => post.metadata.category?.toLowerCase() !== category.toLowerCase())
+    : candidates;
+
+  return [...sameCategory, ...others].slice(0, limit);
+}
+

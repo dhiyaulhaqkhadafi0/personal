@@ -10,6 +10,7 @@ import { Plus_Jakarta_Sans } from 'next/font/google';
 import { motion, useScroll, useSpring } from 'framer-motion';
 import ArticleAtmosphere from '@/components/blog/ArticleAtmosphere';
 import { ArticleRenderer } from '@/components/shared/ArticleRenderer';
+import { RelatedArticlesSection } from '@/components/blog/RelatedArticlesSection';
 import type { BlogPost } from '@/lib/mdx';
 
 const sans = Plus_Jakarta_Sans({ subsets: ['latin'] });
@@ -17,11 +18,12 @@ const sans = Plus_Jakarta_Sans({ subsets: ['latin'] });
 type Props = {
   post: BlogPost;
   slug: string;
+  relatedPosts?: BlogPost[];
   children: React.ReactNode;
 };
 
 // Client Component to handle Scroll Progress & Interactive UI
-export default function BlogPostContent({ post, slug, children }: Props) {
+export default function BlogPostContent({ post, slug, relatedPosts, children }: Props) {
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
@@ -88,6 +90,11 @@ export default function BlogPostContent({ post, slug, children }: Props) {
             {children}
           </ArticleRenderer>
         </div>
+
+        {/* Deterministic Related Articles ("Baca Juga") */}
+        {relatedPosts && relatedPosts.length > 0 && (
+          <RelatedArticlesSection posts={relatedPosts} />
+        )}
 
       </main>
 

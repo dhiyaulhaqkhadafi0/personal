@@ -5,20 +5,27 @@ import {
   Settings2, ImageIcon, Upload, X, Music2, Sparkles, PanelRightClose,
   AlertCircle, CheckCircle2, Copy, Check, Edit3, RotateCcw, ExternalLink,
   LoaderCircle, Compass, LayoutTemplate, Share2, Eye,
+  ArrowUpRight, ShieldCheck, CheckCircle,
 } from 'lucide-react';
 import {
   slugify,
   extractVisualSettings,
   applyVisualSettingsToContentJson,
+  extractDistributionSettings,
+  applyDistributionSettingsToContentJson,
+  isValidCtaUrl,
+  isCtaCompleteAndEnabled,
+  CTA_PRESETS,
   FOCAL_POINT_CSS,
   FOCAL_POINT_LABELS,
   type StudioArticle,
   type FocalPoint,
   type HeroLayout,
   type VisualSettings,
+  type DistributionSettings,
 } from '@/lib/blog-types';
 
-export type SettingsTab = 'article' | 'experience' | 'seo';
+export type SettingsTab = 'article' | 'experience' | 'distribusi' | 'seo';
 
 type Props = {
   article: StudioArticle;
@@ -73,10 +80,17 @@ export function StudioSettings({
   const displayCover = manualCover || autoCoverUrl;
 
   const visualSettings = extractVisualSettings(article.content_json);
+  const distributionSettings = extractDistributionSettings(article.content_json);
 
   const handleUpdateVisual = (patch: Partial<VisualSettings>) => {
-    const updatedContentJson = applyVisualSettingsToContentJson(article.content_json, patch);
-    onUpdate({ content_json: updatedContentJson });
+    const nextContentJson = applyVisualSettingsToContentJson(article.content_json, patch);
+    onUpdate({ content_json: nextContentJson });
+  };
+  const handleVisualUpdate = handleUpdateVisual;
+
+  const handleDistributionUpdate = (patch: Partial<DistributionSettings>) => {
+    const nextContentJson = applyDistributionSettingsToContentJson(article.content_json, patch);
+    onUpdate({ content_json: nextContentJson });
   };
 
   const seoTitleLength = (article.seo_title || '').length;
@@ -139,21 +153,21 @@ export function StudioSettings({
 
       {/* 3 Tabs (Segmented Control) */}
       <div className="px-3 pt-3 pb-2 border-b border-white/5 bg-[#090A0D]/60">
-        <div className="flex items-center bg-[#14151B] p-1 rounded-xl border border-white/10 gap-1">
-          {(['article', 'experience', 'seo'] as SettingsTab[]).map((tab) => {
+        <div className="grid grid-cols-4 gap-1 p-1 bg-[#14151B] rounded-xl border border-white/5">
+          {(['article', 'experience', 'distribusi', 'seo'] as SettingsTab[]).map((tab) => {
             const isActive = activeTab === tab;
             return (
               <button
                 key={tab}
                 type="button"
-                className={`flex-1 h-9 rounded-lg text-xs font-semibold transition-all ${
+                className={`py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${
                   isActive
                     ? 'bg-[#22242F] text-[#F8FAFC] shadow-sm border border-white/10'
                     : 'text-[#94A3B8] hover:text-[#E2E8F0] hover:bg-white/5'
                 }`}
                 onClick={() => setActiveTab(tab)}
               >
-                {tab === 'article' ? 'Artikel' : tab === 'experience' ? 'Experience' : 'SEO'}
+                {tab === 'article' ? 'Artikel' : tab === 'experience' ? 'Experience' : tab === 'distribusi' ? 'Distribusi' : 'SEO'}
               </button>
             );
           })}
@@ -730,6 +744,208 @@ export function StudioSettings({
           </div>
         )}
 
+        {/* TAB 3: DISTRIBUSI */}
+        {activeTab === 'distribusi' && (
+          <div className="space-y-6">
+            {/* Toggle CTA */}
+            <div className="p-4 rounded-xl bg-[#14151B] border border-white/10 flex items-center justify-between">
+              <div>
+                <strong className="block text-xs text-[#F8FAFC] font-semibold">
+                  Tampilkan CTA di akhir artikel
+                </strong>
+                <p className="text-[11px] text-[#94A3B8] mt-0.5">
+                  Arahkan pembaca ke produk digital, jasa, portofolio, atau link sosial Anda.
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={distributionSettings.cta_enabled}
+                onClick={() => handleDistributionUpdate({ cta_enabled: !distributionSettings.cta_enabled })}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  distributionSettings.cta_enabled ? 'bg-[#10B981]' : 'bg-[#27272A]'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    distributionSettings.cta_enabled ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {distributionSettings.cta_enabled && (
+              <div className="space-y-5">
+                {/* Presets */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]">
+                    Pilihan Cepat (Preset)
+                  </label>
+                  <p className="text-[11px] text-[#71717A]">
+                    Pilih salah satu template di bawah, Anda tetap dapat mengubah teksnya kapan saja:
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CTA_PRESETS.map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => {
+                          handleDistributionUpdate({
+                            cta_title: preset.title,
+                            cta_description: preset.description,
+                            cta_button_label: preset.button_label,
+                            cta_button_url: preset.button_url,
+                          });
+                        }}
+                        className="p-2.5 rounded-xl bg-[#0A0B0E] hover:bg-[#14151B] border border-white/10 hover:border-[#34D399]/40 text-left transition-all group"
+                      >
+                        <strong className="block text-xs text-[#E2E8F0] group-hover:text-[#34D399] transition-colors leading-tight">
+                          {preset.label}
+                        </strong>
+                        <span className="text-[10px] text-[#71717A] truncate block mt-0.5 font-mono">
+                          {preset.button_url}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Judul CTA */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]">
+                      Judul CTA
+                    </label>
+                    <span className="text-[10px] font-mono text-[#71717A]">
+                      {distributionSettings.cta_title.length}/80
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    maxLength={80}
+                    value={distributionSettings.cta_title}
+                    placeholder="Contoh: Eksplorasi Blueprint & Produk Digital"
+                    onChange={(e) => handleDistributionUpdate({ cta_title: e.target.value })}
+                    className="w-full h-10 bg-[#0A0B0E] border border-white/10 rounded-xl px-3 text-xs text-[#F8FAFC] outline-none focus:border-[#34D399]/50 transition-colors"
+                  />
+                </div>
+
+                {/* Deskripsi CTA */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]">
+                      Deskripsi Singkat
+                    </label>
+                    <span className="text-[10px] font-mono text-[#71717A]">
+                      {distributionSettings.cta_description.length}/180
+                    </span>
+                  </div>
+                  <textarea
+                    rows={3}
+                    maxLength={180}
+                    value={distributionSettings.cta_description}
+                    placeholder="Contoh: Dapatkan arsitektur sistem, panduan teknis, dan blueprint yang telah diuji langsung..."
+                    onChange={(e) => handleDistributionUpdate({ cta_description: e.target.value })}
+                    className="w-full bg-[#0A0B0E] border border-white/10 rounded-xl p-3 text-xs text-[#F8FAFC] outline-none resize-none placeholder-[#52525B] focus:border-[#34D399]/50 leading-relaxed transition-colors"
+                  />
+                </div>
+
+                {/* Label Tombol */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]">
+                      Label Tombol
+                    </label>
+                    <span className="text-[10px] font-mono text-[#71717A]">
+                      {distributionSettings.cta_button_label.length}/40
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    maxLength={40}
+                    value={distributionSettings.cta_button_label}
+                    placeholder="Contoh: Lihat Produk Digital"
+                    onChange={(e) => handleDistributionUpdate({ cta_button_label: e.target.value })}
+                    className="w-full h-10 bg-[#0A0B0E] border border-white/10 rounded-xl px-3 text-xs text-[#F8FAFC] outline-none focus:border-[#34D399]/50 transition-colors"
+                  />
+                </div>
+
+                {/* Tujuan Tombol / URL */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]">
+                      Tujuan Tombol (URL)
+                    </label>
+                    {distributionSettings.cta_button_url && (
+                      <span className={`text-[10px] font-mono flex items-center gap-1 ${
+                        isValidCtaUrl(distributionSettings.cta_button_url) ? 'text-[#34D399]' : 'text-[#EF4444]'
+                      }`}>
+                        {isValidCtaUrl(distributionSettings.cta_button_url) ? (
+                          <>
+                            <CheckCircle2 className="w-3 h-3" />
+                            <span>URL valid</span>
+                          </>
+                        ) : (
+                          <>
+                            <AlertCircle className="w-3 h-3" />
+                            <span>Format tidak valid</span>
+                          </>
+                        )}
+                      </span>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    value={distributionSettings.cta_button_url}
+                    placeholder="Gunakan path internal (misal: /produk) atau URL https://"
+                    onChange={(e) => handleDistributionUpdate({ cta_button_url: e.target.value })}
+                    className="w-full h-10 bg-[#0A0B0E] border border-white/10 rounded-xl px-3 text-xs text-[#F8FAFC] outline-none focus:border-[#34D399]/50 transition-colors"
+                  />
+                  <p className="text-[11px] text-[#71717A] mt-1.5">
+                    Mendukung path internal (contoh: <code className="text-[#34D399]">/produk</code>, <code className="text-[#34D399]">/about</code>) atau link eksternal aman (<code className="text-[#34D399]">https://...</code>).
+                  </p>
+                </div>
+
+                {/* Real-time Studio Mini Preview */}
+                <div className="space-y-2 pt-2 border-t border-white/5">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#CBD5E1] flex items-center gap-1.5">
+                    <Eye className="w-3.5 h-3.5 text-[#34D399]" />
+                    <span>Pratinjau Live Kartu CTA</span>
+                  </label>
+
+                  {isCtaCompleteAndEnabled(distributionSettings) ? (
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-[#14151C] to-[#0A0B0E] border border-[#34D399]/30 shadow-md space-y-3">
+                      <span className="text-[9px] font-mono uppercase tracking-widest text-[#34D399] bg-[#34D399]/10 px-2 py-0.5 rounded-full border border-[#34D399]/20 inline-block font-semibold">
+                        Aksi Berikutnya
+                      </span>
+                      <strong className="block text-xs font-serif text-[#F8FAFC] font-semibold leading-snug">
+                        {distributionSettings.cta_title}
+                      </strong>
+                      {distributionSettings.cta_description && (
+                        <p className="text-[11px] text-[#94A3B8] leading-relaxed">
+                          {distributionSettings.cta_description}
+                        </p>
+                      )}
+                      <div className="pt-1">
+                        <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#10B981] text-[#022C22] font-bold text-[11px] shadow-sm">
+                          <span>{distributionSettings.cta_button_label}</span>
+                          <ArrowUpRight className="w-3 h-3" />
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-xl bg-[#0A0B0E] border border-dashed border-white/10 text-center space-y-1">
+                      <span className="text-xs text-[#71717A] italic block">
+                        Lengkapi judul, label tombol, dan URL valid untuk mengaktifkan kartu CTA.
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* TAB 3: SEO */}
         {activeTab === 'seo' && (
           <div className="space-y-5">
@@ -838,6 +1054,149 @@ export function StudioSettings({
                   </p>
                 </div>
               </div>
+            </div>
+
+            {/* KESIAPAN PUBLIKASI (SEO & Publishing Checklist) */}
+            <div className="space-y-3 pt-3 border-t border-white/5">
+              {(() => {
+                const checklistItems = [
+                  {
+                    id: 'title',
+                    label: 'Judul artikel tersedia',
+                    passed: Boolean(article.title && article.title.trim() !== '' && article.title !== 'Untitled story'),
+                    action: 'Beri judul naskah yang jelas dan menarik',
+                  },
+                  {
+                    id: 'slug',
+                    label: 'Slug URL valid',
+                    passed: Boolean(article.slug && article.slug.trim() !== '' && article.slug !== 'untitled-story'),
+                    action: 'Tentukan slug URL naskah yang bersih',
+                  },
+                  {
+                    id: 'excerpt',
+                    label: 'Ringkasan / Excerpt tersedia',
+                    passed: Boolean(article.excerpt && article.excerpt.trim().length > 0),
+                    action: 'Tulis ringkasan naskah untuk pratinjau dan SEO',
+                  },
+                  {
+                    id: 'category',
+                    label: 'Kategori dipilih',
+                    passed: Boolean(article.category && article.category.trim().length > 0),
+                    action: 'Pilih kategori artikel di tab Artikel',
+                  },
+                  {
+                    id: 'cover',
+                    label: 'Gambar cover tersedia',
+                    passed: Boolean(displayCover),
+                    action: 'Unggah cover atau sertakan gambar dalam teks',
+                  },
+                  {
+                    id: 'alt_text',
+                    label: 'Alt text cover tersedia',
+                    passed: !displayCover || Boolean(visualSettings.alt_text && visualSettings.alt_text.trim().length > 0),
+                    action: 'Tambahkan alt text cover di tab Artikel',
+                  },
+                  {
+                    id: 'seo_title',
+                    label: 'SEO title siap (atau fallback judul)',
+                    passed: Boolean((article.seo_title && article.seo_title.trim().length > 0) || (article.title && article.title !== 'Untitled story')),
+                    action: 'Tentukan judul SEO atau gunakan judul artikel',
+                  },
+                  {
+                    id: 'seo_desc',
+                    label: 'Meta description siap (atau fallback excerpt)',
+                    passed: Boolean((article.seo_description && article.seo_description.trim().length > 0) || (article.excerpt && article.excerpt.trim().length > 0)),
+                    action: 'Tulis meta description atau gunakan ringkasan artikel',
+                  },
+                  {
+                    id: 'cta',
+                    label: 'CTA lengkap bila toggle aktif',
+                    passed: !distributionSettings.cta_enabled || isCtaCompleteAndEnabled(distributionSettings),
+                    action: 'Lengkapi judul, label tombol, dan URL valid di tab Distribusi',
+                  },
+                ];
+
+                const passedCount = checklistItems.filter((i) => i.passed).length;
+                const isTitleReady = Boolean(article.title && article.title !== 'Untitled story');
+                const isSlugReady = Boolean(article.slug && article.slug !== 'untitled-story');
+                const isExcerptReady = Boolean(article.excerpt && article.excerpt.trim().length > 0);
+                const isCategoryReady = Boolean(article.category);
+                const isCtaReady = !distributionSettings.cta_enabled || isCtaCompleteAndEnabled(distributionSettings);
+
+                let statusBadge: { label: string; className: string; hint: string };
+                if (isTitleReady && isSlugReady && isExcerptReady && isCategoryReady && isCtaReady) {
+                  if (passedCount === checklistItems.length) {
+                    statusBadge = {
+                      label: 'Siap dipublikasikan',
+                      className: 'bg-[#10B981]/15 text-[#34D399] border-[#10B981]/30 shadow-[0_0_12px_rgba(16,185,129,0.15)]',
+                      hint: 'Semua kriteria kualitas terpenuhi dengan sempurna.',
+                    };
+                  } else {
+                    statusBadge = {
+                      label: 'Perlu perhatian',
+                      className: 'bg-[#F59E0B]/15 text-[#FBBF24] border-[#F59E0B]/30',
+                      hint: 'Artikel sudah dapat dirilis, namun ada optimasi kecil yang dianjurkan.',
+                    };
+                  }
+                } else {
+                  statusBadge = {
+                    label: 'Draft awal',
+                    className: 'bg-white/5 text-[#94A3B8] border-white/10',
+                    hint: 'Lengkapi identitas dasar artikel sebelum mempublikasikan.',
+                  };
+                }
+
+                return (
+                  <div className="p-4 rounded-xl bg-[#14151B] border border-white/10 space-y-3.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-[#34D399]" />
+                        <strong className="text-xs text-[#F8FAFC] font-semibold">
+                          Kesiapan Publikasi
+                        </strong>
+                      </div>
+                      <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full border font-semibold ${statusBadge.className}`}>
+                        {statusBadge.label}
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-[#94A3B8] leading-relaxed">
+                      {statusBadge.hint} ({passedCount}/{checklistItems.length} Kriteria Terpenuhi)
+                    </p>
+
+                    {/* Checklist List */}
+                    <div className="space-y-2 pt-1 border-t border-white/5">
+                      {checklistItems.map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex items-start justify-between gap-2 text-xs py-1"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            {item.passed ? (
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#34D399] flex-shrink-0" />
+                            ) : (
+                              <AlertCircle className="w-3.5 h-3.5 text-[#FBBF24] flex-shrink-0" />
+                            )}
+                            <span className={`truncate ${item.passed ? 'text-[#CBD5E1]' : 'text-[#F1F1ED] font-medium'}`}>
+                              {item.label}
+                            </span>
+                          </div>
+
+                          {!item.passed && (
+                            <span className="text-[10px] text-[#FBBF24] font-mono flex-shrink-0 text-right ml-2">
+                              {item.action}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    <p className="text-[10px] text-[#71717A] italic pt-1">
+                      Checklist ini adalah panduan kualitas editorial dan tidak memblokir penyimpanan draft.
+                    </p>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         )}

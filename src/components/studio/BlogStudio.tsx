@@ -11,7 +11,9 @@ import {
 import { supabase } from '@/lib/supabase';
 import {
   emptyTiptapDocument, slugify, extractFirstImageFromTiptap,
-  extractVisualSettings, applyVisualSettingsToContentJson, type StudioArticle,
+  extractVisualSettings, applyVisualSettingsToContentJson,
+  extractDistributionSettings, applyDistributionSettingsToContentJson,
+  type StudioArticle,
 } from '@/lib/blog-types';
 import { ArticleRenderer } from '@/components/shared/ArticleRenderer';
 
@@ -53,8 +55,14 @@ function LoginPanel({ onAuthenticated }: { onAuthenticated: (session: Session) =
   return (
     <main className="studio-login-shell">
       <div className="studio-login-card">
-        <div className="studio-brand-mark">K</div>
-        <span className="studio-eyebrow">KHADAFI · PRIVATE WORKSPACE</span>
+        <div className="w-16 h-16 rounded-2xl bg-[#14151B] border border-white/15 p-2 flex items-center justify-center mx-auto mb-4 shadow-xl">
+          <img
+            src="/assets/logo%20AAPE.png"
+            alt="AAPE Logo"
+            className="w-full h-full object-contain"
+          />
+        </div>
+        <span className="studio-eyebrow">KHADAFI · AAPE PRIVATE WORKSPACE</span>
         <h1>Masuk ke Blog Studio</h1>
         <p>Tulis, desain, dan publikasikan cerita langsung ke khadafidaffa.com.</p>
         <form onSubmit={signIn}>
@@ -371,8 +379,10 @@ export default function BlogStudio() {
       const text = editor.getText().trim();
       const wordCount = text ? text.split(/\s+/).length : 0;
       const currentVisual = extractVisualSettings(latestArticle.current?.content_json);
+      const currentDist = extractDistributionSettings(latestArticle.current?.content_json);
       const json = editor.getJSON();
-      const nextContentJson = applyVisualSettingsToContentJson(json, currentVisual);
+      let nextContentJson = applyVisualSettingsToContentJson(json, currentVisual);
+      nextContentJson = applyDistributionSettingsToContentJson(nextContentJson, currentDist);
       update({
         content_json: nextContentJson,
         content_html: editor.getHTML(),
@@ -1040,6 +1050,7 @@ export default function BlogStudio() {
                   cover_slides: article.cover_slides,
                   content_json: article.content_json,
                   visual_settings: extractVisualSettings(article.content_json),
+                  distribution_settings: extractDistributionSettings(article.content_json),
                   theme: article.theme,
                   music_enabled: article.music_enabled,
                   music_uri: article.music_uri,

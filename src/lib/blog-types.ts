@@ -42,6 +42,7 @@ export type TiptapNode = {
   content?: TiptapNode[];
   marks?: Array<{ type: string; attrs?: Record<string, unknown> }>;
   visual_settings?: VisualSettings;
+  distribution_settings?: DistributionSettings;
   meta?: Record<string, unknown>;
   [key: string]: unknown;
 };
@@ -423,4 +424,150 @@ export function applyVisualSettingsToContentJson(
     attrs,
   } as TiptapNode;
 }
+
+export type DistributionSettings = {
+  cta_enabled: boolean;
+  cta_title: string;
+  cta_description: string;
+  cta_button_label: string;
+  cta_button_url: string;
+};
+
+export const defaultDistributionSettings: DistributionSettings = {
+  cta_enabled: false,
+  cta_title: '',
+  cta_description: '',
+  cta_button_label: '',
+  cta_button_url: '',
+};
+
+export const CTA_PRESETS = [
+  {
+    id: 'digital-product',
+    label: 'Lihat Produk Digital',
+    title: 'Eksplorasi Blueprint & Produk Digital',
+    description: 'Dapatkan arsitektur sistem, panduan teknis, dan blueprint yang telah diuji langsung dalam produksi.',
+    button_label: 'Lihat Produk Digital',
+    button_url: '/produk',
+  },
+  {
+    id: 'services',
+    label: 'Jelajahi Jasa Saya',
+    title: 'Bangun Solusi AI & Rekayasa Produk Bersama Saya',
+    description: 'Konsultasi arsitektur sistem, engineering modern, atau pengembangan produk digital dari nol hingga skala penuh.',
+    button_label: 'Jelajahi Jasa',
+    button_url: '/services',
+  },
+  {
+    id: 'follow-journey',
+    label: 'Ikuti Perjalanan Saya',
+    title: 'Mari Terhubung dan Berdiskusi Lebih Jauh',
+    description: 'Ikuti catatan teknis, insight arsitektur AI, dan eksplorasi rekayasa perangkat lunak saya di media sosial.',
+    button_label: 'Ikuti Perjalanan',
+    button_url: 'https://linkedin.com',
+  },
+  {
+    id: 'main-link',
+    label: 'Kunjungi Link Utama',
+    title: 'Kenali Lebih Dekat Portofolio & Manifesto Saya',
+    description: 'Pelajari filosofi engineering, latar belakang teknis, dan studi kasus proyek yang telah saya kembangkan.',
+    button_label: 'Kunjungi Profil Utama',
+    button_url: '/about',
+  },
+] as const;
+
+export function isValidCtaUrl(url?: string | null): boolean {
+  if (!url) return false;
+  const trimmed = url.trim();
+  if (!trimmed) return false;
+  // Disallow unsafe schemes (javascript:, data:, vbscript:, file:, etc.)
+  if (/^(javascript|data|vbscript|file):/i.test(trimmed)) return false;
+  // Allow safe internal paths like /produk, /about, /services
+  if (trimmed.startsWith('/') && !trimmed.startsWith('//')) return true;
+  // Allow safe https:// URLs
+  if (/^https:\/\//i.test(trimmed)) return true;
+  return false;
+}
+
+export function isCtaCompleteAndEnabled(settings?: DistributionSettings | null): boolean {
+  if (!settings || !settings.cta_enabled) return false;
+  if (!settings.cta_title.trim()) return false;
+  if (!settings.cta_button_label.trim()) return false;
+  if (!isValidCtaUrl(settings.cta_button_url)) return false;
+  return true;
+}
+
+export function extractDistributionSettings(source?: unknown): DistributionSettings {
+  if (!source || typeof source !== 'object') {
+    return { ...defaultDistributionSettings };
+  }
+
+  const obj = source as Record<string, unknown>;
+
+  let raw: unknown = obj.distribution_settings;
+
+  if (!raw && obj.content_json && typeof obj.content_json === 'object') {
+    const cj = obj.content_json as Record<string, unknown>;
+    raw =
+      cj.distribution_settings ||
+      (cj.meta && typeof cj.meta === 'object' ? (cj.meta as Record<string, unknown>).distribution_settings : undefined) ||
+      (cj.attrs && typeof cj.attrs === 'object' ? (cj.attrs as Record<string, unknown>).distribution_settings : undefined);
+  }
+
+  if (!raw && obj.meta && typeof obj.meta === 'object') {
+    raw = (obj.meta as Record<string, unknown>).distribution_settings;
+  }
+  if (!raw && obj.attrs && typeof obj.attrs === 'object') {
+    raw = (obj.attrs as Record<string, unknown>).distribution_settings;
+  }
+
+  if (!raw || typeof raw !== 'object') {
+    return { ...defaultDistributionSettings };
+  }
+
+  const r = raw as Record<string, unknown>;
+
+  const cleanString = (val: unknown, maxLen: number) => {
+    if (typeof val !== 'string') return '';
+    return val.replace(/<[^>]*>/g, '').trim().slice(0, maxLen);
+  };
+
+  return {
+    cta_enabled: Boolean(r.cta_enabled),
+    cta_title: cleanString(r.cta_title, 80),
+    cta_description: cleanString(r.cta_description, 180),
+    cta_button_label: cleanString(r.cta_button_label, 40),
+    cta_button_url: typeof r.cta_button_url === 'string' ? r.cta_button_url.trim().slice(0, 500) : '',
+  };
+}
+
+export function applyDistributionSettingsToContentJson(
+  contentJson: unknown,
+  settings: Partial<DistributionSettings>,
+): TiptapNode {
+  const base: Record<string, unknown> =
+    contentJson && typeof contentJson === 'object'
+      ? { ...(contentJson as Record<string, unknown>) }
+      : { type: 'doc', content: [{ type: 'paragraph' }] };
+
+  const currentSettings = extractDistributionSettings(base);
+  const nextSettings: DistributionSettings = {
+    ...currentSettings,
+    ...settings,
+  };
+
+  const meta = base.meta && typeof base.meta === 'object' ? { ...(base.meta as Record<string, unknown>) } : {};
+  meta.distribution_settings = nextSettings;
+
+  const attrs = base.attrs && typeof base.attrs === 'object' ? { ...(base.attrs as Record<string, unknown>) } : {};
+  attrs.distribution_settings = nextSettings;
+
+  return {
+    ...base,
+    distribution_settings: nextSettings,
+    meta,
+    attrs,
+  } as TiptapNode;
+}
+
 

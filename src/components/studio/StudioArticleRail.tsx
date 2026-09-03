@@ -86,13 +86,17 @@ export function StudioArticleRail({
     <div className="studio-rail-content flex flex-col h-full select-none relative">
       {/* Brand & Collapse Header */}
       <div className="studio-brand flex items-center justify-between p-4 border-b border-white/5 bg-[#0C0D11]">
-        <div className="flex items-center gap-3">
-          <div className="studio-brand-mark w-9 h-9 rounded-xl bg-gradient-to-br from-[#2D3039] to-[#14151B] border border-white/10 flex items-center justify-center font-serif text-base font-semibold text-[#F8FAFC] shadow-inner">
-            K
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="studio-brand-mark w-11 h-11 rounded-xl bg-[#14151B] border border-white/15 p-1 flex items-center justify-center shadow-md flex-shrink-0 overflow-hidden hover:border-[#34D399]/40 transition-colors">
+            <img
+              src="/assets/logo%20AAPE.png"
+              alt="AAPE Studio Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
-          <div className="flex flex-col">
-            <strong className="font-serif text-sm text-[#F8FAFC] tracking-tight leading-tight">Khadafi</strong>
-            <span className="text-[11px] text-[#94A3B8] tracking-widest uppercase font-mono mt-0.5">Blog Studio</span>
+          <div className="flex flex-col min-w-0">
+            <strong className="font-serif text-sm text-[#F8FAFC] tracking-tight leading-tight truncate">Khadafi</strong>
+            <span className="text-[10px] text-[#34D399] tracking-widest uppercase font-mono mt-0.5 font-semibold">AAPE Studio</span>
           </div>
         </div>
         <button
@@ -242,11 +246,13 @@ export function StudioArticleRail({
       {/* Workspace Owner Profile */}
       <div className="studio-owner p-3.5 border-t border-white/5 bg-[#0C0D11] flex items-center justify-between">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-8 h-8 rounded-full bg-[#27272A] border border-white/10 flex items-center justify-center text-[11px] font-bold text-[#F1F1ED] flex-shrink-0">
-            DK
-          </div>
+          <img
+            src="/assets/Profile%20Photo.png"
+            alt="Daffa Dhiyaulhaq Khadafi"
+            className="w-9 h-9 rounded-full object-cover border border-white/15 flex-shrink-0 shadow-sm"
+          />
           <div className="flex flex-col min-w-0">
-            <strong className="text-xs text-[#F1F1ED] truncate font-semibold">Daffa Khadafi</strong>
+            <strong className="text-xs text-[#F1F1ED] truncate font-semibold">Daffa Dhiyaulhaq Khadafi</strong>
             <small className="text-[10px] text-[#94A3B8] truncate">Owner Workspace</small>
           </div>
         </div>
