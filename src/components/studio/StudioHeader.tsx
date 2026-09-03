@@ -2,7 +2,7 @@
 
 import {
   PanelLeft, PanelRight, Maximize2, Minimize2, Eye, Save, Send, Check,
-  LoaderCircle, AlertCircle, Undo2, Redo2, Plus, Bot,
+  LoaderCircle, AlertCircle, Undo2, Redo2, Plus, Bot, Sparkles,
 } from 'lucide-react';
 import type { StudioArticle } from '@/lib/blog-types';
 
@@ -24,6 +24,7 @@ type Props = {
   canRedo: boolean;
   onInsertBlockClick: () => void;
   onOpenAiModal?: () => void;
+  onOpenRepurposeModal?: () => void;
   hasSelection?: boolean;
 };
 
@@ -45,6 +46,7 @@ export function StudioHeader({
   canRedo,
   onInsertBlockClick,
   onOpenAiModal,
+  onOpenRepurposeModal,
   hasSelection = false,
 }: Props) {
   const isPublished = article.status === 'published';
@@ -179,6 +181,20 @@ export function StudioHeader({
           <Eye className="w-4 h-4 text-[#60A5FA]" />
           <span className="hidden sm:inline">Preview</span>
         </button>
+
+        {/* Content Repurposing Button */}
+        {onOpenRepurposeModal && (
+          <button
+            type="button"
+            onClick={onOpenRepurposeModal}
+            title="Buat turunan konten dari artikel ini"
+            aria-label="Buat turunan konten dari artikel ini"
+            className="flex items-center gap-2 h-10 px-3.5 rounded-xl text-xs font-semibold text-[#CBD5E1] hover:text-[#F8FAFC] bg-[#14151B] hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all shadow-sm group"
+          >
+            <Sparkles className="w-4 h-4 text-[#F59E0B] group-hover:scale-110 transition-transform" />
+            <span className="hidden sm:inline">Ubah Jadi Konten</span>
+          </button>
+        )}
 
         {/* AI Co-Pilot Button */}
         {onOpenAiModal && (

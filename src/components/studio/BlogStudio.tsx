@@ -30,6 +30,7 @@ import { StudioImageToolbar } from './StudioImageToolbar';
 import { StudioTemplateModal } from './StudioTemplateModal';
 import { StudioUnsavedGuardModal } from './StudioUnsavedGuardModal';
 import { StudioAiModal } from './StudioAiModal';
+import { StudioRepurposeModal } from './StudioRepurposeModal';
 import { type StudioTemplate } from '@/lib/studio-templates';
 
 type SaveState = 'saved' | 'editing' | 'saving' | 'error';
@@ -126,6 +127,7 @@ export default function BlogStudio() {
   const [publishError, setPublishError] = useState('');
   const [uploading, setUploading] = useState(false);
   const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [repurposeModalOpen, setRepurposeModalOpen] = useState(false);
 
   // Slash Menu state
   const [slashOpen, setSlashOpen] = useState(false);
@@ -861,6 +863,7 @@ export default function BlogStudio() {
         canRedo={editor.can().redo()}
         onInsertBlockClick={openInsertBlockMenu}
         onOpenAiModal={() => setAiModalOpen(true)}
+        onOpenRepurposeModal={() => setRepurposeModalOpen(true)}
         hasSelection={Boolean(editor && !editor.state.selection.empty)}
       />
 
@@ -1094,6 +1097,17 @@ export default function BlogStudio() {
           editor={editor}
           article={article}
           onUpdateArticle={update}
+          authToken={session?.access_token || ''}
+        />
+      )}
+
+      {/* 9. AI Content Repurposing Modal */}
+      {article && (
+        <StudioRepurposeModal
+          isOpen={repurposeModalOpen}
+          onClose={() => setRepurposeModalOpen(false)}
+          editor={editor}
+          article={article}
           authToken={session?.access_token || ''}
         />
       )}
