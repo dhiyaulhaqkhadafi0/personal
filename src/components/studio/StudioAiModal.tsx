@@ -141,7 +141,7 @@ export function StudioAiModal({
     }
 
     try {
-      const plainBody = editor.getText();
+      const plainBody = isSelectionAction ? '' : editor.getText().slice(0, 4000);
 
       const res = await fetch('/api/studio/ai', {
         method: 'POST',
