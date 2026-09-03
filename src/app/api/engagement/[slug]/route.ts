@@ -34,6 +34,13 @@ export async function GET(
       );
     }
 
+    if (!stats.configured) {
+      return NextResponse.json(
+        { error: 'Layanan engagement belum dikonfigurasi (ENGAGEMENT_SIGNING_SECRET tidak tersedia).', configured: false },
+        { status: 503 }
+      );
+    }
+
     const response = NextResponse.json(
       {
         view_count: stats.view_count,

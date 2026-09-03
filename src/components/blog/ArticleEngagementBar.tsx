@@ -16,6 +16,7 @@ export function ArticleEngagementBar({ slug, previewMode = false }: Props) {
   const [hasLiked, setHasLiked] = useState<boolean>(false);
   const [isLiking, setIsLiking] = useState(false);
   const [likeAnimate, setLikeAnimate] = useState(false);
+  const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
 
   // Active time tracking for honest view count (8 seconds of active visibility)
   const visibleSecondsRef = useRef(0);
@@ -28,6 +29,7 @@ export function ArticleEngagementBar({ slug, previewMode = false }: Props) {
       setViewCount(0);
       setLikeCount(0);
       setHasLiked(false);
+      setIsConfigured(true);
       return;
     }
 
@@ -40,8 +42,19 @@ export function ArticleEngagementBar({ slug, previewMode = false }: Props) {
           method: 'GET',
           headers: { 'Accept': 'application/json' },
         });
+
+        if (res.status === 503) {
+          if (isMounted) setIsConfigured(false);
+          return;
+        }
+
         if (res.ok && isMounted) {
           const data = await res.json();
+          if (data.configured === false) {
+            setIsConfigured(false);
+            return;
+          }
+          setIsConfigured(true);
           setViewCount(typeof data.view_count === 'number' ? data.view_count : 0);
           setLikeCount(typeof data.like_count === 'number' ? data.like_count : 0);
           setHasLiked(Boolean(data.viewer_has_liked));
@@ -143,6 +156,10 @@ export function ArticleEngagementBar({ slug, previewMode = false }: Props) {
       setIsLiking(false);
     }
   };
+
+  if (isConfigured === false) {
+    return null;
+  }
 
   return (
     <div

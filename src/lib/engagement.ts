@@ -5,6 +5,18 @@ import { cookies } from 'next/headers';
 export const VISITOR_COOKIE_NAME = 'khadafi_vid';
 export const VISITOR_COOKIE_MAX_AGE = 365 * 24 * 60 * 60; // 1 year in seconds
 
+/**
+ * Retrieves the mandatory HMAC signing secret from environment.
+ * STRICT: Absolutely NO fallback allowed. Fails closed if missing or empty.
+ */
+export function getEngagementSigningSecret(): string | null {
+  const secret = process.env.ENGAGEMENT_SIGNING_SECRET;
+  if (!secret || typeof secret !== 'string' || secret.trim().length === 0) {
+    return null;
+  }
+  return secret.trim();
+}
+
 // Secure one-way hashing for privacy-first anonymous visitor identification
 export function hashVisitorId(visitorId: string): string {
   const salt = process.env.ENGAGEMENT_SALT || 'khadafi_reader_privacy_salt_2026';
@@ -35,10 +47,17 @@ export async function getOrCreateVisitorId(): Promise<{ visitorId: string; isNew
  * - slug
  * - visitor_hash
  * - server timestamp
+ *
+ * FAILS CLOSED if ENGAGEMENT_SIGNING_SECRET is not available.
  */
-export function generateViewToken(slug: string, visitorHash: string): string {
+export function generateViewToken(slug: string, visitorHash: string): string | null {
+  const secret = getEngagementSigningSecret();
+  if (!secret) {
+    // Fail closed: Never issue tokens without explicit runtime secret
+    return null;
+  }
+
   const timestamp = Date.now();
-  const secret = process.env.ENGAGEMENT_SIGNING_SECRET || 'khadafi_view_token_default_hmac_secret_2026';
   const payload = `${slug}:${visitorHash}:${timestamp}`;
   const signature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
   return `${timestamp}.${signature}`;
@@ -47,12 +66,22 @@ export function generateViewToken(slug: string, visitorHash: string): string {
 /**
  * Verifies that the view token is valid, matches the current visitor and article,
  * and confirms that at least 8 real seconds have elapsed since generation.
+ *
+ * FAILS CLOSED if ENGAGEMENT_SIGNING_SECRET is not available.
  */
 export function verifyViewToken(
   token: string,
   slug: string,
   visitorHash: string
 ): { valid: boolean; reason?: string } {
+  const secret = getEngagementSigningSecret();
+  if (!secret) {
+    return {
+      valid: false,
+      reason: 'ENGAGEMENT_SIGNING_SECRET belum dikonfigurasi pada server (fail closed).',
+    };
+  }
+
   if (!token || typeof token !== 'string') {
     return { valid: false, reason: 'Token pembacaan tidak ditemukan.' };
   }
@@ -68,7 +97,6 @@ export function verifyViewToken(
     return { valid: false, reason: 'Timestamp token tidak valid.' };
   }
 
-  const secret = process.env.ENGAGEMENT_SIGNING_SECRET || 'khadafi_view_token_default_hmac_secret_2026';
   const expectedPayload = `${slug}:${visitorHash}:${timestamp}`;
   const expectedSignature = crypto.createHmac('sha256', secret).update(expectedPayload).digest('hex');
 
@@ -101,10 +129,11 @@ export function verifyViewToken(
 }
 
 export type EngagementStats = {
-  view_count: number;
-  like_count: number;
+  view_count: number | null;
+  like_count: number | null;
   viewer_has_liked: boolean;
-  view_token?: string;
+  view_token?: string | null;
+  configured: boolean;
 };
 
 /**
@@ -127,6 +156,7 @@ export async function verifyPublishedArticle(slug: string): Promise<{ id: string
 /**
  * Fetches public engagement metrics and visitor like status for a published article.
  * Guarantees that only published articles return engagement. Drafts or non-existent slugs return null (404).
+ * Fails closed if ENGAGEMENT_SIGNING_SECRET is not configured.
  */
 export async function getEngagementForArticle(
   slug: string,
@@ -138,19 +168,36 @@ export async function getEngagementForArticle(
     return null;
   }
 
-  const viewToken = visitorHash ? generateViewToken(slug, visitorHash) : undefined;
+  // 2. Fail closed if signing secret is absent
+  const secret = getEngagementSigningSecret();
+  if (!secret) {
+    return {
+      view_count: null,
+      like_count: null,
+      viewer_has_liked: false,
+      view_token: null,
+      configured: false,
+    };
+  }
 
-  // 2. Check if service role is available
+  const viewToken = visitorHash ? generateViewToken(slug, visitorHash) : null;
+
+  // 3. Check if service role is available
   let db: ReturnType<typeof createServiceRoleClient>;
   try {
     db = createServiceRoleClient();
   } catch {
-    // Graceful degradation when SUPABASE_SERVICE_ROLE_KEY is not yet added locally
-    return { view_count: 0, like_count: 0, viewer_has_liked: false, view_token: viewToken };
+    return {
+      view_count: 0,
+      like_count: 0,
+      viewer_has_liked: false,
+      view_token: viewToken,
+      configured: true,
+    };
   }
 
   try {
-    // 3. Call secure PostgreSQL RPC get_article_engagement
+    // 4. Call secure PostgreSQL RPC get_article_engagement
     const { data: rpcData, error: rpcError } = await db.rpc('get_article_engagement', {
       p_slug: slug,
       p_visitor_hash: visitorHash || '',
@@ -162,6 +209,7 @@ export async function getEngagementForArticle(
         like_count: Number(rpcData.like_count || 0),
         viewer_has_liked: Boolean(rpcData.viewer_has_liked),
         view_token: viewToken,
+        configured: true,
       };
     }
 
@@ -188,9 +236,16 @@ export async function getEngagementForArticle(
       like_count: Number(engagement?.like_count || 0),
       viewer_has_liked: viewerHasLiked,
       view_token: viewToken,
+      configured: true,
     };
   } catch {
-    return { view_count: 0, like_count: 0, viewer_has_liked: false, view_token: viewToken };
+    return {
+      view_count: 0,
+      like_count: 0,
+      viewer_has_liked: false,
+      view_token: viewToken,
+      configured: true,
+    };
   }
 }
 
@@ -211,8 +266,7 @@ export async function recordEngagementView(
   try {
     db = createServiceRoleClient();
   } catch {
-    // Graceful fallback when service role is not yet configured
-    return { view_count: 1, like_count: 0, viewer_has_liked: false };
+    return { view_count: 1, like_count: 0, viewer_has_liked: false, configured: true };
   }
 
   try {
@@ -232,6 +286,7 @@ export async function recordEngagementView(
       view_count: Number(data?.view_count || 0),
       like_count: Number(data?.like_count || 0),
       viewer_has_liked: Boolean(data?.viewer_has_liked),
+      configured: true,
     };
   } catch {
     return getEngagementForArticle(slug, visitorHash);
@@ -255,8 +310,7 @@ export async function toggleEngagementLike(
   try {
     db = createServiceRoleClient();
   } catch {
-    // Graceful fallback when service role is not yet configured
-    return { view_count: 0, like_count: 1, viewer_has_liked: true };
+    return { view_count: 0, like_count: 1, viewer_has_liked: true, configured: true };
   }
 
   try {
@@ -276,8 +330,9 @@ export async function toggleEngagementLike(
       view_count: Number(data?.view_count || 0),
       like_count: Number(data?.like_count || 0),
       viewer_has_liked: Boolean(data?.viewer_has_liked),
+      configured: true,
     };
   } catch {
-    return { view_count: 0, like_count: 1, viewer_has_liked: true };
+    return { view_count: 0, like_count: 1, viewer_has_liked: true, configured: true };
   }
 }

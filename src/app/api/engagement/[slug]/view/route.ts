@@ -3,6 +3,7 @@ import {
   getOrCreateVisitorId,
   hashVisitorId,
   verifyViewToken,
+  getEngagementSigningSecret,
   recordEngagementView,
   VISITOR_COOKIE_NAME,
   VISITOR_COOKIE_MAX_AGE,
@@ -21,6 +22,14 @@ export async function POST(
 
     if (!slug || !SLUG_REGEX.test(slug)) {
       return NextResponse.json({ error: 'Slug tidak valid' }, { status: 400 });
+    }
+
+    // Fail closed if signing secret is missing
+    if (!getEngagementSigningSecret()) {
+      return NextResponse.json(
+        { error: 'Layanan engagement belum dikonfigurasi (ENGAGEMENT_SIGNING_SECRET tidak tersedia).' },
+        { status: 503 }
+      );
     }
 
     // Origin / Sec-Fetch-Site verification for write protection
