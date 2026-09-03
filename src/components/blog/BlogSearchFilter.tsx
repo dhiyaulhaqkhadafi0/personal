@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { SendHorizontal, LayoutGrid, List, ChevronDown, SearchX, RotateCcw, MonitorPlay, Eye, TrendingUp, Star, Clock, ArrowRight } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -11,18 +11,44 @@ import type { BlogCardItem } from "@/lib/mdx";
 
 type Props = {
   posts: BlogCardItem[];
+  initialEngagement?: Record<string, { view_count: number; like_count: number }>;
   loraClassName: string;
 };
 
 type SortMode = "Terbaru" | "Trending" | "Banyak Dilihat" | "Pilihan Editor";
 
-export default function BlogSearchFilter({ posts, loraClassName }: Props) {
+export default function BlogSearchFilter({ posts, initialEngagement, loraClassName }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua");
   const [sortMode, setSortMode] = useState<SortMode>("Terbaru");
   const [viewMode, setViewMode] = useState<"grid" | "list" | "youtube">("youtube");
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  const [engagement, setEngagement] = useState<Record<string, { view_count: number; like_count: number }>>(
+    initialEngagement || {}
+  );
+
+  // Revalidate real engagement data in background (read-only, does not record views)
+  useEffect(() => {
+    let isMounted = true;
+    fetch("/api/engagement")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && isMounted) {
+          setEngagement(data);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const formatViews = (slug: string) => {
+    const count = engagement[slug]?.view_count ?? 0;
+    return `${new Intl.NumberFormat("id-ID").format(count)} dibaca`;
+  };
 
   // Derive categories and counts dynamically
   const categoryCounts = useMemo(() => {
@@ -42,16 +68,7 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
     { id: "Pilihan Editor", icon: Star, label: "Pilihan Editor" },
   ];
 
-  // Pseudo-random deterministic number generator based on string (for fake views/trending scores)
-  const getScore = (str: string, seed: number) => {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return Math.abs(Math.sin(hash * seed) * 10000);
-  };
-
-  // Real-time search across title, excerpt, category, and slug, PLUS sorting
+  // Real-time search across title, excerpt, category, and slug, PLUS sorting with real engagement
   const filteredPosts = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     
@@ -71,22 +88,34 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
       return matchesSearch && matchesCategory;
     });
 
-    // 2. Sort
+    // 2. Sort using authentic engagement numbers
     filtered = [...filtered].sort((a, b) => {
+      const aViews = engagement[a.metadata.slug]?.view_count ?? 0;
+      const bViews = engagement[b.metadata.slug]?.view_count ?? 0;
+      const aLikes = engagement[a.metadata.slug]?.like_count ?? 0;
+      const bLikes = engagement[b.metadata.slug]?.like_count ?? 0;
+
       if (sortMode === "Terbaru") {
         return new Date(b.metadata.date).getTime() - new Date(a.metadata.date).getTime();
       } else if (sortMode === "Trending") {
-        return getScore(b.metadata.slug, 42) - getScore(a.metadata.slug, 42);
+        const scoreA = aViews + aLikes * 3;
+        const scoreB = bViews + bLikes * 3;
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        return new Date(b.metadata.date).getTime() - new Date(a.metadata.date).getTime();
       } else if (sortMode === "Banyak Dilihat") {
-        return getScore(b.metadata.slug, 13) - getScore(a.metadata.slug, 13);
+        if (bViews !== aViews) return bViews - aViews;
+        return new Date(b.metadata.date).getTime() - new Date(a.metadata.date).getTime();
       } else if (sortMode === "Pilihan Editor") {
-        return getScore(b.metadata.slug, 99) - getScore(a.metadata.slug, 99);
+        const readA = a.metadata.readingTime || 0;
+        const readB = b.metadata.readingTime || 0;
+        if (readB !== readA) return readB - readA;
+        return new Date(b.metadata.date).getTime() - new Date(a.metadata.date).getTime();
       }
       return 0;
     });
 
     return filtered;
-  }, [posts, searchQuery, selectedCategory, sortMode]);
+  }, [posts, searchQuery, selectedCategory, sortMode, engagement]);
 
   const handleReset = () => {
     setSearchQuery("");
@@ -309,7 +338,11 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
                           <div className="p-6 sm:p-7 flex flex-col flex-grow">
                             <div className="flex items-center justify-between text-xs font-mono tracking-wider mb-4">
                               <span className="bg-[#18181B] text-[#34D399] px-3 py-1 rounded-full border border-[#27272A] uppercase font-medium shadow-sm">{post.metadata.category}</span>
-                              <span className="text-[#9CA3AF] bg-[#18181B] px-3 py-1 rounded-full border border-[#27272A] shadow-md">{new Date(post.metadata.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="flex items-center gap-1 text-[#9CA3AF] bg-[#18181B] px-3 py-1 rounded-full border border-[#27272A] shadow-md text-[11px]">
+                                  <Eye className="w-3 h-3 text-[#34D399]" /> {formatViews(post.metadata.slug)}
+                                </span>
+                              </div>
                             </div>
                             <h2 className={`text-xl sm:text-[1.35rem] text-[#E2E8F0] group-hover:text-white font-medium leading-[1.35] transition-colors mb-3 line-clamp-2 ${loraClassName}`}>{post.metadata.title}</h2>
                             <p className="text-[#9CA3AF] leading-relaxed text-sm font-light group-hover:text-[#D1D5DB] transition-colors line-clamp-3 flex-grow">{post.metadata.excerpt}</p>
@@ -321,7 +354,11 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
                             <div className="flex items-center gap-3 text-xs font-mono tracking-wider mb-3">
                               <span className="text-[#34D399] uppercase font-semibold bg-[#34D399]/10 px-2.5 py-0.5 rounded-full border border-[#34D399]/20">{post.metadata.category}</span>
                               <span className="w-1 h-1 rounded-full bg-[#3F3F46]" />
-                              <span className="text-[#71717A]">{new Date(post.metadata.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span>
+                              <span className="flex items-center gap-1 text-[#9CA3AF] text-[11px]">
+                                <Eye className="w-3 h-3 text-[#34D399]" /> {formatViews(post.metadata.slug)}
+                              </span>
+                              <span className="w-1 h-1 rounded-full bg-[#3F3F46]" />
+                              <span className="text-[#71717A]">{new Date(post.metadata.date).toLocaleDateString("id-ID", { month: "long", day: "numeric", year: "numeric" })}</span>
                             </div>
                             <h2 className={`text-xl sm:text-2xl text-[#E2E8F0] group-hover/item:text-[#34D399] font-medium leading-snug transition-colors mb-2.5 line-clamp-2 ${loraClassName}`}>{post.metadata.title}</h2>
                             <p className="text-[#9CA3AF] leading-relaxed text-sm font-light group-hover/item:text-[#D1D5DB] transition-colors line-clamp-2 max-w-3xl">{post.metadata.excerpt}</p>
@@ -383,7 +420,7 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
                         <div className="flex items-center gap-4 text-xs font-mono text-[#71717A] mt-auto pt-4 border-t border-[#27272A]/50">
                           <span>{new Date(filteredPosts[0].metadata.date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</span>
                           <span className="w-1 h-1 rounded-full bg-[#3F3F46]" />
-                          <span className="flex items-center gap-1.5"><Eye className="w-3.5 h-3.5" /> {Math.floor(getScore(filteredPosts[0].metadata.slug, 13))} Views</span>
+                          <span className="flex items-center gap-1.5"><Eye className="w-3.5 h-3.5 text-[#34D399]" /> {formatViews(filteredPosts[0].metadata.slug)}</span>
                         </div>
                       </div>
                     </article>
@@ -418,7 +455,7 @@ export default function BlogSearchFilter({ posts, loraClassName }: Props) {
                             <h3 className={`text-[13px] sm:text-sm text-[#E2E8F0] group-hover:text-[#34D399] font-medium leading-[1.4] line-clamp-2 pr-2 ${loraClassName}`}>{post.metadata.title}</h3>
                             <div className="flex flex-col gap-1 mt-1.5 text-[10px] font-mono text-[#71717A] truncate">
                               <span className="text-[#34D399] uppercase tracking-wider truncate">{post.metadata.category}</span>
-                              <span className="flex items-center gap-1.5 truncate">{Math.floor(getScore(post.metadata.slug, 13))} Views &bull; {new Date(post.metadata.date).toLocaleDateString("id-ID", { month: "short", year: "numeric" })}</span>
+                              <span className="flex items-center gap-1.5 truncate"><Eye className="w-3 h-3 text-[#34D399]" /> {formatViews(post.metadata.slug)} &bull; {new Date(post.metadata.date).toLocaleDateString("id-ID", { month: "short", year: "numeric" })}</span>
                             </div>
                           </div>
                         </article>

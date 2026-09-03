@@ -1,4 +1,5 @@
 import { getBlogListingPosts } from '@/lib/mdx';
+import { getAllPublishedArticlesEngagement } from '@/lib/engagement';
 import { Navbar } from '@/components/shared/navbar';
 import { Lora } from 'next/font/google';
 import BlogSearchFilter from '@/components/blog/BlogSearchFilter';
@@ -14,7 +15,10 @@ export const metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function BlogIndex() {
-  const posts = await getBlogListingPosts();
+  const [posts, initialEngagement] = await Promise.all([
+    getBlogListingPosts(),
+    getAllPublishedArticlesEngagement(),
+  ]);
 
   return (
     <div className="min-h-screen bg-[#09090B] text-[#D1D5DB] font-sans selection:bg-[#34D399]/20 selection:text-[#E2E8F0] relative overflow-hidden">
@@ -30,7 +34,11 @@ export default async function BlogIndex() {
         <HeroSlider />
 
         {/* Main Content (Premium Search, Filter, Grid) */}
-        <BlogSearchFilter posts={posts} loraClassName={lora.className} />
+        <BlogSearchFilter 
+          posts={posts} 
+          initialEngagement={initialEngagement}
+          loraClassName={lora.className} 
+        />
         
       </main>
     </div>

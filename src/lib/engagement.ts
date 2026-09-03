@@ -336,3 +336,60 @@ export async function toggleEngagementLike(
     return { view_count: 0, like_count: 1, viewer_has_liked: true, configured: true };
   }
 }
+
+/**
+ * Reads real engagement stats (views & likes) for all currently published articles.
+ * Strictly read-only; does NOT issue tokens and does NOT increment views.
+ * Safe for blog index and article listing cards.
+ */
+export async function getAllPublishedArticlesEngagement(): Promise<
+  Record<string, { view_count: number; like_count: number }>
+> {
+  const result: Record<string, { view_count: number; like_count: number }> = {};
+
+  try {
+    const { data: articles, error: articlesErr } = await supabase
+      .from('published_blog_articles')
+      .select('id, slug');
+
+    if (articlesErr || !articles || articles.length === 0) {
+      return result;
+    }
+
+    for (const a of articles) {
+      result[a.slug] = { view_count: 0, like_count: 0 };
+    }
+
+    let db: ReturnType<typeof createServiceRoleClient>;
+    try {
+      db = createServiceRoleClient();
+    } catch {
+      // Graceful fallback to 0 when service role is not configured locally
+      return result;
+    }
+
+    const articleIds = articles.map((a) => a.id);
+    const { data: engagements, error: engErr } = await db
+      .from('article_engagement')
+      .select('article_id, view_count, like_count')
+      .in('article_id', articleIds);
+
+    if (!engErr && engagements) {
+      const idToSlug = new Map(articles.map((a) => [a.id, a.slug]));
+      for (const e of engagements) {
+        const slug = idToSlug.get(e.article_id);
+        if (slug) {
+          result[slug] = {
+            view_count: Number(e.view_count || 0),
+            like_count: Number(e.like_count || 0),
+          };
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error fetching all published articles engagement:', err);
+  }
+
+  return result;
+}
+
