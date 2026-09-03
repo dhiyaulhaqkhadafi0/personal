@@ -29,6 +29,7 @@ import { StudioBubbleMenu } from './StudioBubbleMenu';
 import { StudioImageToolbar } from './StudioImageToolbar';
 import { StudioTemplateModal } from './StudioTemplateModal';
 import { StudioUnsavedGuardModal } from './StudioUnsavedGuardModal';
+import { StudioAiModal } from './StudioAiModal';
 import { type StudioTemplate } from '@/lib/studio-templates';
 
 type SaveState = 'saved' | 'editing' | 'saving' | 'error';
@@ -124,6 +125,7 @@ export default function BlogStudio() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishError, setPublishError] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
 
   // Slash Menu state
   const [slashOpen, setSlashOpen] = useState(false);
@@ -858,6 +860,8 @@ export default function BlogStudio() {
         canUndo={editor.can().undo()}
         canRedo={editor.can().redo()}
         onInsertBlockClick={openInsertBlockMenu}
+        onOpenAiModal={() => setAiModalOpen(true)}
+        hasSelection={Boolean(editor && !editor.state.selection.empty)}
       />
 
       {/* Notice Banner */}
@@ -1081,6 +1085,18 @@ export default function BlogStudio() {
         isSaving={guardSaving}
         saveError={guardSaveError}
       />
+
+      {/* 8. AI Editorial Co-Pilot Modal */}
+      {article && (
+        <StudioAiModal
+          isOpen={aiModalOpen}
+          onClose={() => setAiModalOpen(false)}
+          editor={editor}
+          article={article}
+          onUpdateArticle={update}
+          authToken={session?.access_token || ''}
+        />
+      )}
     </main>
   );
 }

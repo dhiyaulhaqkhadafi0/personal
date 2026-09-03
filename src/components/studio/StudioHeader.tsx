@@ -2,7 +2,7 @@
 
 import {
   PanelLeft, PanelRight, Maximize2, Minimize2, Eye, Save, Send, Check,
-  LoaderCircle, AlertCircle, Undo2, Redo2, Plus,
+  LoaderCircle, AlertCircle, Undo2, Redo2, Plus, Sparkles,
 } from 'lucide-react';
 import type { StudioArticle } from '@/lib/blog-types';
 
@@ -23,6 +23,8 @@ type Props = {
   canUndo: boolean;
   canRedo: boolean;
   onInsertBlockClick: () => void;
+  onOpenAiModal?: () => void;
+  hasSelection?: boolean;
 };
 
 export function StudioHeader({
@@ -42,6 +44,8 @@ export function StudioHeader({
   canUndo,
   canRedo,
   onInsertBlockClick,
+  onOpenAiModal,
+  hasSelection = false,
 }: Props) {
   const isPublished = article.status === 'published';
 
@@ -175,6 +179,27 @@ export function StudioHeader({
           <Eye className="w-4 h-4 text-[#60A5FA]" />
           <span className="hidden sm:inline">Preview</span>
         </button>
+
+        {/* AI Co-Pilot Button */}
+        {onOpenAiModal && (
+          <button
+            type="button"
+            onClick={onOpenAiModal}
+            title="Buka AI Editorial Co-Pilot"
+            aria-label="AI Editorial Co-Pilot"
+            className={`flex items-center gap-2 h-10 px-3.5 rounded-xl text-xs font-semibold transition-all border shadow-sm ${
+              hasSelection
+                ? 'bg-[#10B981]/15 text-[#34D399] border-[#10B981]/40 hover:bg-[#10B981]/25'
+                : 'bg-[#14151B] text-[#CBD5E1] hover:text-[#F8FAFC] border-white/10 hover:border-white/20 hover:bg-white/5'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-[#34D399]" />
+            <span className="hidden sm:inline">AI Co‑Pilot</span>
+            {hasSelection && (
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse hidden sm:inline" />
+            )}
+          </button>
+        )}
 
         {/* Settings Sidebar Toggle (hidden in Focus Mode) */}
         {!focusMode && (
