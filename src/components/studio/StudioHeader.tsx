@@ -2,7 +2,7 @@
 
 import {
   PanelLeft, PanelRight, Maximize2, Minimize2, Eye, Save, Send, Check,
-  LoaderCircle, AlertCircle, Undo2, Redo2, Plus, Sparkles,
+  LoaderCircle, AlertCircle, Undo2, Redo2, Plus, Bot,
 } from 'lucide-react';
 import type { StudioArticle } from '@/lib/blog-types';
 
@@ -193,7 +193,7 @@ export function StudioHeader({
                 : 'bg-[#14151B] text-[#CBD5E1] hover:text-[#F8FAFC] border-white/10 hover:border-white/20 hover:bg-white/5'
             }`}
           >
-            <Sparkles className="w-4 h-4 text-[#34D399]" />
+            <Bot className="w-4 h-4 text-[#34D399]" />
             <span className="hidden sm:inline">AI Co‑Pilot</span>
             {hasSelection && (
               <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse hidden sm:inline" />

@@ -2,7 +2,7 @@
 
 import { useState, useId, useEffect, useRef } from 'react';
 import {
-  Settings2, ImageIcon, Upload, X, Music2, Sparkles, PanelRightClose,
+  Settings2, ImageIcon, Upload, X, Music2, Link2, FileText, PanelRightClose,
   AlertCircle, CheckCircle2, Copy, Check, Edit3, RotateCcw, ExternalLink,
   LoaderCircle, Compass, LayoutTemplate, Share2, Eye,
   ArrowUpRight, ShieldCheck, CheckCircle,
@@ -234,7 +234,7 @@ export function StudioSettings({
 
                 {!isCustomSlug ? (
                   <div className="flex items-center gap-1.5 text-[11px] text-[#71717A]">
-                    <Sparkles className="w-3 h-3 text-[#34D399]" />
+                    <Link2 className="w-3 h-3 text-[#34D399]" />
                     <span>Slug otomatis mengikuti judul naskah</span>
                   </div>
                 ) : (
@@ -344,7 +344,7 @@ export function StudioSettings({
               {autoCoverUrl && !manualCover && (
                 <div className="p-2.5 rounded-xl bg-[#34D399]/10 border border-[#34D399]/20 flex flex-col gap-0.5 text-xs">
                   <div className="flex items-center gap-1.5 text-[#34D399] font-semibold">
-                    <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
+                    <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />
                     <span>Thumbnail Otomatis Aktif</span>
                   </div>
                   <span className="text-[#94A3B8] text-[11px] leading-relaxed">
@@ -1033,7 +1033,7 @@ export function StudioSettings({
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-[#12131A] via-[#181922] to-[#0A0B0E] flex flex-col items-center justify-center text-center p-4 border border-white/5">
-                      <Sparkles className="w-6 h-6 text-[#34D399] mb-1.5 opacity-60" />
+                      <FileText className="w-6 h-6 text-[#71717A] mb-1.5 opacity-60" />
                       <span className="text-xs font-mono text-[#94A3B8] max-w-[220px] truncate">
                         {article.title || 'Untitled story'}
                       </span>

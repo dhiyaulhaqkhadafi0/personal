@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import {
-  Sparkles, X, Check, Copy, AlertTriangle, ArrowRight, LoaderCircle,
+  Bot, X, Check, Copy, AlertTriangle, ArrowRight, LoaderCircle,
   FileText, Wand2, RefreshCw, Layers, Heading, Scissors, ShieldAlert,
 } from 'lucide-react';
 import type { Editor } from '@tiptap/react';
@@ -254,7 +254,7 @@ export function StudioAiModal({
         <div className="p-5 border-b border-white/10 flex items-center justify-between bg-[#14151B]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#10B981]/20 to-[#6366F1]/20 border border-[#34D399]/30 flex items-center justify-center text-[#34D399]">
-              <Sparkles className="w-5 h-5" />
+              <Bot className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">

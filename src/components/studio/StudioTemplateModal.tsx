@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { X, FileText, Sparkles, BookOpen, Lightbulb, Compass, ArrowRight, LoaderCircle } from 'lucide-react';
+import { X, FileText, LayoutTemplate, BookOpen, Lightbulb, Compass, ArrowRight, LoaderCircle } from 'lucide-react';
 import { STUDIO_TEMPLATES, type StudioTemplate } from '@/lib/studio-templates';
 
 type Props = {
@@ -62,7 +62,7 @@ export function StudioTemplateModal({
         <div className="flex items-center justify-between px-6 py-5 border-b border-white/5 bg-[#14151B]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#34D399]/10 border border-[#34D399]/20 flex items-center justify-center text-[#34D399]">
-              <Sparkles className="w-5 h-5" />
+              <LayoutTemplate className="w-5 h-5" />
             </div>
             <div>
               <h2 id="template-modal-title" className="text-base font-bold text-[#F8FAFC]">

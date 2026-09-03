@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, AlertTriangle, X, LoaderCircle, Sparkles, Send, Save, Undo2 } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, X, LoaderCircle, ImageIcon, Send, Save, Undo2 } from 'lucide-react';
 import type { StudioArticle } from '@/lib/blog-types';
 
 type Props = {
@@ -140,7 +140,7 @@ export function StudioPublishModal({
                 <span>Cover Visual</span>
                 {hasAutoCover && (
                   <span className="text-[10px] bg-[#34D399]/15 text-[#34D399] px-1.5 py-0.2 rounded font-mono font-normal flex items-center gap-1">
-                    <Sparkles className="w-2.5 h-2.5" /> Auto-body
+                    <ImageIcon className="w-2.5 h-2.5" /> Auto-body
                   </span>
                 )}
               </strong>
