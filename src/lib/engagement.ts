@@ -1,0 +1,209 @@
+import crypto from 'crypto';
+import { supabase, createServiceRoleClient } from './supabase';
+import { cookies } from 'next/headers';
+
+export const VISITOR_COOKIE_NAME = 'khadafi_vid';
+export const VISITOR_COOKIE_MAX_AGE = 365 * 24 * 60 * 60; // 1 year in seconds
+
+// Secure one-way hashing for privacy-first anonymous visitor identification
+export function hashVisitorId(visitorId: string): string {
+  const salt = process.env.ENGAGEMENT_SALT || 'khadafi_reader_privacy_salt_2026';
+  return crypto.createHash('sha256').update(`${visitorId}:${salt}`).digest('hex');
+}
+
+/**
+ * Retrieves existing anonymous visitor ID from cookie or generates a new cryptographic UUID.
+ * Returns both the visitorId and whether a new cookie needs to be set on the response.
+ */
+export async function getOrCreateVisitorId(): Promise<{ visitorId: string; isNew: boolean }> {
+  try {
+    const cookieStore = await cookies();
+    const existing = cookieStore.get(VISITOR_COOKIE_NAME)?.value;
+    if (existing && existing.length >= 16) {
+      return { visitorId: existing, isNew: false };
+    }
+  } catch {
+    // In edge runtime or during static build
+  }
+
+  const newId = crypto.randomUUID();
+  return { visitorId: newId, isNew: true };
+}
+
+export type EngagementStats = {
+  view_count: number;
+  like_count: number;
+  viewer_has_liked: boolean;
+};
+
+/**
+ * Verifies whether an article exists in published_blog_articles.
+ * Returns the article ID if published, or null if draft/not found.
+ */
+async function verifyPublishedArticle(slug: string): Promise<{ id: string } | null> {
+  // Use anon supabase client (public can SELECT from published_blog_articles)
+  const { data, error } = await supabase
+    .from('published_blog_articles')
+    .select('id')
+    .eq('slug', slug)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+  return data;
+}
+
+/**
+ * Fetches public engagement metrics and visitor like status for a published article.
+ * Guarantees that only published articles return engagement. Drafts or non-existent slugs return null (404).
+ */
+export async function getEngagementForArticle(
+  slug: string,
+  visitorHash?: string
+): Promise<EngagementStats | null> {
+  // 1. Verify article is actually published (strictly 404 if not found or draft)
+  const published = await verifyPublishedArticle(slug);
+  if (!published) {
+    return null;
+  }
+
+  // 2. Check if service role is available
+  let db: ReturnType<typeof createServiceRoleClient>;
+  try {
+    db = createServiceRoleClient();
+  } catch {
+    // Graceful degradation when SUPABASE_SERVICE_ROLE_KEY is not yet added locally
+    return { view_count: 0, like_count: 0, viewer_has_liked: false };
+  }
+
+  try {
+    // 3. Call secure PostgreSQL RPC get_article_engagement
+    const { data: rpcData, error: rpcError } = await db.rpc('get_article_engagement', {
+      p_slug: slug,
+      p_visitor_hash: visitorHash || '',
+    });
+
+    if (!rpcError && rpcData && typeof rpcData === 'object' && 'ok' in rpcData && rpcData.ok) {
+      return {
+        view_count: Number(rpcData.view_count || 0),
+        like_count: Number(rpcData.like_count || 0),
+        viewer_has_liked: Boolean(rpcData.viewer_has_liked),
+      };
+    }
+
+    // Direct table query fallback
+    const { data: engagement } = await db
+      .from('article_engagement')
+      .select('view_count, like_count')
+      .eq('article_id', published.id)
+      .maybeSingle();
+
+    let viewerHasLiked = false;
+    if (visitorHash) {
+      const { data: likeRecord } = await db
+        .from('article_likes')
+        .select('id')
+        .eq('article_id', published.id)
+        .eq('visitor_hash', visitorHash)
+        .maybeSingle();
+      viewerHasLiked = Boolean(likeRecord);
+    }
+
+    return {
+      view_count: Number(engagement?.view_count || 0),
+      like_count: Number(engagement?.like_count || 0),
+      viewer_has_liked: viewerHasLiked,
+    };
+  } catch {
+    return { view_count: 0, like_count: 0, viewer_has_liked: false };
+  }
+}
+
+/**
+ * Atomically records a view for the visitor hash on the current calendar day (UTC).
+ * Validates that the article is published.
+ */
+export async function recordEngagementView(
+  slug: string,
+  visitorHash: string
+): Promise<EngagementStats | null> {
+  const published = await verifyPublishedArticle(slug);
+  if (!published) {
+    return null;
+  }
+
+  let db: ReturnType<typeof createServiceRoleClient>;
+  try {
+    db = createServiceRoleClient();
+  } catch {
+    // Graceful fallback when service role is not yet configured
+    return { view_count: 1, like_count: 0, viewer_has_liked: false };
+  }
+
+  try {
+    const { data, error } = await db.rpc('record_article_view', {
+      p_slug: slug,
+      p_visitor_hash: visitorHash,
+    });
+
+    if (error) {
+      if (error.code === '02000' || error.message?.includes('NOT_FOUND')) {
+        return null;
+      }
+      return getEngagementForArticle(slug, visitorHash);
+    }
+
+    return {
+      view_count: Number(data?.view_count || 0),
+      like_count: Number(data?.like_count || 0),
+      viewer_has_liked: Boolean(data?.viewer_has_liked),
+    };
+  } catch {
+    return getEngagementForArticle(slug, visitorHash);
+  }
+}
+
+/**
+ * Atomically toggles like / unlike for the visitor hash.
+ * Returns the updated like count and status.
+ */
+export async function toggleEngagementLike(
+  slug: string,
+  visitorHash: string
+): Promise<EngagementStats | null> {
+  const published = await verifyPublishedArticle(slug);
+  if (!published) {
+    return null;
+  }
+
+  let db: ReturnType<typeof createServiceRoleClient>;
+  try {
+    db = createServiceRoleClient();
+  } catch {
+    // Graceful fallback when service role is not yet configured
+    return { view_count: 0, like_count: 1, viewer_has_liked: true };
+  }
+
+  try {
+    const { data, error } = await db.rpc('toggle_article_like', {
+      p_slug: slug,
+      p_visitor_hash: visitorHash,
+    });
+
+    if (error) {
+      if (error.code === '02000' || error.message?.includes('NOT_FOUND')) {
+        return null;
+      }
+      throw new Error(error.message);
+    }
+
+    return {
+      view_count: Number(data?.view_count || 0),
+      like_count: Number(data?.like_count || 0),
+      viewer_has_liked: Boolean(data?.viewer_has_liked),
+    };
+  } catch {
+    return { view_count: 0, like_count: 1, viewer_has_liked: true };
+  }
+}

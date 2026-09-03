@@ -3,6 +3,7 @@ import { Lora, Plus_Jakarta_Sans } from 'next/font/google';
 import { Clock, ArrowUpRight } from 'lucide-react';
 import { EditorialCover } from '@/components/shared/EditorialCover';
 import { ArticleShareButtons } from '@/components/blog/ArticleShareButtons';
+import { ArticleEngagementBar } from '@/components/blog/ArticleEngagementBar';
 import {
   resolveArticleCover,
   extractVisualSettings,
@@ -314,6 +315,16 @@ export function ArticleRenderer({ article, contentHtml, children, footerContent,
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Real Reader Engagement (Views & Likes) */}
+      {article.slug && (
+        <div className="max-w-[720px] mx-auto">
+          <ArticleEngagementBar
+            slug={article.slug}
+            previewMode={previewMode}
+          />
         </div>
       )}
 
