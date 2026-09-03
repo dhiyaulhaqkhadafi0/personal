@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import {
   getOrCreateVisitorId,
   hashVisitorId,
+  verifyViewToken,
   recordEngagementView,
   VISITOR_COOKIE_NAME,
   VISITOR_COOKIE_MAX_AGE,
@@ -33,24 +34,27 @@ export async function POST(
       }
     }
 
+    const { visitorId, isNew } = await getOrCreateVisitorId();
+    const visitorHash = hashVisitorId(visitorId);
+
     const body = (await request.json().catch(() => ({}))) as {
-      duration_seconds?: number;
-      visible_seconds?: number;
+      view_token?: string;
     };
 
-    const durationSeconds = Number(body.duration_seconds || 0);
-    const visibleSeconds = Number(body.visible_seconds || 0);
-
-    // Rule: Must be actively visible on page for at least 8 seconds
-    if (durationSeconds < 8 || visibleSeconds < 8) {
+    if (!body.view_token) {
       return NextResponse.json(
-        { error: 'Pembacaan belum memenuhi durasi minimal 8 detik aktif.' },
+        { error: 'Token pembacaan wajib disertakan.' },
         { status: 400 }
       );
     }
 
-    const { visitorId, isNew } = await getOrCreateVisitorId();
-    const visitorHash = hashVisitorId(visitorId);
+    const verification = verifyViewToken(body.view_token, slug, visitorHash);
+    if (!verification.valid) {
+      return NextResponse.json(
+        { error: verification.reason || 'Token pembacaan tidak valid.' },
+        { status: 400 }
+      );
+    }
 
     const stats = await recordEngagementView(slug, visitorHash);
 

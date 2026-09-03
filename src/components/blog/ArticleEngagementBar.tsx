@@ -20,6 +20,7 @@ export function ArticleEngagementBar({ slug, previewMode = false }: Props) {
   // Active time tracking for honest view count (8 seconds of active visibility)
   const visibleSecondsRef = useRef(0);
   const hasRecordedViewRef = useRef(false);
+  const viewTokenRef = useRef<string | null>(null);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -32,7 +33,7 @@ export function ArticleEngagementBar({ slug, previewMode = false }: Props) {
 
     let isMounted = true;
 
-    // 1. Fetch current engagement stats
+    // 1. Fetch current engagement stats & signed view token
     const fetchStats = async () => {
       try {
         const res = await fetch(`/api/engagement/${slug}`, {
@@ -44,6 +45,9 @@ export function ArticleEngagementBar({ slug, previewMode = false }: Props) {
           setViewCount(typeof data.view_count === 'number' ? data.view_count : 0);
           setLikeCount(typeof data.like_count === 'number' ? data.like_count : 0);
           setHasLiked(Boolean(data.viewer_has_liked));
+          if (data.view_token) {
+            viewTokenRef.current = data.view_token;
+          }
         }
       } catch (err) {
         console.error('Failed to fetch engagement:', err);
@@ -54,7 +58,7 @@ export function ArticleEngagementBar({ slug, previewMode = false }: Props) {
 
     // 2. Active visibility timer (runs only when document is active and visible)
     const recordViewIfEligible = async () => {
-      if (hasRecordedViewRef.current) return;
+      if (hasRecordedViewRef.current || !viewTokenRef.current) return;
       hasRecordedViewRef.current = true;
 
       try {
@@ -62,8 +66,7 @@ export function ArticleEngagementBar({ slug, previewMode = false }: Props) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            duration_seconds: visibleSecondsRef.current,
-            visible_seconds: visibleSecondsRef.current,
+            view_token: viewTokenRef.current,
           }),
         });
         if (res.ok && isMounted) {

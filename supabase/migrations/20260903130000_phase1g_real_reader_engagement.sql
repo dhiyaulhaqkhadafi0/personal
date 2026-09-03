@@ -1,22 +1,27 @@
 -- ============================================================
 -- Migration Phase 1G: Real Reader Engagement (Views & Likes)
+-- Hotfix 1G.1: Stable Article FK, Tight Security, and View Token Guards
 -- ============================================================
 -- Tujuan:
---   1. Total engagement aggregate per artikel (view_count, like_count).
---   2. Log pembacaan harian terdeduplikasi (1x per visitor per hari kalender UTC).
---   3. Like aktif per pembaca anonim (maksimal 1 like aktif per visitor).
---   4. Trigger otomatis untuk konsistensi aggregate tanpa query count(*) berat.
---   5. Fungsi atomik untuk record view dan toggle like (service_role only).
---   6. RLS ketat: REVOKE dari anon & authenticated, GRANT hanya service_role.
+--   1. Foreign Key merujuk ke public.blog_articles(id) agar metrik tidak hilang
+--      saat artikel di-unpublish dan dipublikasikan kembali.
+--   2. Total engagement aggregate per artikel (view_count, like_count).
+--   3. Log pembacaan harian terdeduplikasi (1x per visitor per hari kalender UTC).
+--   4. Like aktif per pembaca anonim (maksimal 1 like aktif per visitor).
+--   5. Trigger otomatis untuk konsistensi aggregate tanpa query count(*) berat.
+--   6. Stored function SECURITY DEFINER dengan search_path = '' dan pembatasan
+--      izin ketat: REVOKE dari PUBLIC, anon, authenticated; GRANT hanya service_role.
+--   7. RLS ketat pada semua tabel engagement (akses browser langsung ditolak).
 -- ============================================================
 
 BEGIN;
 
 -- ------------------------------------------------------------
 -- 1. Tabel Agregat Total Engagement per Artikel
+--    FK merujuk ke public.blog_articles(id) sumber stabil
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.article_engagement (
-  article_id UUID PRIMARY KEY REFERENCES public.published_blog_articles(id) ON DELETE CASCADE,
+  article_id UUID PRIMARY KEY REFERENCES public.blog_articles(id) ON DELETE CASCADE,
   view_count BIGINT NOT NULL DEFAULT 0 CHECK (view_count >= 0),
   like_count BIGINT NOT NULL DEFAULT 0 CHECK (like_count >= 0),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -27,7 +32,7 @@ CREATE TABLE IF NOT EXISTS public.article_engagement (
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.article_daily_views (
   id BIGSERIAL PRIMARY KEY,
-  article_id UUID NOT NULL REFERENCES public.published_blog_articles(id) ON DELETE CASCADE,
+  article_id UUID NOT NULL REFERENCES public.blog_articles(id) ON DELETE CASCADE,
   visitor_hash VARCHAR(64) NOT NULL,
   viewed_on DATE NOT NULL DEFAULT (CURRENT_DATE AT TIME ZONE 'UTC'),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -42,7 +47,7 @@ CREATE INDEX IF NOT EXISTS idx_article_daily_views_lookup
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.article_likes (
   id BIGSERIAL PRIMARY KEY,
-  article_id UUID NOT NULL REFERENCES public.published_blog_articles(id) ON DELETE CASCADE,
+  article_id UUID NOT NULL REFERENCES public.blog_articles(id) ON DELETE CASCADE,
   visitor_hash VARCHAR(64) NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT article_likes_uniq UNIQUE (article_id, visitor_hash)
@@ -54,7 +59,6 @@ CREATE INDEX IF NOT EXISTS idx_article_likes_lookup
 -- ------------------------------------------------------------
 -- 4. Triggers untuk Pembaruan Agregat Otomatis & Atomik
 -- ------------------------------------------------------------
--- Trigger ketika view harian baru berhasil dicatat
 CREATE OR REPLACE FUNCTION public.sync_article_view_count()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -77,7 +81,6 @@ CREATE TRIGGER trg_article_daily_views_insert
   FOR EACH ROW
   EXECUTE FUNCTION public.sync_article_view_count();
 
--- Trigger ketika like baru ditambahkan
 CREATE OR REPLACE FUNCTION public.sync_article_like_add()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -100,7 +103,6 @@ CREATE TRIGGER trg_article_likes_insert
   FOR EACH ROW
   EXECUTE FUNCTION public.sync_article_like_add();
 
--- Trigger ketika like dibatalkan (unlike)
 CREATE OR REPLACE FUNCTION public.sync_article_like_remove()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -123,9 +125,9 @@ CREATE TRIGGER trg_article_likes_delete
   EXECUTE FUNCTION public.sync_article_like_remove();
 
 -- ------------------------------------------------------------
--- 5. Helper RPC Atomik (Hanya dapat dipanggil service_role)
+-- 5. Helper RPC Atomik (SECURITY DEFINER + search_path aman + service_role only)
 -- ------------------------------------------------------------
--- Catat view dengan deduplikasi kalender UTC
+-- Catat view dengan validasi artikel terbit dan deduplikasi harian UTC
 CREATE OR REPLACE FUNCTION public.record_article_view(p_slug text, p_visitor_hash text)
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -139,7 +141,7 @@ DECLARE
   v_likes bigint := 0;
   v_has_liked boolean := false;
 BEGIN
-  -- 1. Validasi artikel harus sudah terbit di published_blog_articles
+  -- 1. Validasi artikel harus berstatus published di published_blog_articles
   SELECT id INTO v_article_id
   FROM public.published_blog_articles
   WHERE slug = p_slug;
@@ -155,7 +157,7 @@ BEGIN
     VALUES (v_article_id, p_visitor_hash, (CURRENT_DATE AT TIME ZONE 'UTC'));
     v_inserted := true;
   EXCEPTION WHEN unique_violation THEN
-    -- Sudah tercatat hari ini, abaikan tanpa error
+    -- Sudah tercatat hari ini oleh pengunjung yang sama, abaikan tanpa error
     v_inserted := false;
   END;
 
@@ -181,7 +183,7 @@ BEGIN
 END;
 $$;
 
--- Toggle like / unlike secara atomik
+-- Toggle like / unlike secara atomik (hanya untuk artikel published)
 CREATE OR REPLACE FUNCTION public.toggle_article_like(p_slug text, p_visitor_hash text)
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -194,7 +196,7 @@ DECLARE
   v_views bigint := 0;
   v_likes bigint := 0;
 BEGIN
-  -- 1. Validasi artikel harus sudah terbit
+  -- 1. Validasi artikel harus berstatus published
   SELECT id INTO v_article_id
   FROM public.published_blog_articles
   WHERE slug = p_slug;
@@ -211,7 +213,7 @@ BEGIN
   ) INTO v_has_liked;
 
   IF v_has_liked THEN
-    -- Unlike: hapus like
+    -- Unlike: batalkan like
     DELETE FROM public.article_likes
     WHERE article_id = v_article_id AND visitor_hash = p_visitor_hash;
     v_has_liked := false;
@@ -251,6 +253,7 @@ DECLARE
   v_likes bigint := 0;
   v_has_liked boolean := false;
 BEGIN
+  -- Hanya artikel yang ada di published_blog_articles
   SELECT id INTO v_article_id
   FROM public.published_blog_articles
   WHERE slug = p_slug;
@@ -301,11 +304,12 @@ GRANT ALL ON public.article_daily_views TO service_role;
 GRANT ALL ON public.article_likes TO service_role;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO service_role;
 
--- Revoke fungsi dari public dan batasi ke service_role
+-- Revoke fungsi dari public, anon, dan authenticated
 REVOKE ALL ON FUNCTION public.record_article_view(text, text) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.toggle_article_like(text, text) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.get_article_engagement(text, text) FROM PUBLIC, anon, authenticated;
 
+-- Grant execute HANYA ke service_role
 GRANT EXECUTE ON FUNCTION public.record_article_view(text, text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.toggle_article_like(text, text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.get_article_engagement(text, text) TO service_role;

@@ -39,6 +39,7 @@ export async function GET(
         view_count: stats.view_count,
         like_count: stats.like_count,
         viewer_has_liked: stats.viewer_has_liked,
+        view_token: stats.view_token,
       },
       { status: 200 }
     );

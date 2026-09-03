@@ -30,18 +30,88 @@ export async function getOrCreateVisitorId(): Promise<{ visitorId: string; isNew
   return { visitorId: newId, isNew: true };
 }
 
+/**
+ * Generates a tamper-proof cryptographic view start token bound to:
+ * - slug
+ * - visitor_hash
+ * - server timestamp
+ */
+export function generateViewToken(slug: string, visitorHash: string): string {
+  const timestamp = Date.now();
+  const secret = process.env.ENGAGEMENT_SIGNING_SECRET || 'khadafi_view_token_default_hmac_secret_2026';
+  const payload = `${slug}:${visitorHash}:${timestamp}`;
+  const signature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+  return `${timestamp}.${signature}`;
+}
+
+/**
+ * Verifies that the view token is valid, matches the current visitor and article,
+ * and confirms that at least 8 real seconds have elapsed since generation.
+ */
+export function verifyViewToken(
+  token: string,
+  slug: string,
+  visitorHash: string
+): { valid: boolean; reason?: string } {
+  if (!token || typeof token !== 'string') {
+    return { valid: false, reason: 'Token pembacaan tidak ditemukan.' };
+  }
+
+  const parts = token.split('.');
+  if (parts.length !== 2) {
+    return { valid: false, reason: 'Format token pembacaan tidak valid.' };
+  }
+
+  const [timestampStr, providedSignature] = parts;
+  const timestamp = parseInt(timestampStr, 10);
+  if (isNaN(timestamp)) {
+    return { valid: false, reason: 'Timestamp token tidak valid.' };
+  }
+
+  const secret = process.env.ENGAGEMENT_SIGNING_SECRET || 'khadafi_view_token_default_hmac_secret_2026';
+  const expectedPayload = `${slug}:${visitorHash}:${timestamp}`;
+  const expectedSignature = crypto.createHmac('sha256', secret).update(expectedPayload).digest('hex');
+
+  // Constant-time signature comparison to prevent timing attacks
+  const providedBuf = Buffer.from(providedSignature, 'hex');
+  const expectedBuf = Buffer.from(expectedSignature, 'hex');
+  if (providedBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(providedBuf, expectedBuf)) {
+    return { valid: false, reason: 'Tanda tangan token tidak valid atau telah dimodifikasi.' };
+  }
+
+  const now = Date.now();
+  const elapsedMs = now - timestamp;
+
+  // Enforce server-side 8-second active duration verification
+  if (elapsedMs < 8000) {
+    return { valid: false, reason: 'Waktu pembacaan belum mencapai 8 detik yang sah.' };
+  }
+
+  // Token expires after 10 minutes (600,000 ms)
+  if (elapsedMs > 10 * 60 * 1000) {
+    return { valid: false, reason: 'Token pembacaan telah kedaluwarsa. Silakan refresh halaman.' };
+  }
+
+  // Guard against tokens generated in the future
+  if (timestamp > now + 5000) {
+    return { valid: false, reason: 'Timestamp token berada di masa depan.' };
+  }
+
+  return { valid: true };
+}
+
 export type EngagementStats = {
   view_count: number;
   like_count: number;
   viewer_has_liked: boolean;
+  view_token?: string;
 };
 
 /**
  * Verifies whether an article exists in published_blog_articles.
  * Returns the article ID if published, or null if draft/not found.
  */
-async function verifyPublishedArticle(slug: string): Promise<{ id: string } | null> {
-  // Use anon supabase client (public can SELECT from published_blog_articles)
+export async function verifyPublishedArticle(slug: string): Promise<{ id: string } | null> {
   const { data, error } = await supabase
     .from('published_blog_articles')
     .select('id')
@@ -68,13 +138,15 @@ export async function getEngagementForArticle(
     return null;
   }
 
+  const viewToken = visitorHash ? generateViewToken(slug, visitorHash) : undefined;
+
   // 2. Check if service role is available
   let db: ReturnType<typeof createServiceRoleClient>;
   try {
     db = createServiceRoleClient();
   } catch {
     // Graceful degradation when SUPABASE_SERVICE_ROLE_KEY is not yet added locally
-    return { view_count: 0, like_count: 0, viewer_has_liked: false };
+    return { view_count: 0, like_count: 0, viewer_has_liked: false, view_token: viewToken };
   }
 
   try {
@@ -89,6 +161,7 @@ export async function getEngagementForArticle(
         view_count: Number(rpcData.view_count || 0),
         like_count: Number(rpcData.like_count || 0),
         viewer_has_liked: Boolean(rpcData.viewer_has_liked),
+        view_token: viewToken,
       };
     }
 
@@ -114,9 +187,10 @@ export async function getEngagementForArticle(
       view_count: Number(engagement?.view_count || 0),
       like_count: Number(engagement?.like_count || 0),
       viewer_has_liked: viewerHasLiked,
+      view_token: viewToken,
     };
   } catch {
-    return { view_count: 0, like_count: 0, viewer_has_liked: false };
+    return { view_count: 0, like_count: 0, viewer_has_liked: false, view_token: viewToken };
   }
 }
 
