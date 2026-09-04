@@ -25,12 +25,13 @@ export function Navbar() {
       href: "#journey",
       subMenus: [
         { label: "Sumber Daya Gratis", href: "#sumber-daya" },
-        { label: "Blog", href: "#blog" },
+        { label: "Blog", href: "/blog" },
         { label: "Buku", href: "#buku" },
         { label: "Kampus Kangguru", href: "#kampus" },
       ],
     },
     { label: "AI", href: "#ai" },
+    { label: "Lab", href: "/lab" },
     { label: "Freelance", href: "#freelance" },
     { label: "Handbook", href: "#handbook" },
     {
