@@ -14,6 +14,7 @@ import {
   buildRepurposingPrompt,
   parseRepurposingResponse,
 } from '@/lib/repurposing-ai';
+import { callGeminiApi } from '@/lib/gemini-provider';
 
 export const dynamic = 'force-dynamic';
 
@@ -111,137 +112,57 @@ export async function POST(request: Request) {
     },
   });
 
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [
+  const geminiResult = await callGeminiApi({
+    model,
+    apiKey,
+    contents: [
+      {
+        role: 'user',
+        parts: [
           {
-            role: 'user',
-            parts: [
-              {
-                text: `${systemInstruction}\n\n---\n\n${userPrompt}`,
-              },
-            ],
+            text: `${systemInstruction}\n\n---\n\n${userPrompt}`,
           },
         ],
-        generationConfig: {
-          temperature: 0.4,
-          maxOutputTokens: 2500,
-          responseMimeType: 'application/json',
-        },
-      }),
-      signal: controller.signal,
-    });
+      },
+    ],
+    generationConfig: {
+      temperature: 0.4,
+      maxOutputTokens: 2500,
+      responseMimeType: 'application/json',
+    },
+    timeoutMs: 30000,
+  });
 
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      let errorJson: { error?: { message?: string; status?: string } } | null = null;
-      try {
-        errorJson = JSON.parse(errorText);
-      } catch {
-        // ignore
-      }
-
-      const msg = errorJson?.error?.message || response.statusText || 'Gagal menghubungi penyedia AI.';
-      console.error(`Gemini Repurposing Error (${response.status}):`, msg);
-
-      if (response.status === 400 && msg.includes('API key not valid')) {
-        return Response.json(
-          { error: 'GEMINI_API_KEY tidak valid. Silakan periksa kunci API Anda di environment.' },
-          { status: 401 }
-        );
-      }
-      if (response.status === 404) {
-        return Response.json(
-          { error: 'Model Gemini tidak ditemukan atau tidak didukung pada versi API saat ini. Periksa nilai GEMINI_MODEL.' },
-          { status: 502 }
-        );
-      }
-      if (response.status === 429) {
-        return Response.json(
-          { error: 'Batas kuota penyedia AI tercapai. Silakan coba beberapa saat lagi.' },
-          { status: 429 }
-        );
-      }
-
-      return Response.json(
-        { error: 'Penyedia AI mengembalikan kesalahan saat memproses permintaan repurposing.' },
-        { status: 502 }
-      );
-    }
-
-    const data = await response.json();
-
-    // Check Prompt-level Safety Blocks
-    if (data?.promptFeedback?.blockReason) {
-      return Response.json(
-        {
-          error: `Naskah tidak dapat diproses karena dibatasi oleh filter keselamatan penyedia AI (${data.promptFeedback.blockReason}).`,
-        },
-        { status: 422 }
-      );
-    }
-
-    const candidate = data?.candidates?.[0];
-
-    // Check Candidate-level Finish Reasons
-    if (candidate?.finishReason === 'SAFETY') {
-      return Response.json(
-        { error: 'Hasil respon disaring oleh filter keselamatan penyedia AI (SAFETY).' },
-        { status: 422 }
-      );
-    }
-    if (candidate?.finishReason === 'RECITATION') {
-      return Response.json(
-        { error: 'Hasil respon dibatasi oleh filter hak cipta / kutipan penyedia AI (RECITATION).' },
-        { status: 422 }
-      );
-    }
-
-    const rawResult: string = candidate?.content?.parts?.[0]?.text || '';
-
-    if (!rawResult.trim()) {
-      const reason = candidate?.finishReason || 'NO_CANDIDATE';
-      return Response.json(
-        { error: `Penyedia AI tidak menghasilkan teks untuk repurposing ini (status: ${reason}). Coba sesuaikan naskah atau coba lagi.` },
-        { status: 502 }
-      );
-    }
-
-    // Parse and validate structured JSON
-    try {
-      const parsedData = parseRepurposingResponse(rawResult, platform as RepurposingPlatform);
-      return Response.json({
-        ok: true,
-        data: parsedData,
-      });
-    } catch (parseErr) {
-      const parseMsg = parseErr instanceof Error ? parseErr.message : 'Format data AI tidak sesuai spesifikasi.';
-      return Response.json({ error: parseMsg }, { status: 502 });
-    }
-  } catch (err: unknown) {
-    if (err instanceof Error && err.name === 'AbortError') {
-      return Response.json(
-        { error: 'Permintaan ke penyedia AI melebihi batas waktu (timeout 30 detik). Silakan coba lagi.' },
-        { status: 504 }
-      );
-    }
-
-    console.error('AI Repurposing unexpected error:', err);
+  if (!geminiResult.ok) {
     return Response.json(
-      { error: 'Terjadi gangguan jaringan saat memproses naskah dengan AI.' },
-      { status: 500 }
+      {
+        ok: false,
+        error: geminiResult.error,
+        code: geminiResult.code,
+        requestId: geminiResult.requestId,
+      },
+      { status: geminiResult.status }
+    );
+  }
+
+  // Parse and validate structured JSON
+  try {
+    const parsedData = parseRepurposingResponse(geminiResult.text, platform as RepurposingPlatform);
+    return Response.json({
+      ok: true,
+      data: parsedData,
+      requestId: geminiResult.requestId,
+    });
+  } catch (parseErr) {
+    console.error(`[Repurpose:${geminiResult.requestId}] JSON parse error:`, parseErr);
+    return Response.json(
+      {
+        ok: false,
+        error: 'Respons AI tidak memiliki format yang dapat dibaca. Coba generate ulang.',
+        code: 'GEMINI_INVALID_STRUCTURED_JSON',
+        requestId: geminiResult.requestId,
+      },
+      { status: 502 }
     );
   }
 }

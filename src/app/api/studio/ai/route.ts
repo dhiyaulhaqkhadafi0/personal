@@ -5,6 +5,7 @@ import {
   SELECTION_ACTIONS,
   ARTICLE_ACTIONS,
 } from '@/lib/editorial-ai';
+import { callGeminiApi } from '@/lib/gemini-provider';
 
 export const dynamic = 'force-dynamic';
 
@@ -75,11 +76,11 @@ export async function POST(request: Request) {
   const cleanBody = body.slice(0, 12000).trim();
   const cleanHint = customHint.slice(0, 300).trim();
 
-  // Selected text actions strictly require non-empty selection
+  // Text editing actions strictly require non-empty text input
   const isSelectionAction = SELECTION_ACTIONS.some((a) => a.id === aiAction);
   if (isSelectionAction && !cleanSelection) {
     return Response.json(
-      { error: 'Teks terpilih tidak boleh kosong untuk aksi ini.' },
+      { error: 'Teks yang ingin diolah tidak boleh kosong untuk aksi ini.' },
       { status: 400 }
     );
   }
@@ -92,131 +93,42 @@ export async function POST(request: Request) {
     customHint: cleanHint,
   });
 
-  // Safely encode model and apiKey in the Gemini API URL
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 25000);
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [
+  const geminiResult = await callGeminiApi({
+    model,
+    apiKey,
+    contents: [
+      {
+        role: 'user',
+        parts: [
           {
-            role: 'user',
-            parts: [
-              {
-                text: `${systemInstruction}\n\n---\n\n${userPrompt}`,
-              },
-            ],
+            text: `${systemInstruction}\n\n---\n\n${userPrompt}`,
           },
         ],
-        generationConfig: {
-          temperature: 0.35,
-          maxOutputTokens: 2048,
-        },
-      }),
-      signal: controller.signal,
-    });
+      },
+    ],
+    generationConfig: {
+      temperature: 0.35,
+      maxOutputTokens: 2048,
+    },
+    timeoutMs: 25000,
+  });
 
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      let errorJson: { error?: { message?: string; status?: string } } | null = null;
-      try {
-        errorJson = JSON.parse(errorText);
-      } catch {
-        // ignore
-      }
-
-      const msg = errorJson?.error?.message || response.statusText || 'Gagal menghubungi penyedia AI.';
-      console.error(`Gemini API Error (${response.status}):`, msg);
-
-      if (response.status === 400 && msg.includes('API key not valid')) {
-        return Response.json(
-          { error: 'GEMINI_API_KEY tidak valid. Silakan periksa kunci API Anda di environment.' },
-          { status: 401 }
-        );
-      }
-      if (response.status === 404) {
-        return Response.json(
-          { error: `Model Gemini tidak ditemukan atau tidak didukung pada versi API saat ini. Periksa nilai GEMINI_MODEL.` },
-          { status: 502 }
-        );
-      }
-      if (response.status === 429) {
-        return Response.json(
-          { error: 'Batas kuota penyedia AI tercapai. Silakan coba beberapa saat lagi.' },
-          { status: 429 }
-        );
-      }
-
-      return Response.json(
-        { error: 'Penyedia AI mengembalikan kesalahan saat memproses permintaan.' },
-        { status: 502 }
-      );
-    }
-
-    const data = await response.json();
-
-    // Check Prompt-level Safety Blocks
-    if (data?.promptFeedback?.blockReason) {
-      return Response.json(
-        {
-          error: `Teks tidak dapat diproses karena dibatasi oleh filter keselamatan penyedia AI (${data.promptFeedback.blockReason}).`,
-        },
-        { status: 422 }
-      );
-    }
-
-    const candidate = data?.candidates?.[0];
-
-    // Check Candidate-level Finish Reasons (Safety, Recitation, etc.)
-    if (candidate?.finishReason === 'SAFETY') {
-      return Response.json(
-        { error: 'Hasil respon disaring oleh filter keamanan penyedia AI (SAFETY).' },
-        { status: 422 }
-      );
-    }
-    if (candidate?.finishReason === 'RECITATION') {
-      return Response.json(
-        { error: 'Hasil respon dibatasi oleh filter hak cipta / kutipan penyedia AI (RECITATION).' },
-        { status: 422 }
-      );
-    }
-
-    const rawResult: string = candidate?.content?.parts?.[0]?.text || '';
-
-    if (!rawResult.trim()) {
-      const reason = candidate?.finishReason || 'NO_CANDIDATE';
-      return Response.json(
-        { error: `Penyedia AI tidak menghasilkan teks untuk naskah ini (status: ${reason}). Coba sesuaikan instruksi atau gunakan pilihan teks yang lebih spesifik.` },
-        { status: 502 }
-      );
-    }
-
-    return Response.json({
-      ok: true,
-      result: rawResult.trim(),
-      action: aiAction,
-    });
-  } catch (err: unknown) {
-    if (err instanceof Error && err.name === 'AbortError') {
-      return Response.json(
-        { error: 'Permintaan ke penyedia AI melebihi batas waktu (timeout 25 detik). Silakan coba lagi.' },
-        { status: 504 }
-      );
-    }
-
-    console.error('AI Co-Pilot unexpected error:', err);
+  if (!geminiResult.ok) {
     return Response.json(
-      { error: 'Terjadi gangguan jaringan saat memproses naskah dengan AI.' },
-      { status: 500 }
+      {
+        ok: false,
+        error: geminiResult.error,
+        code: geminiResult.code,
+        requestId: geminiResult.requestId,
+      },
+      { status: geminiResult.status }
     );
   }
+
+  return Response.json({
+    ok: true,
+    result: geminiResult.text,
+    action: aiAction,
+    requestId: geminiResult.requestId,
+  });
 }

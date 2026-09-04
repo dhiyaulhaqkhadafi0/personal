@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   X,
   Sparkles,
@@ -11,16 +11,10 @@ import {
   AlertTriangle,
   LoaderCircle,
   Clock,
-  FileText,
-  Video,
   Layers,
-  MessageSquare,
-  HelpCircle,
   Share2,
-  Film,
   Camera,
   Monitor,
-  ExternalLink,
   Info,
 } from "lucide-react";
 import type { Editor } from "@tiptap/react";
@@ -251,7 +245,7 @@ export function StudioRepurposeModal({
 
     if (result.platform === "instagram") {
       fullOutput = result.sections
-        .map((s, idx) => {
+        .map((s) => {
           let str = `--- ${s.label.toUpperCase()} ---\n${s.content}`;
           if (s.visual_note) str += `\n[Visual]: ${s.visual_note}`;
           return str;
@@ -301,7 +295,7 @@ export function StudioRepurposeModal({
   const currentPlatformConfig = REPURPOSING_PLATFORMS.find((p) => p.id === selectedPlatform)!;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 select-none">
       <div className="relative w-full max-w-6xl h-[92vh] max-h-[900px] flex flex-col rounded-2xl bg-[#090A0D] border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] overflow-hidden">
         {/* Header */}
         <header className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#111217] flex-shrink-0">
@@ -315,7 +309,7 @@ export function StudioRepurposeModal({
                   AI Content Repurposing
                 </h2>
                 <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[#94A3B8]">
-                  Phase 1H
+                  Multi-Platform
                 </span>
               </div>
               <p className="text-xs text-[#94A3B8]">
@@ -336,10 +330,40 @@ export function StudioRepurposeModal({
           </div>
         </header>
 
+        {/* 3-Step Guidance & Helper Banner */}
+        <div className="bg-[#0D0F14] border-b border-white/10 px-6 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs flex-shrink-0">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-[#CBD5E1]">
+            <div className="flex items-center gap-1.5">
+              <span className="w-5 h-5 rounded-full bg-[#F59E0B]/20 text-[#F59E0B] font-mono text-[10px] font-bold flex items-center justify-center border border-[#F59E0B]/30">
+                1
+              </span>
+              <span className="text-xs font-medium">Pilih platform</span>
+            </div>
+            <span className="text-[#52525B] hidden sm:inline">&rarr;</span>
+            <div className="flex items-center gap-1.5">
+              <span className="w-5 h-5 rounded-full bg-[#F59E0B]/20 text-[#F59E0B] font-mono text-[10px] font-bold flex items-center justify-center border border-[#F59E0B]/30">
+                2
+              </span>
+              <span className="text-xs font-medium">Atur tujuan, gaya bahasa, dan CTA</span>
+            </div>
+            <span className="text-[#52525B] hidden sm:inline">&rarr;</span>
+            <div className="flex items-center gap-1.5">
+              <span className="w-5 h-5 rounded-full bg-[#F59E0B]/20 text-[#F59E0B] font-mono text-[10px] font-bold flex items-center justify-center border border-[#F59E0B]/30">
+                3
+              </span>
+              <span className="text-xs font-medium">Klik Buat Konten, lalu review dan salin hasilnya</span>
+            </div>
+          </div>
+
+          <span className="text-[11px] text-[#71717A] italic hidden lg:inline">
+            Hasil hanya berupa draft media sosial di layar ini. Artikel blog tidak diubah.
+          </span>
+        </div>
+
         {/* Content Body: 3-column responsive layout */}
         <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden bg-[#0A0B0E]">
           {/* Column 1: Platform Selector */}
-          <aside className="w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-white/10 bg-[#0E1015]/60 p-4 flex flex-col flex-shrink-0 overflow-y-auto">
+          <aside className="w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-white/10 bg-[#0E1015]/60 p-4 flex flex-col flex-shrink-0 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
             <span className="text-[11px] font-mono uppercase tracking-wider text-[#71717A] mb-3 px-1">
               Pilih Platform
             </span>
@@ -384,9 +408,10 @@ export function StudioRepurposeModal({
             </div>
           </aside>
 
-          {/* Column 2: Settings Panel */}
-          <section className="w-full lg:w-80 border-b lg:border-b-0 lg:border-r border-white/10 bg-[#0C0D12] p-5 flex flex-col flex-shrink-0 overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
+          {/* Column 2: Settings Panel with STICKY FOOTER BUTTON */}
+          <section className="w-full lg:w-80 border-b lg:border-b-0 lg:border-r border-white/10 bg-[#0C0D12] flex flex-col flex-shrink-0 overflow-hidden">
+            {/* Settings Header */}
+            <div className="px-5 py-3.5 border-b border-white/5 flex items-center justify-between flex-shrink-0">
               <span className="text-[11px] font-mono uppercase tracking-wider text-[#71717A]">
                 Strategi Konten
               </span>
@@ -395,7 +420,8 @@ export function StudioRepurposeModal({
               </span>
             </div>
 
-            <div className="space-y-5 flex-1">
+            {/* Scrollable Settings Options */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-5 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
               {/* Goal Setting */}
               <div>
                 <label className="block text-xs font-medium text-[#CBD5E1] mb-2">
@@ -483,8 +509,8 @@ export function StudioRepurposeModal({
               </div>
             </div>
 
-            {/* Generate Action Button */}
-            <div className="pt-5 mt-5 border-t border-white/10">
+            {/* STICKY FOOTER: Primary Action Button ALWAYS Visible */}
+            <div className="p-4 border-t border-white/10 bg-[#0C0D12] flex-shrink-0">
               <button
                 type="button"
                 disabled={loading || isConfigured === false}
@@ -494,17 +520,17 @@ export function StudioRepurposeModal({
                 {loading ? (
                   <>
                     <LoaderCircle className="w-4 h-4 animate-spin text-[#1E1B10]" />
-                    <span>Menghasilkan Draft...</span>
+                    <span>Menghasilkan Konten...</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4" />
-                    <span>Buat Draft {currentPlatformConfig.name}</span>
+                    <span>Buat Konten {currentPlatformConfig.name}</span>
                   </>
                 )}
               </button>
-              <p className="text-[10px] text-[#71717A] text-center mt-2">
-                1 platform per request &bull; tidak mengubah naskah asli
+              <p className="text-[10px] text-[#71717A] text-center mt-2 leading-relaxed">
+                Hasil hanya berupa draft di layar ini &bull; artikel blog tidak diubah
               </p>
             </div>
           </section>
@@ -547,18 +573,18 @@ export function StudioRepurposeModal({
               </div>
             )}
 
-            {/* Empty State */}
+            {/* Empty State: Konten Belum Dibuat */}
             {!result && !loading && !error && (
               <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
                 <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[#71717A] mb-4">
                   <Layers className="w-6 h-6" />
                 </div>
                 <h3 className="text-sm font-semibold text-[#E2E8F0] mb-1">
-                  Draft Belum Dibuat
+                  Konten Belum Dibuat
                 </h3>
                 <p className="text-xs text-[#71717A] max-w-md leading-relaxed">
                   Pilih platform di sisi kiri, tentukan tujuan dan gaya bahasa di panel tengah, lalu tekan tombol{" "}
-                  <strong className="text-white font-medium">&ldquo;Buat Draft&rdquo;</strong> untuk memulai.
+                  <strong className="text-white font-medium">&ldquo;Buat Konten&rdquo;</strong> untuk memulai.
                 </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-2 text-[11px] font-mono text-[#94A3B8]">
                   <span className="px-2.5 py-1 rounded-full bg-[#14151B] border border-white/10">
@@ -578,10 +604,10 @@ export function StudioRepurposeModal({
                   <LoaderCircle className="w-6 h-6 animate-spin" />
                 </div>
                 <h3 className="text-sm font-semibold text-[#E2E8F0] mb-1">
-                  Menyusun Turunan Konten {currentPlatformConfig.name}...
+                  Menyusun Konten {currentPlatformConfig.name}...
                 </h3>
                 <p className="text-xs text-[#71717A] max-w-sm">
-                  AI sedang membedah naskah, menyaring insight, dan mengadaptasi ke struktur perilaku platform.
+                  AI sedang membedah naskah, menyaring insight, dan mengadaptasi ke format media sosial pilihan Anda.
                 </p>
               </div>
             )}
@@ -621,7 +647,7 @@ export function StudioRepurposeModal({
                     <button
                       type="button"
                       onClick={handleCopyAll}
-                      className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-[#34D399]/15 hover:bg-[#34D399]/25 text-[#34D399] border border-[#34D399]/30 text-xs font-semibold transition-all shadow-sm"
+                      className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-[#34D399]/15 hover:bg-[#34D399]/25 text-[#34D399] border border-[#34D399]/30 text-xs font-semibold transition-all shadow-sm cursor-pointer"
                     >
                       {copiedAll ? (
                         <>
@@ -639,25 +665,25 @@ export function StudioRepurposeModal({
                     <button
                       type="button"
                       onClick={handleGenerate}
-                      title="Generate ulang draft ini"
-                      className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-[#94A3B8] hover:text-white border border-white/10 text-xs font-medium transition-colors"
+                      title="Buat ulang konten ini"
+                      className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-[#94A3B8] hover:text-white border border-white/10 text-xs font-medium transition-colors cursor-pointer"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Generate Ulang</span>
+                      <span className="hidden sm:inline">Buat Ulang</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={handleDiscard}
                       title="Buang hasil ini"
-                      className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg border text-xs font-medium transition-colors ${
+                      className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg border text-xs font-medium transition-colors cursor-pointer ${
                         confirmDiscard
                           ? "bg-[#EF4444]/20 border-[#EF4444]/40 text-[#EF4444]"
                           : "bg-white/5 hover:bg-[#EF4444]/15 border-white/10 hover:border-[#EF4444]/30 text-[#94A3B8] hover:text-[#EF4444]"
                       }`}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                      <span>{confirmDiscard ? "Yakin Buang?" : "Buang"}</span>
+                      <span>{confirmDiscard ? "Yakin Buang?" : "Buang Hasil"}</span>
                     </button>
                   </div>
                 </div>
@@ -675,7 +701,7 @@ export function StudioRepurposeModal({
                 )}
 
                 {/* Scrollable Sections List */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
                   {/* Caption Section if available */}
                   {result.caption && (
                     <div className="p-4 rounded-xl bg-[#14151B] border border-white/10 space-y-2">
@@ -691,7 +717,7 @@ export function StudioRepurposeModal({
                         <button
                           type="button"
                           onClick={handleCopyCaption}
-                          className="flex items-center gap-1 text-[11px] text-[#94A3B8] hover:text-[#34D399] font-mono px-2 py-1 rounded bg-white/5 hover:bg-white/10 transition-colors"
+                          className="flex items-center gap-1 text-[11px] text-[#94A3B8] hover:text-[#34D399] font-mono px-2 py-1 rounded bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
                         >
                           {copiedCaption ? <Check className="w-3 h-3 text-[#34D399]" /> : <Copy className="w-3 h-3" />}
                           <span>{copiedCaption ? "Tersalin" : "Salin Caption"}</span>
@@ -737,7 +763,7 @@ export function StudioRepurposeModal({
                           <button
                             type="button"
                             onClick={() => handleCopySection(section)}
-                            className="flex items-center gap-1 text-xs text-[#94A3B8] group-hover:text-white px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                            className="flex items-center gap-1 text-xs text-[#94A3B8] group-hover:text-white px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
                           >
                             {isCopied ? (
                               <>
@@ -799,7 +825,7 @@ export function StudioRepurposeModal({
                         onClick={() => {
                           navigator.clipboard.writeText(result.cta);
                         }}
-                        className="text-[11px] font-mono text-[#34D399] hover:underline"
+                        className="text-[11px] font-mono text-[#34D399] hover:underline cursor-pointer"
                       >
                         Salin CTA
                       </button>
