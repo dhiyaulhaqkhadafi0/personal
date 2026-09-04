@@ -20,6 +20,25 @@ export async function GET(request: Request) {
   const auth = await requireBlogAdmin(request);
   if (!auth.ok) return auth.response;
 
+  if (process.env.NEXT_PUBLIC_BLOG_AI_ENABLED !== 'true') {
+    return new Response(
+      JSON.stringify({
+        configured: false,
+        disabled: true,
+        missing: ['NEXT_PUBLIC_BLOG_AI_ENABLED'],
+      }),
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      }
+    );
+  }
+
   // Evaluate runtime environment dynamically on every request
   const { configured, missing } = getGeminiRuntimeConfig();
 
@@ -45,6 +64,18 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const auth = await requireBlogAdmin(request);
   if (!auth.ok) return auth.response;
+
+  if (process.env.NEXT_PUBLIC_BLOG_AI_ENABLED !== 'true') {
+    return new Response(
+      JSON.stringify({
+        ok: false,
+        configured: false,
+        disabled: true,
+        error: 'Fitur AI Blog Studio dinonaktifkan untuk v1.',
+      }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
 
   // Dynamically resolve configuration at request time
   const { configured, apiKey, model, missing } = getGeminiRuntimeConfig();
