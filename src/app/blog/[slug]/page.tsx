@@ -1,8 +1,10 @@
-import { getPostBySlug, getPostSlugs } from '@/lib/mdx';
+import { getPublishedPostBySlug, getPostSlugs, getRelatedPosts } from '@/lib/mdx';
 import { notFound } from 'next/navigation';
-import type { Metadata, ResolvingMetadata } from 'next';
+import type { Metadata } from 'next';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import BlogPostContent from '@/components/blog/BlogPostContent';
+import { addHeadingIds, tiptapHeadingsToMarkdown } from '@/lib/blog-types';
+import type { HTMLAttributes, ReactNode } from 'react';
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -10,20 +12,46 @@ type Props = {
 
 export async function generateMetadata(
   { params }: Props,
-  parent: ResolvingMetadata
 ): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
-  
+  const post = await getPublishedPostBySlug(slug);
+
   if (!post) {
     return { title: 'Post Not Found' };
   }
 
+  const siteUrl = 'https://khadafidaffa.com';
+  const canonicalUrl = `${siteUrl}/blog/${slug}`;
+  const baseTitle = post.metadata.seoTitle?.trim() || post.metadata.title;
+  const title = baseTitle.includes('Digital Grimoire') ? baseTitle : `${baseTitle} | Digital Grimoire`;
+  const description = post.metadata.seoDescription?.trim() || post.metadata.excerpt;
+  const coverImage = post.metadata.ogImage || post.metadata.cover_url || post.metadata.image;
+
   return {
-    title: `${post.metadata.title} | Digital Grimoire`,
-    description: post.metadata.excerpt,
+    title,
+    description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title,
+      description,
+      type: 'article',
+      url: canonicalUrl,
+      publishedTime: post.metadata.date,
+      modifiedTime: post.metadata.updatedAt || post.metadata.date,
+      images: coverImage ? [{ url: coverImage }] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: coverImage ? [coverImage] : undefined,
+    },
   };
 }
+
+export const dynamic = 'force-dynamic';
 
 export async function generateStaticParams() {
   const slugs = getPostSlugs();
@@ -31,9 +59,15 @@ export async function generateStaticParams() {
 }
 
 // Custom heading components that attach unique id for smooth ToC navigation
+function headingText(children: ReactNode): string {
+  if (typeof children === 'string' || typeof children === 'number') return String(children);
+  if (Array.isArray(children)) return children.map(headingText).join('');
+  return '';
+}
+
 const mdxComponents = {
-  h2: ({ children, ...props }: any) => {
-    const text = typeof children === "string" ? children : Array.isArray(children) ? children.join("") : String(children || "");
+  h2: ({ children, ...props }: HTMLAttributes<HTMLHeadingElement>) => {
+    const text = headingText(children);
     const id = text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
     return (
       <h2 id={id} className="scroll-mt-36" {...props}>
@@ -41,8 +75,8 @@ const mdxComponents = {
       </h2>
     );
   },
-  h3: ({ children, ...props }: any) => {
-    const text = typeof children === "string" ? children : Array.isArray(children) ? children.join("") : String(children || "");
+  h3: ({ children, ...props }: HTMLAttributes<HTMLHeadingElement>) => {
+    const text = headingText(children);
     const id = text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
     return (
       <h3 id={id} className="scroll-mt-36" {...props}>
@@ -54,15 +88,67 @@ const mdxComponents = {
 
 export default async function BlogPost({ params }: Props) {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPublishedPostBySlug(slug);
 
   if (!post) {
     notFound();
   }
 
+  const relatedPosts = await getRelatedPosts(slug, post.metadata.category, 3);
+  const siteUrl = 'https://khadafidaffa.com';
+  const articleUrl = `${siteUrl}/blog/${slug}`;
+  const coverImage = post.metadata.ogImage || post.metadata.cover_url || post.metadata.image;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.metadata.seoTitle || post.metadata.title,
+    description: post.metadata.seoDescription || post.metadata.excerpt,
+    datePublished: post.metadata.date,
+    dateModified: post.metadata.updatedAt || post.metadata.date,
+    author: {
+      '@type': 'Person',
+      name: 'Daffa Dhiyaulhaq Khadafi',
+      url: siteUrl,
+    },
+    publisher: {
+      '@type': 'Person',
+      name: 'Daffa Dhiyaulhaq Khadafi',
+      url: siteUrl,
+    },
+    url: articleUrl,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': articleUrl,
+    },
+    image: coverImage ? [coverImage] : undefined,
+  };
+
+  const jsonLdScript = (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
+
+  if (post.source === 'studio') {
+    const tocContent = post.contentJson ? tiptapHeadingsToMarkdown(post.contentJson) : '';
+    return (
+      <>
+        {jsonLdScript}
+        <BlogPostContent post={{ ...post, content: tocContent }} slug={slug} relatedPosts={relatedPosts}>
+          <div dangerouslySetInnerHTML={{ __html: addHeadingIds(post.contentHtml || '') }} />
+        </BlogPostContent>
+      </>
+    );
+  }
+
   return (
-    <BlogPostContent post={post} slug={slug}>
-      <MDXRemote source={post.content} components={mdxComponents} />
-    </BlogPostContent>
+    <>
+      {jsonLdScript}
+      <BlogPostContent post={post} slug={slug} relatedPosts={relatedPosts}>
+        <MDXRemote source={post.content} components={mdxComponents} />
+      </BlogPostContent>
+    </>
   );
 }

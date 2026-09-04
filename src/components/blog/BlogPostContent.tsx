@@ -6,20 +6,24 @@ import EngagementSection from '@/components/blog/EngagementSection';
 import ScrollProgressNav from '@/components/blog/ScrollProgressNav';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { Lora, Plus_Jakarta_Sans } from 'next/font/google';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import { motion, useScroll, useSpring } from 'framer-motion';
+import ArticleAtmosphere from '@/components/blog/ArticleAtmosphere';
+import { ArticleRenderer } from '@/components/shared/ArticleRenderer';
+import { RelatedArticlesSection } from '@/components/blog/RelatedArticlesSection';
+import type { BlogPost } from '@/lib/mdx';
 
-const lora = Lora({ subsets: ['latin'], style: ['normal', 'italic'] });
 const sans = Plus_Jakarta_Sans({ subsets: ['latin'] });
 
 type Props = {
-  post: any;
+  post: BlogPost;
   slug: string;
+  relatedPosts?: BlogPost[];
   children: React.ReactNode;
 };
 
 // Client Component to handle Scroll Progress & Interactive UI
-export default function BlogPostContent({ post, slug, children }: Props) {
+export default function BlogPostContent({ post, slug, relatedPosts, children }: Props) {
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
@@ -43,6 +47,7 @@ export default function BlogPostContent({ post, slug, children }: Props) {
       </div>
 
       <Navbar />
+      <ArticleAtmosphere mood={post.metadata.musicMood} enabled={post.metadata.musicEnabled} />
       <ScrollProgressNav />
       
       <main className="max-w-4xl mx-auto px-4 md:px-6 pt-32 pb-48 relative z-10 flex flex-col items-center">
@@ -62,47 +67,34 @@ export default function BlogPostContent({ post, slug, children }: Props) {
           {/* Rotating gradient background creating the border effect */}
           <div className="absolute inset-[-50%] bg-[conic-gradient(from_0deg,transparent_0_340deg,#34D399_360deg)] animate-[spin_4s_linear_infinite] opacity-30 group-hover:opacity-60 transition-opacity duration-700" />
           
-          {/* The actual Book-Frame Container */}
-          <article className="relative bg-[#111113]/90 backdrop-blur-3xl rounded-[2rem] border border-[#27272A]/40 shadow-2xl p-6 md:p-14 lg:p-16 h-full w-full">
-            
-            {/* Header */}
-            <header className="mb-16">
-              <div className="flex items-center gap-3 text-sm font-mono tracking-wide mb-8">
-                <span className="text-[#34D399] uppercase font-medium bg-[#34D399]/10 px-3 py-1 rounded-full border border-[#34D399]/20">{post.metadata.category}</span>
-                <span className="text-[#6B7280]">
-                  {new Date(post.metadata.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                </span>
-              </div>
-              
-              <h1 className={`text-4xl md:text-[3rem] leading-[1.15] text-[#F8FAFC] font-medium tracking-tight mb-8 ${lora.className}`}>
-                {post.metadata.title}
-              </h1>
-              
-              <p className="text-xl text-[#A1A1AA] font-light leading-relaxed border-l-2 border-[#34D399]/30 pl-6 italic">
-                {post.metadata.excerpt}
-              </p>
-            </header>
-
-            {/* Typography Content (Server-Rendered MDX passed as children) */}
-            <div className={`prose prose-invert max-w-none 
-              prose-p:text-[#D1D5DB] prose-p:leading-[2] prose-p:text-[1.1rem] ${lora.className}
-              prose-headings:font-sans prose-headings:font-medium prose-headings:text-[#F8FAFC] prose-headings:tracking-tight
-              prose-h2:text-[1.85rem] prose-h2:mt-16 prose-h2:mb-6
-              prose-h3:text-[1.4rem] prose-h3:mt-10 prose-h3:mb-4
-              prose-a:text-[#34D399] prose-a:font-sans prose-a:no-underline hover:prose-a:underline hover:prose-a:decoration-[#34D399]/50
-              prose-strong:text-[#F8FAFC] prose-strong:font-semibold
-              prose-blockquote:border-l-[#34D399]/40 prose-blockquote:bg-[#18181B]/60 prose-blockquote:py-2 prose-blockquote:px-6 prose-blockquote:rounded-r-xl prose-blockquote:font-style-italic prose-blockquote:text-[#A1A1AA]
-              prose-code:text-[#34D399] prose-code:bg-[#09090B] prose-code:font-sans prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-normal prose-code:before:content-none prose-code:after:content-none
-              prose-pre:bg-[#09090B] prose-pre:border prose-pre:border-[#27272A]/50 prose-pre:font-sans prose-pre:shadow-inner
-              prose-hr:border-[#27272A]/50 prose-hr:my-16
-            `}>
-              {children}
-            </div>
-
-            <EngagementSection slug={slug} />
-
-          </article>
+          <ArticleRenderer 
+            article={{
+              title: post.metadata.title,
+              slug: post.metadata.slug,
+              excerpt: post.metadata.excerpt || '',
+              category: post.metadata.category,
+              reading_time: post.metadata.readingTime || 0,
+              date: post.metadata.date,
+              cover_url: post.metadata.cover_url || post.metadata.image,
+              cover_slides: post.metadata.cover_slides,
+              cover_image: post.metadata.cover_image,
+              content_json: post.contentJson,
+              content: post.content,
+              content_html: post.contentHtml,
+              theme: post.metadata.theme,
+              music_enabled: post.metadata.musicEnabled,
+              music_uri: post.metadata.musicUri
+            }}
+            footerContent={<EngagementSection slug={slug} />}
+          >
+            {children}
+          </ArticleRenderer>
         </div>
+
+        {/* Deterministic Related Articles ("Baca Juga") */}
+        {relatedPosts && relatedPosts.length > 0 && (
+          <RelatedArticlesSection posts={relatedPosts} />
+        )}
 
       </main>
 

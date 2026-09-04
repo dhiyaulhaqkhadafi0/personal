@@ -1,7 +1,7 @@
 "use client";
 
 import { useMusic, ATMOSPHERES } from "@/context/MusicContext";
-import { Headphones, Minimize2, Sparkles } from "lucide-react";
+import { Headphones, Minimize2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 const SpotifyLogo = ({ className }: { className?: string }) => (
@@ -56,7 +56,7 @@ export default function MusicPlayer() {
           <div className="text-[11px] font-mono text-[#9CA3AF] uppercase tracking-wider mb-2.5 flex items-center justify-between">
             <span>Reading Soundscape</span>
             <span className="text-[#34D399] flex items-center gap-1 font-sans text-xs font-medium">
-              <Sparkles className="w-3 h-3" /> {currentAtmosphere.emoji} {currentAtmosphere.name}
+              <Headphones className="w-3 h-3" /> {currentAtmosphere.emoji} {currentAtmosphere.name}
             </span>
           </div>
 

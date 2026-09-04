@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "opennextjs-cloudflare build",
+    "build:next": "next build",
     "start": "next start",
     "lint": "eslint",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
@@ -14,6 +15,11 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",
     "@tailwindcss/typography": "^0.5.20",
+    "@tiptap/extension-image": "^3.31.0",
+    "@tiptap/extension-placeholder": "^3.31.0",
+    "@tiptap/extension-underline": "^3.31.0",
+    "@tiptap/react": "^3.31.0",
+    "@tiptap/starter-kit": "^3.31.0",
     "framer-motion": "^13.1.1",
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.37.0",

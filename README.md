@@ -34,3 +34,22 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Blog Studio
+
+The private editor lives at `/studio`. Published Studio articles are merged with
+the existing MDX archive and rendered at `/blog/[slug]`.
+
+Setup:
+
+1. Copy `.env.example` to `.env.local` and fill the Supabase URL and publishable key.
+2. Set `BLOG_ADMIN_EMAIL` to the only email allowed to use Studio APIs.
+3. Run `supabase_blog_studio.sql` once in the Supabase SQL Editor.
+4. Add the same email privately to `blog_admin_emails` (do not commit it).
+5. Create that admin user in Supabase Authentication using email/password.
+6. Add the same environment values to the Cloudflare deployment.
+
+The SQL creates the `blog_articles` table, row-level security policies, and the
+public `blog-media` storage bucket. Drafts remain owner-only; public visitors can
+only read articles with `status = 'published'`. The admin allowlist is protected
+by RLS and intentionally contains no email address in source control.

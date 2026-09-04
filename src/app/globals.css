@@ -56,3 +56,337 @@ body {
   animation: shine-sweep 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
+/* Blog Studio ------------------------------------------------------------- */
+body:has(.studio-shell), body:has(.studio-login-shell), body:has(.studio-loading) { overflow: hidden; }
+body:has(.studio-shell) > main, body:has(.studio-login-shell) > main, body:has(.studio-loading) > main { display: block; }
+body:has(.studio-shell) > footer, body:has(.studio-login-shell) > footer, body:has(.studio-loading) > footer { display: none; }
+
+/* Studio Editor Typography & Canvas */
+.studio-tiptap {
+  min-height: 480px;
+  outline: 0;
+  color: #D1D5DB;
+  font: 400 1.125rem/1.9 Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+.studio-tiptap > * + * {
+  margin-top: 1.25em;
+}
+
+.studio-tiptap p.is-editor-empty:first-child::before,
+.studio-tiptap .is-empty::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: #52525B;
+  pointer-events: none;
+  font-style: italic;
+}
+
+.studio-tiptap h2 {
+  margin-top: 2.4em;
+  margin-bottom: 0.6em;
+  color: #F8FAFC;
+  font-family: var(--font-sans);
+  font-size: 1.85rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+
+.studio-tiptap h3 {
+  margin-top: 1.8em;
+  margin-bottom: 0.5em;
+  color: #F1F1ED;
+  font-family: var(--font-sans);
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+}
+
+.studio-tiptap blockquote {
+  margin: 2.2em 0;
+  padding: 0.6rem 1.4rem;
+  border-left: 3px solid rgba(52, 211, 153, 0.5);
+  background: rgba(52, 211, 153, 0.04);
+  border-radius: 0 0.75rem 0.75rem 0;
+  color: #D1D5DB;
+  font-size: 1.15rem;
+  font-style: italic;
+  line-height: 1.65;
+}
+
+/* Pull Quote styling */
+.studio-tiptap blockquote.pullquote,
+.studio-tiptap blockquote[data-variant="pullquote"],
+.prose blockquote.pullquote,
+.prose blockquote[data-variant="pullquote"] {
+  text-align: center;
+  margin: 3.2rem auto;
+  padding: 1.75rem 1.5rem;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  border-radius: 0;
+  font-size: 1.45rem;
+  line-height: 1.45;
+  color: #F8FAFC;
+  font-style: italic;
+  max-width: 680px;
+}
+
+.studio-tiptap blockquote.pullquote p,
+.studio-tiptap blockquote[data-variant="pullquote"] p,
+.prose blockquote.pullquote p,
+.prose blockquote[data-variant="pullquote"] p {
+  margin: 0;
+}
+
+/* Callout styling */
+.studio-tiptap blockquote.callout,
+.studio-tiptap blockquote[data-variant="callout"],
+.prose blockquote.callout,
+.prose blockquote[data-variant="callout"] {
+  margin: 2.2rem 0;
+  padding: 1rem 1.25rem;
+  border-left: 3px solid #818CF8;
+  background: rgba(129, 140, 248, 0.06);
+  border-radius: 0 0.75rem 0.75rem 0;
+  font-style: normal;
+  color: #E2E8F0;
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+.studio-tiptap blockquote.callout p,
+.studio-tiptap blockquote[data-variant="callout"] p,
+.prose blockquote.callout p,
+.prose blockquote[data-variant="callout"] p {
+  margin: 0;
+}
+
+.studio-tiptap ul,
+.studio-tiptap ol {
+  padding-left: 1.5em;
+  margin: 1.2em 0;
+}
+
+.studio-tiptap li {
+  margin: 0.4em 0;
+}
+
+.studio-tiptap a,
+.studio-editor-link {
+  color: #34D399;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.studio-tiptap pre {
+  overflow-x: auto;
+  margin: 2em 0;
+  padding: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.75rem;
+  background: #090A0E;
+  color: #E2E8F0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875rem;
+  line-height: 1.65;
+}
+
+.studio-tiptap code:not(pre code) {
+  padding: 0.2em 0.4em;
+  border-radius: 0.3em;
+  background: #181920;
+  color: #34D399;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.85em;
+}
+
+.studio-tiptap hr {
+  width: 6rem;
+  margin: 3.5rem auto;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.studio-tiptap u,
+.prose u {
+  text-decoration: underline;
+  text-decoration-color: rgba(52, 211, 153, 0.6);
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1.5px;
+}
+
+/* Editorial Figure & Figcaption styling */
+.studio-tiptap figure.studio-editorial-figure,
+.studio-editorial-figure,
+.prose figure {
+  display: block;
+  margin: 2.5rem auto;
+  padding: 0;
+}
+
+.studio-tiptap figure.studio-editorial-figure img,
+.studio-editor-image,
+.prose figure img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.studio-tiptap figcaption.studio-editorial-figcaption,
+.studio-editorial-figcaption,
+.prose figcaption {
+  display: block;
+  margin-top: 0.85rem;
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #94A3B8;
+  text-align: center;
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+
+.studio-tiptap .ProseMirror-selectednode {
+  outline: 2px solid #34D399;
+  outline-offset: 3px;
+  border-radius: 0.75rem;
+}
+
+/* Studio Login & Loading Screens */
+.studio-login-shell,
+.studio-loading {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  background: radial-gradient(circle at 50% 0, #20222B, #090A0D 50%);
+  color: #DDD;
+}
+
+.studio-spin {
+  animation: studio-spin 1s linear infinite;
+}
+
+@keyframes studio-spin {
+  to { transform: rotate(360deg); }
+}
+
+.studio-login-card {
+  width: min(440px, calc(100% - 32px));
+  padding: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  background: rgba(17, 18, 22, 0.92);
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(24px);
+  text-align: center;
+}
+
+.studio-login-card > .studio-brand-mark {
+  margin: 0 auto 18px;
+}
+
+.studio-eyebrow {
+  color: #7F8290;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.studio-login-card h1 {
+  margin: 16px 0 10px;
+  color: #F4F3EE;
+  font: 500 34px/1.1 Georgia, serif;
+}
+
+.studio-login-card > p {
+  margin: 0 auto 28px;
+  max-width: 320px;
+  color: #858892;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.studio-login-card form {
+  display: grid;
+  gap: 14px;
+  text-align: left;
+}
+
+.studio-login-card label {
+  color: #858892;
+  font-size: 12px;
+}
+
+.studio-login-card input {
+  display: block;
+  width: 100%;
+  height: 44px;
+  margin-top: 7px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  outline: 0;
+  background: #090A0D;
+  color: #DDD;
+  font-size: 13px;
+}
+
+.studio-login-card input:focus {
+  border-color: #34D399;
+}
+
+.studio-login-card form > button {
+  display: flex;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 10px;
+  background: #34D399;
+  color: #0A0B0E;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.studio-login-card form > button:hover {
+  background: #2EB882;
+}
+
+.studio-login-card form > button svg {
+  width: 15px;
+}
+
+.studio-login-arrow {
+  transform: rotate(180deg);
+}
+
+.studio-login-error {
+  padding: 9px;
+  border: 1px solid rgba(225, 118, 118, 0.25);
+  border-radius: 8px;
+  background: rgba(225, 118, 118, 0.08);
+  color: #DC8383;
+  font-size: 12px;
+  text-align: center;
+}
+
+.studio-login-card > small {
+  display: block;
+  margin-top: 20px;
+  color: #555861;
+  font-size: 11px;
+}
+

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useCallback, useContext, useState } from "react";
 
 export type Atmosphere = {
   id: string;
@@ -60,6 +60,7 @@ type MusicContextType = {
   isExpanded: boolean;
   hasLoadedIframe: boolean;
   selectAtmosphere: (atm: Atmosphere) => void;
+  recommendAtmosphere: (name: string) => void;
   toggleExpanded: () => void;
   setIsExpanded: (expanded: boolean) => void;
 };
@@ -76,6 +77,11 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     setHasLoadedIframe(true);
   };
 
+  const recommendAtmosphere = useCallback((name: string) => {
+    const recommended = ATMOSPHERES.find((atm) => atm.name.toLowerCase() === name.toLowerCase());
+    if (recommended) setCurrentAtmosphere(recommended);
+  }, []);
+
   const toggleExpanded = () => {
     setIsExpanded((prev) => {
       const next = !prev;
@@ -91,6 +97,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
         isExpanded,
         hasLoadedIframe,
         selectAtmosphere,
+        recommendAtmosphere,
         toggleExpanded,
         setIsExpanded,
       }}

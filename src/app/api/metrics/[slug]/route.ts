@@ -1,112 +1,169 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, createServiceRoleClient } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
-// GET: Fetch view and ignite count for a slug
+const SLUG_REGEX = /^[a-z0-9-]+$/i;
+
+/**
+ * GET /api/metrics/[slug]
+ * Reads view_count and ignite_count using the anon key.
+ * Requires SELECT privilege on public.blog_metrics for anon.
+ */
 export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  _request: Request,
+  { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
     const { slug } = await params;
-    
-    // Attempt to fetch existing record
+
+    if (!slug || !SLUG_REGEX.test(slug)) {
+      return NextResponse.json({ error: 'Slug tidak valid' }, { status: 400 });
+    }
+
     const { data, error } = await supabase
       .from('blog_metrics')
       .select('view_count, ignite_count')
       .eq('slug', slug)
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error fetching metrics:', error);
-      return NextResponse.json({ error: 'Failed to fetch metrics' }, { status: 500 });
+    if (error) {
+      console.error('Error fetching metrics:', error.message);
+      return NextResponse.json({ error: 'Gagal mengambil metrics' }, { status: 500 });
     }
 
-    // If no record exists, return default 0 values
-    if (!data) {
-      return NextResponse.json({ view_count: 0, ignite_count: 0 }, { status: 200 });
-    }
-
-    return NextResponse.json(data, { status: 200 });
+    return NextResponse.json(
+      {
+        view_count: data?.view_count ?? 0,
+        ignite_count: data?.ignite_count ?? 0,
+      },
+      { status: 200 },
+    );
   } catch (err) {
-    console.error('Unexpected error:', err);
+    console.error('Unexpected error in GET metrics:', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
-// POST: Increment view or ignite count for a slug
+/**
+ * POST /api/metrics/[slug]
+ *
+ * Atomic increment for view or ignite count using PostgreSQL RPC `increment_blog_metric`.
+ * Abuse protection (V1):
+ *   - First-party HTTP-only cookie per slug (24 hours expiry)
+ *   - If cookie already present, skips DB write and returns current metrics without incrementing
+ *   - Service role key is kept strictly on server (never exposed to browser client)
+ *   - Graceful degradation if SUPABASE_SERVICE_ROLE_KEY is not yet configured
+ *
+ * Note: For high-scale DDoS protection, IP/KV/Cloudflare WAF rate limiting can be added
+ * as an infrastructure layer in future phases.
+ */
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
     const { slug } = await params;
-    
-    // Parse the request body to know what to increment ('view' or 'ignite')
-    const body = await request.json();
-    const { type } = body; // 'view' or 'ignite'
+
+    if (!slug || !SLUG_REGEX.test(slug)) {
+      return NextResponse.json({ error: 'Slug tidak valid' }, { status: 400 });
+    }
+
+    const body = (await request.json().catch(() => ({}))) as { type?: string };
+    const { type } = body;
 
     if (type !== 'view' && type !== 'ignite') {
-      return NextResponse.json({ error: 'Invalid type provided' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid type. Harus "view" atau "ignite".' },
+        { status: 400 },
+      );
     }
 
-    // We can use an upsert strategy. Supabase doesn't natively support atomic increments 
-    // easily without RPC, but we can do a read, then insert/update. 
-    // Wait, the better way for high concurrency without RPC is reading and writing,
-    // though ideally an RPC function is used. We'll use simple read/write for this setup.
-    
-    const { data: existingData, error: fetchError } = await supabase
-      .from('blog_metrics')
-      .select('view_count, ignite_count')
-      .eq('slug', slug)
-      .single();
+    // --- Abuse Control (First-Party Cookie Check) ---
+    const sanitizedSlug = slug.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const cookieName = `khadafi_metric_${type}_${sanitizedSlug}`;
+    const cookieHeader = request.headers.get('cookie') || '';
+    const isThrottled = cookieHeader
+      .split(';')
+      .some((c) => c.trim().startsWith(`${cookieName}=`));
 
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      return NextResponse.json({ error: 'Failed to fetch existing metrics' }, { status: 500 });
-    }
-
-    let newData;
-    
-    if (!existingData) {
-      // Create new row
-      newData = {
-        slug,
-        view_count: type === 'view' ? 1 : 0,
-        ignite_count: type === 'ignite' ? 1 : 0
-      };
-      
-      const { data: insertedData, error: insertError } = await supabase
+    if (isThrottled) {
+      // Return current counts without incrementing
+      const { data: current } = await supabase
         .from('blog_metrics')
-        .insert(newData)
-        .select()
-        .single();
-        
-      if (insertError) {
-        return NextResponse.json({ error: 'Failed to create metrics row' }, { status: 500 });
-      }
-      return NextResponse.json(insertedData, { status: 200 });
-    } else {
-      // Update existing row
-      newData = {
-        view_count: type === 'view' ? Number(existingData.view_count) + 1 : Number(existingData.view_count),
-        ignite_count: type === 'ignite' ? Number(existingData.ignite_count) + 1 : Number(existingData.ignite_count)
-      };
-      
-      const { data: updatedData, error: updateError } = await supabase
-        .from('blog_metrics')
-        .update(newData)
+        .select('view_count, ignite_count')
         .eq('slug', slug)
-        .select()
-        .single();
-        
-      if (updateError) {
-        return NextResponse.json({ error: 'Failed to update metrics' }, { status: 500 });
-      }
-      return NextResponse.json(updatedData, { status: 200 });
+        .maybeSingle();
+
+      return NextResponse.json(
+        {
+          view_count: current?.view_count ?? 0,
+          ignite_count: current?.ignite_count ?? 0,
+          throttled: true,
+        },
+        { status: 200 },
+      );
     }
+
+    // --- Server-side Service Role Client ---
+    let db: ReturnType<typeof createServiceRoleClient>;
+    try {
+      db = createServiceRoleClient();
+    } catch {
+      // Graceful degradation: log warning and return current metrics
+      console.warn('SUPABASE_SERVICE_ROLE_KEY not configured — metrics increment skipped.');
+      const { data: current } = await supabase
+        .from('blog_metrics')
+        .select('view_count, ignite_count')
+        .eq('slug', slug)
+        .maybeSingle();
+
+      return NextResponse.json(
+        {
+          view_count: current?.view_count ?? 0,
+          ignite_count: current?.ignite_count ?? 0,
+          skipped: true,
+        },
+        { status: 200 },
+      );
+    }
+
+    // --- Atomic PostgreSQL RPC Call (No manual read-then-write fallback) ---
+    const { data, error } = await db.rpc('increment_blog_metric', {
+      p_slug: slug,
+      p_type: type,
+    });
+
+    if (error) {
+      if (error.code === '02000') {
+        return NextResponse.json(
+          { error: 'Artikel tidak ditemukan atau belum dipublikasikan.' },
+          { status: 404 },
+        );
+      }
+      console.error('Error executing increment_blog_metric RPC:', error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    const payload = (data as { view_count?: number; ignite_count?: number }) ?? {
+      view_count: 0,
+      ignite_count: 0,
+    };
+
+    // Set 24h first-party cookie on the response
+    const response = NextResponse.json(payload, { status: 200 });
+    response.cookies.set({
+      name: cookieName,
+      value: '1',
+      maxAge: 86400, // 24 hours
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+    });
+
+    return response;
   } catch (err) {
-    console.error('Unexpected error:', err);
+    console.error('Unexpected error in POST metrics:', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
