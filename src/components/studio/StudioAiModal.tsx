@@ -48,6 +48,7 @@ export function StudioAiModal({
   // Configuration check
   const [checkingConfig, setCheckingConfig] = useState(true);
   const [isConfigured, setIsConfigured] = useState(false);
+  const [missingConfig, setMissingConfig] = useState<string[]>([]);
 
   // Edit Teks mode state: explicit textarea
   const [textInput, setTextInput] = useState('');
@@ -97,6 +98,7 @@ export function StudioAiModal({
     // Fetch AI configuration status (checks both GEMINI_API_KEY and GEMINI_MODEL)
     setCheckingConfig(true);
     fetch('/api/studio/ai', {
+      cache: 'no-store',
       headers: {
         Authorization: `Bearer ${authToken}`,
       },
@@ -105,12 +107,15 @@ export function StudioAiModal({
         if (res.ok) {
           const data = await res.json();
           setIsConfigured(Boolean(data.configured));
+          setMissingConfig(Array.isArray(data.missing) ? data.missing : []);
         } else {
           setIsConfigured(false);
+          setMissingConfig(['GEMINI_API_KEY', 'GEMINI_MODEL']);
         }
       })
       .catch(() => {
         setIsConfigured(false);
+        setMissingConfig(['GEMINI_API_KEY', 'GEMINI_MODEL']);
       })
       .finally(() => {
         setCheckingConfig(false);
@@ -353,6 +358,12 @@ export function StudioAiModal({
               <p className="text-xs text-[#94A3B8] max-w-md mx-auto leading-relaxed">
                 Pastikan variabel <code className="text-[#34D399] bg-white/5 px-1 py-0.5 rounded">GEMINI_API_KEY</code> dan <code className="text-[#34D399] bg-white/5 px-1 py-0.5 rounded">GEMINI_MODEL</code> telah diatur di environment server Anda untuk mengaktifkan asisten editorial ini.
               </p>
+              {missingConfig.length > 0 && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F59E0B]/10 border border-[#F59E0B]/20 text-[11px] text-[#FDE68A] font-mono">
+                  <span>Belum terdeteksi di runtime:</span>
+                  <span className="font-semibold text-white">{missingConfig.join(', ')}</span>
+                </div>
+              )}
             </div>
           ) : result ? (
             /* REVIEW PANEL */

@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { SendHorizontal, LayoutGrid, List, ChevronDown, SearchX, RotateCcw, MonitorPlay, Eye, TrendingUp, Star, Clock, ArrowRight } from "lucide-react";
+import { SendHorizontal, LayoutGrid, List, ChevronDown, SearchX, RotateCcw, MonitorPlay, Eye, TrendingUp, Star, Clock } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { EditorialCover } from "@/components/shared/EditorialCover";
@@ -15,7 +15,7 @@ type Props = {
   loraClassName: string;
 };
 
-type SortMode = "Terbaru" | "Trending" | "Banyak Dilihat" | "Pilihan Editor";
+type SortMode = "Terbaru" | "Trending" | "Banyak Dilihat";
 
 export default function BlogSearchFilter({ posts, initialEngagement, loraClassName }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -65,7 +65,6 @@ export default function BlogSearchFilter({ posts, initialEngagement, loraClassNa
     { id: "Terbaru", icon: Clock, label: "Terbaru" },
     { id: "Trending", icon: TrendingUp, label: "Sedang Trending" },
     { id: "Banyak Dilihat", icon: Eye, label: "Paling Banyak Dilihat" },
-    { id: "Pilihan Editor", icon: Star, label: "Pilihan Editor" },
   ];
 
   // Real-time search across title, excerpt, category, and slug, PLUS sorting with real engagement
@@ -104,11 +103,6 @@ export default function BlogSearchFilter({ posts, initialEngagement, loraClassNa
         return new Date(b.metadata.date).getTime() - new Date(a.metadata.date).getTime();
       } else if (sortMode === "Banyak Dilihat") {
         if (bViews !== aViews) return bViews - aViews;
-        return new Date(b.metadata.date).getTime() - new Date(a.metadata.date).getTime();
-      } else if (sortMode === "Pilihan Editor") {
-        const readA = a.metadata.readingTime || 0;
-        const readB = b.metadata.readingTime || 0;
-        if (readB !== readA) return readB - readA;
         return new Date(b.metadata.date).getTime() - new Date(a.metadata.date).getTime();
       }
       return 0;
@@ -467,13 +461,6 @@ export default function BlogSearchFilter({ posts, initialEngagement, loraClassNa
                       </div>
                     )}
                   </div>
-                  
-                  {/* Pagination / View More Action for Sidebar */}
-                  {filteredPosts.length > 1 && (
-                     <button className="w-full mt-2 py-3 rounded-xl border border-[#27272A] bg-[#09090B] hover:bg-[#131316] hover:border-[#34D399]/50 transition-all text-xs font-mono font-medium text-[#9CA3AF] hover:text-[#34D399] flex items-center justify-center gap-2 group/btn">
-                        Muat Lebih Banyak <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
-                     </button>
-                  )}
                 </div>
               </div>
             )}

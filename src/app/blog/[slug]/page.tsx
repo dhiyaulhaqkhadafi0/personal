@@ -15,22 +15,31 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPublishedPostBySlug(slug);
-  
+
   if (!post) {
     return { title: 'Post Not Found' };
   }
 
-  const title = `${post.metadata.title} | Digital Grimoire`;
-  const description = post.metadata.excerpt;
-  const coverImage = post.metadata.cover_url || post.metadata.image;
+  const siteUrl = 'https://khadafidaffa.com';
+  const canonicalUrl = `${siteUrl}/blog/${slug}`;
+  const baseTitle = post.metadata.seoTitle?.trim() || post.metadata.title;
+  const title = baseTitle.includes('Digital Grimoire') ? baseTitle : `${baseTitle} | Digital Grimoire`;
+  const description = post.metadata.seoDescription?.trim() || post.metadata.excerpt;
+  const coverImage = post.metadata.ogImage || post.metadata.cover_url || post.metadata.image;
 
   return {
     title,
     description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title,
       description,
       type: 'article',
+      url: canonicalUrl,
+      publishedTime: post.metadata.date,
+      modifiedTime: post.metadata.updatedAt || post.metadata.date,
       images: coverImage ? [{ url: coverImage }] : undefined,
     },
     twitter: {
@@ -88,15 +97,15 @@ export default async function BlogPost({ params }: Props) {
   const relatedPosts = await getRelatedPosts(slug, post.metadata.category, 3);
   const siteUrl = 'https://khadafidaffa.com';
   const articleUrl = `${siteUrl}/blog/${slug}`;
-  const coverImage = post.metadata.cover_url || post.metadata.image;
+  const coverImage = post.metadata.ogImage || post.metadata.cover_url || post.metadata.image;
 
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
-    headline: post.metadata.title,
-    description: post.metadata.excerpt,
+    headline: post.metadata.seoTitle || post.metadata.title,
+    description: post.metadata.seoDescription || post.metadata.excerpt,
     datePublished: post.metadata.date,
-    dateModified: post.metadata.date,
+    dateModified: post.metadata.updatedAt || post.metadata.date,
     author: {
       '@type': 'Person',
       name: 'Daffa Dhiyaulhaq Khadafi',
@@ -143,4 +152,3 @@ export default async function BlogPost({ params }: Props) {
     </>
   );
 }
-

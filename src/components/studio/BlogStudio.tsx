@@ -102,6 +102,8 @@ function LoginPanel({ onAuthenticated }: { onAuthenticated: (session: Session) =
   );
 }
 
+const isAiEnabled = process.env.NEXT_PUBLIC_BLOG_AI_ENABLED === 'true';
+
 export default function BlogStudio() {
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(false);
@@ -862,8 +864,8 @@ export default function BlogStudio() {
         canUndo={editor.can().undo()}
         canRedo={editor.can().redo()}
         onInsertBlockClick={openInsertBlockMenu}
-        onOpenAiModal={() => setAiModalOpen(true)}
-        onOpenRepurposeModal={() => setRepurposeModalOpen(true)}
+        onOpenAiModal={isAiEnabled ? () => setAiModalOpen(true) : undefined}
+        onOpenRepurposeModal={isAiEnabled ? () => setRepurposeModalOpen(true) : undefined}
         hasSelection={Boolean(editor && !editor.state.selection.empty)}
       />
 
@@ -1090,7 +1092,7 @@ export default function BlogStudio() {
       />
 
       {/* 8. AI Editorial Co-Pilot Modal */}
-      {article && (
+      {isAiEnabled && article && (
         <StudioAiModal
           isOpen={aiModalOpen}
           onClose={() => setAiModalOpen(false)}
@@ -1102,7 +1104,7 @@ export default function BlogStudio() {
       )}
 
       {/* 9. AI Content Repurposing Modal */}
-      {article && (
+      {isAiEnabled && article && (
         <StudioRepurposeModal
           isOpen={repurposeModalOpen}
           onClose={() => setRepurposeModalOpen(false)}

@@ -5,9 +5,11 @@ import {
   SELECTION_ACTIONS,
   ARTICLE_ACTIONS,
 } from '@/lib/editorial-ai';
-import { callGeminiApi } from '@/lib/gemini-provider';
+import { callGeminiApi, getGeminiRuntimeConfig } from '@/lib/gemini-provider';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 
 const VALID_ACTIONS = new Set<AiAction>([
   ...SELECTION_ACTIONS.map((a) => a.id),
@@ -18,32 +20,82 @@ export async function GET(request: Request) {
   const auth = await requireBlogAdmin(request);
   if (!auth.ok) return auth.response;
 
-  const apiKey = process.env.GEMINI_API_KEY?.trim();
-  const model = process.env.GEMINI_MODEL?.trim();
+  if (process.env.NEXT_PUBLIC_BLOG_AI_ENABLED !== 'true') {
+    return new Response(
+      JSON.stringify({
+        configured: false,
+        disabled: true,
+        missing: ['NEXT_PUBLIC_BLOG_AI_ENABLED'],
+      }),
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      }
+    );
+  }
 
-  // Both GEMINI_API_KEY and GEMINI_MODEL are strictly required.
-  // Never expose sensitive keys or model names to the client.
-  return Response.json({
-    configured: Boolean(apiKey && model),
-  });
+  // Evaluate runtime environment dynamically on every request
+  const { configured, missing } = getGeminiRuntimeConfig();
+
+  // Return strictly safe diagnostics for authenticated admin.
+  // Never expose secret keys, key length, prefix, or project names.
+  return new Response(
+    JSON.stringify({
+      configured,
+      missing,
+    }),
+    {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+        Pragma: 'no-cache',
+        Expires: '0',
+      },
+    }
+  );
 }
 
 export async function POST(request: Request) {
   const auth = await requireBlogAdmin(request);
   if (!auth.ok) return auth.response;
 
-  const apiKey = process.env.GEMINI_API_KEY?.trim();
-  const model = process.env.GEMINI_MODEL?.trim();
-
-  // Explicit validation: both API Key and Model must be present. No fallback.
-  if (!apiKey || !model) {
-    return Response.json(
-      {
+  if (process.env.NEXT_PUBLIC_BLOG_AI_ENABLED !== 'true') {
+    return new Response(
+      JSON.stringify({
         ok: false,
         configured: false,
+        disabled: true,
+        error: 'Fitur AI Blog Studio dinonaktifkan untuk v1.',
+      }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Dynamically resolve configuration at request time
+  const { configured, apiKey, model, missing } = getGeminiRuntimeConfig();
+
+  // Explicit validation: both API Key and Model must be present in runtime
+  if (!configured || !apiKey || !model) {
+    return new Response(
+      JSON.stringify({
+        ok: false,
+        configured: false,
+        missing,
         error: 'AI Editorial belum dikonfigurasi. Pastikan GEMINI_API_KEY dan GEMINI_MODEL telah diatur di environment server.',
-      },
-      { status: 503 }
+      }),
+      {
+        status: 503,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        },
+      }
     );
   }
 
