@@ -50,6 +50,7 @@ export function StudioRepurposeModal({
   // Config status
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
   const [checkingConfig, setCheckingConfig] = useState(false);
+  const [missingConfig, setMissingConfig] = useState<string[]>([]);
 
   // Settings state
   const [selectedPlatform, setSelectedPlatform] = useState<RepurposingPlatform>("threads");
@@ -98,6 +99,7 @@ export function StudioRepurposeModal({
 
     setCheckingConfig(true);
     fetch("/api/studio/repurpose", {
+      cache: "no-store",
       headers: {
         Authorization: `Bearer ${authToken}`,
       },
@@ -106,12 +108,15 @@ export function StudioRepurposeModal({
         if (res.ok) {
           const data = await res.json();
           setIsConfigured(Boolean(data.configured));
+          setMissingConfig(Array.isArray(data.missing) ? data.missing : []);
         } else {
           setIsConfigured(false);
+          setMissingConfig(["GEMINI_API_KEY", "GEMINI_MODEL"]);
         }
       })
       .catch(() => {
         setIsConfigured(false);
+        setMissingConfig(["GEMINI_API_KEY", "GEMINI_MODEL"]);
       })
       .finally(() => {
         setCheckingConfig(false);
@@ -541,11 +546,19 @@ export function StudioRepurposeModal({
             {isConfigured === false && !checkingConfig && (
               <div className="m-6 p-4 rounded-xl bg-[#EF4444]/10 border border-[#EF4444]/30 flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-[#EF4444] flex-shrink-0 mt-0.5" />
-                <div className="text-xs text-[#FCA5A5]">
-                  <strong className="block text-sm font-semibold mb-1 text-white">
+                <div className="text-xs text-[#FCA5A5] space-y-1.5">
+                  <strong className="block text-sm font-semibold text-white">
                     Penyedia AI Belum Dikonfigurasi
                   </strong>
-                  Kunci <code>GEMINI_API_KEY</code> atau <code>GEMINI_MODEL</code> belum diatur pada environment server. Hubungi pengelola untuk mengaktifkan fitur ini.
+                  <p>
+                    Kunci <code>GEMINI_API_KEY</code> atau <code>GEMINI_MODEL</code> belum diatur pada environment server. Hubungi pengelola untuk mengaktifkan fitur ini.
+                  </p>
+                  {missingConfig.length > 0 && (
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-red-950/60 border border-red-500/30 text-[11px] text-red-300 font-mono">
+                      <span>Belum terdeteksi di runtime:</span>
+                      <strong className="text-white">{missingConfig.join(', ')}</strong>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

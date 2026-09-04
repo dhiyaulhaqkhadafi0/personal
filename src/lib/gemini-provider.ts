@@ -5,6 +5,7 @@
  * - Official header authentication: `x-goog-api-key`
  * - Clean URL without query params
  * - Safe internal Request ID generation
+ * - Request-time runtime environment binding resolution (Cloudflare Workers context & Node.js)
  * - Bounded retry for 429, timeouts, and 5xx (such as 503 high demand spikes)
  * - Immediate fail (no retry) for 400, 401, 403, 404
  * - User-safe, actionable Indonesian error messages without leaking secrets
@@ -26,8 +27,8 @@ export type GeminiContent = {
 };
 
 export type GeminiCallParams = {
-  model: string;
-  apiKey: string;
+  model?: string;
+  apiKey?: string;
   contents: GeminiContent[];
   generationConfig?: GeminiGenerationConfig;
   timeoutMs?: number;
@@ -49,6 +50,95 @@ export type GeminiErrorResult = {
 };
 
 export type GeminiResult = GeminiSuccessResult | GeminiErrorResult;
+
+export type GeminiRuntimeConfig = {
+  configured: boolean;
+  apiKey: string | null;
+  model: string | null;
+  missing: ('GEMINI_API_KEY' | 'GEMINI_MODEL')[];
+};
+
+/**
+ * Resolves a runtime environment variable across Cloudflare Workers (workerd) and Node.js.
+ * Strictly evaluated at request time, never at module import time.
+ */
+export function getRuntimeEnvVar(name: 'GEMINI_API_KEY' | 'GEMINI_MODEL'): string | null {
+  const globalObj = globalThis as any;
+
+  // 1. Cloudflare Workers context via AsyncLocalStorage (current request bindings & secrets)
+  try {
+    const contextSymbol = Symbol.for('__cloudflare-context__');
+    const cfEnv = globalObj[contextSymbol]?.env;
+    if (cfEnv && typeof cfEnv[name] === 'string' && cfEnv[name].trim().length > 0) {
+      return cfEnv[name].trim();
+    }
+  } catch {
+    // ignore
+  }
+
+  // 2. Standard process.env (Node.js runtime / .env.local / OpenNext populated)
+  try {
+    if (typeof process !== 'undefined' && process.env) {
+      const val = process.env[name];
+      if (typeof val === 'string' && val.trim().length > 0) {
+        return val.trim();
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  // 3. Global scope fallback (edge runtime worker global scope)
+  try {
+    const val = globalObj[name];
+    if (typeof val === 'string' && val.trim().length > 0) {
+      return val.trim();
+    }
+  } catch {
+    // ignore
+  }
+
+  // 4. Global env object fallback (some Cloudflare edge shims)
+  try {
+    const envObj = globalObj.env;
+    if (envObj && typeof envObj[name] === 'string' && envObj[name].trim().length > 0) {
+      return envObj[name].trim();
+    }
+  } catch {
+    // ignore
+  }
+
+  return null;
+}
+
+/**
+ * Evaluates Gemini configuration at request time.
+ * Returns safe diagnostic metadata (configured flag and list of missing variable names).
+ * NEVER returns secret values, key length, prefix, or project names.
+ */
+export function getGeminiRuntimeConfig(): GeminiRuntimeConfig {
+  const apiKey = getRuntimeEnvVar('GEMINI_API_KEY');
+  const model = getRuntimeEnvVar('GEMINI_MODEL');
+
+  const missing: ('GEMINI_API_KEY' | 'GEMINI_MODEL')[] = [];
+  if (!apiKey) missing.push('GEMINI_API_KEY');
+  if (!model) missing.push('GEMINI_MODEL');
+
+  return {
+    configured: missing.length === 0,
+    apiKey,
+    model,
+    missing,
+  };
+}
+
+/**
+ * Quick boolean check whether Gemini runtime bindings are configured.
+ * Strictly checks at request time.
+ */
+export function isGeminiConfigured(): boolean {
+  return getGeminiRuntimeConfig().configured;
+}
 
 function generateRequestId(): string {
   const timestamp = Date.now().toString(36);
@@ -79,8 +169,21 @@ export async function callGeminiApi({
   maxRetries = 3,
 }: GeminiCallParams): Promise<GeminiResult> {
   const requestId = generateRequestId();
-  const cleanModel = model.trim();
-  const cleanKey = apiKey.trim();
+
+  // Dynamically resolve runtime config if parameters are not explicitly passed
+  const runtime = getGeminiRuntimeConfig();
+  const cleanModel = (model || runtime.model || '').trim();
+  const cleanKey = (apiKey || runtime.apiKey || '').trim();
+
+  if (!cleanModel || !cleanKey) {
+    return {
+      ok: false,
+      error: 'Penyedia AI belum dikonfigurasi. Pastikan GEMINI_API_KEY dan GEMINI_MODEL telah diatur di environment server.',
+      status: 503,
+      code: 'GEMINI_UNCONFIGURED',
+      requestId,
+    };
+  }
 
   // Official endpoint without API key in query string
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(cleanModel)}:generateContent`;
