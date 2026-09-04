@@ -1,85 +1,121 @@
-import { RESEARCH_OUTPUTS } from "@/lib/hcftl";
-import { BookOpen, FileText, Database, History } from "lucide-react";
+import { Lora } from "next/font/google";
+
+const lora = Lora({ subsets: ["latin"], style: ["normal", "italic"] });
 
 export function ResearchOutputs() {
-  const getIcon = (label: string) => {
-    switch (label) {
-      case "Research Notes":
-        return <FileText className="w-4 h-4 text-[#7DD3FC]" />;
-      case "Formal Publications":
-        return <BookOpen className="w-4 h-4 text-[#818CF8]" />;
-      case "Open Research Releases":
-        return <Database className="w-4 h-4 text-[#34D399]" />;
-      case "Failure Log":
-        return <History className="w-4 h-4 text-amber-400" />;
-      default:
-        return null;
-    }
-  };
+  const archiveItems = [
+    {
+      index: "01",
+      title: "RESEARCH NOTES",
+      count: "000",
+      status: "No public research notes.",
+      detail:
+        "Preliminary working notes, theoretical explorations, and mathematical drafts will be archived here as research charters mature.",
+    },
+    {
+      index: "02",
+      title: "PUBLICATIONS",
+      count: "000",
+      status: "No reviewed publications.",
+      detail:
+        "Formal manuscripts require minimum Level 04 Reproducible Result verification before external peer review submission.",
+    },
+    {
+      index: "03",
+      title: "OPEN RESEARCH RELEASES",
+      count: "000",
+      status: "No public releases.",
+      detail:
+        "Executable reproduction packages, telemetry datasets, and open-source models will be released under permissive, audited licenses.",
+    },
+    {
+      index: "04",
+      title: "FAILURE RECORDS",
+      count: "000",
+      status: "No recorded experiment failures.",
+      detail:
+        "HCFTL mandates publication of disproven hypotheses, null findings, and anomalies to prevent redundant dead-ends across the field.",
+    },
+  ];
 
   return (
-    <section id="research" className="py-24 border-b border-white/[0.06] bg-[#080B10]/40">
+    <section id="research" className="py-28 border-b border-white/[0.08] bg-[#080B10]/50 relative">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4">
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 pb-8 border-b border-white/[0.08] gap-6">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#7DD3FC]" />
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-2 h-2 rounded-none bg-[#7DD3FC]" />
               <span className="text-xs font-mono tracking-widest text-[#7DD3FC] uppercase">
-                09 // DISCLOSURE & OUTPUTS
+                INSTITUTIONAL LEDGER {"//"} 04 CHANNELS
               </span>
             </div>
-            <h2 className="text-2xl sm:text-4xl font-bold text-[#F4F7FA] tracking-tight">
-              Research Outputs
+            <h2 className="text-3xl sm:text-5xl font-bold text-[#F4F7FA] tracking-tight">
+              Research Archive
             </h2>
           </div>
-          <p className="text-xs font-mono text-[#A2ACB9] max-w-sm">
-            ALL PUBLIC KNOWLEDGE RELEASES, FORMAL EVALUATIONS, AND ANOMALY LOGS.
-          </p>
+          <div className="max-w-md text-left md:text-right">
+            <p className="text-xs font-mono text-[#A2ACB9] leading-relaxed">
+              PUBLIC RECORD OF ALL SCIENTIFIC WORK, BENCHMARKS, DATASETS, AND ANOMALIES.
+            </p>
+            <span className="inline-block mt-2 text-[10px] font-mono text-[#7DD3FC] uppercase tracking-wider">
+              ARCHIVE PROTOCOL: ACTIVE
+            </span>
+          </div>
         </div>
 
-        {/* Output Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-          {RESEARCH_OUTPUTS.map((out) => (
+        {/* Institutional Ledger Rows (Replacing generic card grid) */}
+        <div className="border-t border-white/[0.08] divide-y divide-white/[0.06] font-mono mb-16">
+          {archiveItems.map((item) => (
             <div
-              key={out.label}
-              className="p-6 rounded-2xl bg-[#0D1117] border border-white/[0.08] flex flex-col justify-between"
+              key={item.index}
+              className="py-8 grid grid-cols-1 md:grid-cols-12 gap-6 items-start hover:bg-white/[0.01] transition-colors px-2"
             >
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-2 rounded-lg bg-[#111720] border border-white/10">
-                    {getIcon(out.label)}
-                  </div>
-                  <span className="text-xs font-mono px-2 py-0.5 rounded bg-white/[0.04] text-[#A2ACB9] border border-white/10">
-                    {out.status}
-                  </span>
-                </div>
-
-                <h3 className="text-base font-bold text-[#F4F7FA] mb-2 font-mono">
-                  {out.label}
-                </h3>
-                <p className="text-xs text-[#A2ACB9] leading-relaxed font-light mb-6">
-                  {out.desc}
-                </p>
+              {/* Category Number & Title */}
+              <div className="md:col-span-4 flex items-center justify-between md:justify-start gap-4">
+                <span className="text-xs text-[#7DD3FC] font-bold">
+                  {item.index} {"//"}
+                </span>
+                <span className="text-base sm:text-lg font-bold text-[#F4F7FA] tracking-wider">
+                  {item.title}
+                </span>
+                <span className="md:hidden text-xs text-[#66717F] font-bold">{item.count}</span>
               </div>
 
-              <div className="pt-3 border-t border-white/[0.04] text-[11px] font-mono text-[#66717F] italic">
-                Outputs appear here post-review.
+              {/* Status and Detail */}
+              <div className="md:col-span-6 space-y-2">
+                <div className="text-sm text-[#F4F7FA] font-medium font-sans">
+                  {item.status}
+                </div>
+                <div className="text-xs text-[#A2ACB9] font-light leading-relaxed font-sans">
+                  {item.detail}
+                </div>
+              </div>
+
+              {/* Item Count */}
+              <div className="hidden md:flex md:col-span-2 justify-end">
+                <span className="text-sm font-bold text-white/30 px-3 py-1 bg-[#05070A] border border-white/[0.08]">
+                  {item.count}
+                </span>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Negative Results Statement */}
-        <div className="p-6 rounded-2xl bg-[#05070A] border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-400/80" />
-            <span className="text-sm font-mono font-medium text-[#F4F7FA]">
+        {/* Negative Results Doctrine Ledger Note */}
+        <div className="p-8 sm:p-10 bg-[#05070A] border border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="space-y-2 max-w-xl">
+            <blockquote className={`text-xl sm:text-2xl text-[#F4F7FA] font-medium ${lora.className}`}>
               &ldquo;Negative results are research results.&rdquo;
-            </span>
+            </blockquote>
+            <p className="text-xs font-mono text-[#A2ACB9] font-light">
+              Experimental falsification carries equal epistemic weight to positive confirmations.
+              HCFTL pledges zero concealment of unverified hypotheses.
+            </p>
           </div>
-          <p className="text-xs font-mono text-[#66717F]">
-            HCFTL DOCTRINE // ZERO HIDING OF ANOMALIES OR EXPERIMENT FAILURES
-          </p>
+          <div className="shrink-0 text-xs font-mono text-[#66717F] border border-white/[0.08] px-4 py-2 bg-[#080B10]">
+            HCFTL DOCTRINE // UNBIASED RECORD
+          </div>
         </div>
       </div>
     </section>
