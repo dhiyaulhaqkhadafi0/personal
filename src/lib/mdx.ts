@@ -21,6 +21,10 @@ export type BlogPostMetadata = {
   musicEnabled?: boolean;
   theme?: string;
   musicUri?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  ogImage?: string;
+  updatedAt?: string;
 };
 
 export type BlogPost = {
@@ -81,11 +85,11 @@ export function getPostBySlug(slug: string): BlogPost | null {
   try {
     const realSlug = slug.replace(/\.mdx$/, '');
     const fullPath = path.join(POSTS_DIRECTORY, `${realSlug}.mdx`);
-    
+
     if (!fs.existsSync(fullPath)) {
       return null;
     }
-    
+
     const fileContents = fs.readFileSync(fullPath, 'utf8');
     const { data, content } = matter(fileContents);
     const resolvedCover = resolveArticleCover({ ...(data as Record<string, unknown>), content });
@@ -95,6 +99,10 @@ export function getPostBySlug(slug: string): BlogPost | null {
         ...data,
         slug: realSlug,
         image: resolvedCover || undefined,
+        seoTitle: typeof data.seo_title === 'string' ? data.seo_title : undefined,
+        seoDescription: typeof data.seo_description === 'string' ? data.seo_description : undefined,
+        ogImage: typeof data.og_image === 'string' ? data.og_image : undefined,
+        updatedAt: typeof data.updated_at === 'string' ? data.updated_at : undefined,
       } as BlogPostMetadata,
       content,
       source: 'mdx',
@@ -122,6 +130,10 @@ function publishedArticleToPost(article: PublishedArticle): BlogPost {
       musicEnabled: article.music_enabled,
       theme: article.theme,
       musicUri: article.music_uri,
+      seoTitle: article.seo_title || undefined,
+      seoDescription: article.seo_description || undefined,
+      ogImage: article.og_image || undefined,
+      updatedAt: article.updated_at,
     },
     content: '',
     contentHtml: article.content_html,
@@ -198,4 +210,3 @@ export async function getRelatedPosts(currentSlug: string, category?: string, li
 
   return [...sameCategory, ...others].slice(0, limit);
 }
-
